@@ -8,7 +8,7 @@ export type CollectWindow = {
   end: Date;
 };
 
-/** A post from a licensed social feed. FinTwitTruth does not scrape X. */
+/** A post from a licensed social feed. Charoof FinTwit does not scrape X. */
 export type RawPost = {
   externalId: string;
   handle: string;

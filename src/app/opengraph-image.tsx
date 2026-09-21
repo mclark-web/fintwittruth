@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { MARK, PRODUCT_NAME } from "@/lib/brand";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -33,9 +34,9 @@ export default function OpenGraphImage() {
               fontWeight: 700,
             }}
           >
-            FT
+            {MARK}
           </div>
-          <div style={{ fontSize: 32 }}>FinTwitTruth</div>
+          <div style={{ fontSize: 32 }}>{PRODUCT_NAME}</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ fontSize: 68, lineHeight: 1.05, maxWidth: 900 }}>

@@ -7,7 +7,7 @@ import { getLeaderboard, type LeaderRow } from "@/lib/queries";
 export const metadata: Metadata = {
   title: "Leaderboard",
   description:
-    "FinTwitTruth account scoreboards. Watchlist and viral handles are ranked separately. Chad requires the top 30% and a score of at least 70.",
+    "Charoof FinTwit account scoreboards. Watchlist and viral handles are ranked separately. Chad requires the top 30% and a score of at least 70.",
 };
 
 function Board({ title, note, rows }: { title: string; note: string; rows: LeaderRow[] }) {

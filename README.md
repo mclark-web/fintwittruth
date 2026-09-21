@@ -1,6 +1,10 @@
-# FinTwitTruth
+# Charoof FinTwit
 
-FinTwitTruth is a public scoreboard for FinTwit-style bullish and bearish calls. It grades **one cohort per week**, then watches that same book age against the market.
+Charoof FinTwit is the FinTwit vertical under Charoof. It is a public scoreboard for FinTwit-style bullish and bearish calls. It grades **one cohort per week**, then watches that same book age against the market.
+
+Charoof Analysts and Charoof Sports are sibling verticals. They are not this board. Grades describe a past post against a recorded print. They are not trade signals, and they are not for sale.
+
+The npm package and the SQLite file stay named `fintwittruth`. That is the technical package name, not the public brand.
 
 This repository ships a labeled **demo**. Handles and posts are fictional. The market prints used to grade them are real historical Yahoo Finance prices for those evaluation dates. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing.
 
@@ -133,4 +137,4 @@ Draft pages, labeled “Draft for legal review” until counsel signs off:
 - `/terms` — public posts, the locked calendar, real prints, liability limitation
 - `/donate` — donation-only; a gift is not a signal and is not tax-deductible unless a later notice says so
 
-Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. FinTwitTruth is not affiliated with X, Twitter, or Yahoo Finance. The corrections address on those pages is a placeholder.
+Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. Charoof FinTwit is not affiliated with X, Twitter, or Yahoo Finance. The corrections address on those pages is a placeholder.

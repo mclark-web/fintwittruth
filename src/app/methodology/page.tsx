@@ -20,7 +20,7 @@ import {
 export const metadata: Metadata = {
   title: "Methodology",
   description:
-    "FinTwitTruth v1 grades one Wednesday-to-Sunday cohort on the Monday gap, Monday noon, Wednesday noon, and Friday noon, with a VIX factor.",
+    "Charoof FinTwit v1 grades one Wednesday-to-Sunday cohort on the Monday gap, Monday noon, Wednesday noon, and Friday noon, with a VIX factor.",
 };
 
 export default async function MethodologyPage() {
@@ -33,10 +33,10 @@ export default async function MethodologyPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <p className="text-xs uppercase tracking-wide text-muted">FinTwitTruth v1</p>
+      <p className="text-xs uppercase tracking-wide text-muted">Charoof FinTwit v1</p>
       <h1 className="mt-2 font-serif text-4xl text-ink">How a week is graded</h1>
       <p className="mt-4 text-lg text-ink/80">
-        FinTwitTruth is a scorecard. It watches one weekend of doom, crash, and melt-up calls age against
+        Charoof FinTwit is a scorecard. It watches one weekend of doom, crash, and melt-up calls age against
         recorded prints. It does not tell anyone to buy or sell because the noise was loud.
       </p>
 
@@ -320,11 +320,12 @@ export default async function MethodologyPage() {
           was fetched {PRICE_FETCHED_AT}. VIX is the Yahoo symbol ^VIX. Monday, September 7, 2026 was Labor Day.
           SPY, QQQ, and DIA have no session that day. A Yahoo VIX daily bar exists for that holiday and is not
           used as a Monday open or noon print. Wednesday, September 23 and Friday, September 25 were still ahead
-          of the fetch, so those grades stay empty. FinTwitTruth does not scrape X and does not draw a price
+          of the fetch, so those grades stay empty. Charoof FinTwit does not scrape X and does not draw a price
           when a print is missing.
         </p>
         <p className="mt-4 text-sm text-muted">
-          Scores describe how demo posts lined up with those recorded prints. They are not investment advice.{" "}
+          Scores describe how demo posts lined up with those recorded prints. They are not investment advice.
+          Charoof FinTwit is not affiliated with Yahoo Finance.{" "}
           <Link href="/disclaimer" className="text-pine underline-offset-4 hover:underline">
             Read the disclaimer
           </Link>

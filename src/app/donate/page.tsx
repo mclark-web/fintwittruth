@@ -6,7 +6,7 @@ import { CORRECTIONS_EMAIL } from "@/lib/legal";
 export const metadata: Metadata = {
   title: "Donate",
   description:
-    "Draft donation page: FinTwitTruth is free to read. A donation is not a purchase of grades or signals.",
+    "Draft donation page: Charoof FinTwit is free to read. A donation is not a purchase of grades or signals.",
 };
 
 export default function DonatePage() {
@@ -14,7 +14,7 @@ export default function DonatePage() {
     <LegalPage
       kicker="Donate"
       title="The board is free. A gift does not buy a grade."
-      lede="FinTwitTruth is donation-only. You can read every cohort, score, and readout without paying. A donation is support. It is not the price of a signal."
+      lede="Charoof FinTwit is donation-only. You can read every cohort, score, and readout without paying. A donation is support. It is not the price of a signal."
     >
       <div className="panel p-5">
         <p className="text-xs uppercase tracking-wide text-muted">Checkout</p>
@@ -34,7 +34,7 @@ export default function DonatePage() {
 
       <LegalSection id="not-a-sale" title="Grades are not for sale">
         <p>
-          FinTwitTruth does not sell grades, alerts, score changes, or trading signals. A donation does not
+          Charoof FinTwit does not sell grades, alerts, score changes, or trading signals. A donation does not
           buy a better Chad or Chud mark, an earlier look at the tape, a private call, or a recommendation. It
           does not create an advisory relationship. The{" "}
           <Link href="/disclaimer" className="text-pine underline-offset-4 hover:underline">
@@ -47,14 +47,14 @@ export default function DonatePage() {
       <LegalSection id="gift" title="A donation is a gift">
         <p>
           If you donate later, you are making a voluntary gift to keep the scoreboard available. You are not
-          buying a product. Access does not depend on the gift. FinTwitTruth does not owe you a particular
+          buying a product. Access does not depend on the gift. Charoof FinTwit does not owe you a particular
           grade, a correction you prefer, or ongoing signals in return.
         </p>
       </LegalSection>
 
       <LegalSection id="tax" title="Not tax-deductible unless stated">
         <p>
-          A donation to FinTwitTruth is not tax-deductible unless a later notice on this page clearly says
+          A donation to Charoof FinTwit is not tax-deductible unless a later notice on this page clearly says
           that it is. This draft makes no such statement. Do not claim a deduction from a gift to this project
           on the strength of this page.
         </p>
@@ -62,7 +62,7 @@ export default function DonatePage() {
 
       <LegalSection id="advice" title="A gift is not advice">
         <p>
-          Donating does not make FinTwitTruth your adviser. FinTwitTruth is not a registered investment
+          Donating does not make Charoof FinTwit your adviser. Charoof FinTwit is not a registered investment
           adviser, not a broker-dealer, and not a commodity trading advisor. Grades remain opinions about past
           public posts against recorded prints, including the Chad and Chud labels. They are not instructions
           for a donor.
@@ -72,9 +72,10 @@ export default function DonatePage() {
       <LegalSection id="what-it-supports" title="What the board already is">
         <p>
           The calendar stays the same whether or not anyone gives: posts from Wednesday at 12:00 PM
-          America/New_York through Sunday at 5:00 PM America/New_York, graded Monday, Wednesday, and Friday at
-          12:00 PM America/New_York. Outcomes are recorded market prints. The shipped posts are a labeled demo.
-          Only public posts belong on the board. FinTwitTruth is not affiliated with X or Twitter.
+          America/New_York through Sunday at 5:00 PM America/New_York, graded on the Monday regular-session open
+          and at Monday, Wednesday, and Friday noon. A closed session stays blank. Outcomes are recorded market
+          prints, including VIX. The shipped posts are a labeled demo.
+          Only public posts belong on the board. Charoof FinTwit is not affiliated with X or Twitter.
         </p>
         <p>
           The{" "}

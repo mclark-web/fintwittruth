@@ -6,7 +6,7 @@ import { CORRECTIONS_EMAIL } from "@/lib/legal";
 export const metadata: Metadata = {
   title: "Terms",
   description:
-    "Draft terms for FinTwitTruth: free scoreboard, donation-only, public posts, and a limitation of liability.",
+    "Draft terms for Charoof FinTwit: free scoreboard, donation-only, public posts, and a limitation of liability.",
 };
 
 export default function TermsPage() {
@@ -14,11 +14,11 @@ export default function TermsPage() {
     <LegalPage
       kicker="Terms of use"
       title="Terms for reading the board."
-      lede="These terms say what FinTwitTruth is, what a grade means, and what a payment does not buy. They are a draft for legal review."
+      lede="These terms say what Charoof FinTwit is, what a grade means, and what a payment does not buy. They are a draft for legal review."
     >
       <LegalSection id="agreement" title="Using the site">
         <p>
-          If you read FinTwitTruth, you are using it on these terms. If you do not agree with them, do not use
+          If you read Charoof FinTwit, you are using it on these terms. If you do not agree with them, do not use
           the site. The{" "}
           <Link href="/disclaimer" className="text-pine underline-offset-4 hover:underline">
             disclaimer
@@ -29,9 +29,10 @@ export default function TermsPage() {
 
       <LegalSection id="service" title="What the service is">
         <p>
-          FinTwitTruth publishes a weekly scoreboard. It collects one cohort of bullish and bearish calls,
-          then grades that same cohort three times. It is a reading of public commentary against recorded
-          market prints. It is not a broker, a signal service, or a feed sold by the post.
+          Charoof FinTwit publishes a weekly scoreboard. It collects one cohort of bullish and bearish calls,
+          then grades that same cohort at the Monday open and at Monday, Wednesday, and Friday noon. It is a
+          reading of public commentary against recorded market prints. It is not a broker, a signal service, or
+          a feed sold by the post.
         </p>
       </LegalSection>
 
@@ -41,23 +42,24 @@ export default function TermsPage() {
           The posts in that window are one cohort. The cohort does not grow after Sunday.
         </p>
         <p>
-          Readouts, all at 12:00 PM America/New_York, on that same cohort: Monday (initial grade), Wednesday
-          (mid-week update), and Friday (final grade). Wednesday at 12:00 PM also opens the next collect
-          window. That is a new cohort. The Wednesday grade still belongs to the book that closed the previous
-          Sunday.
+          Readouts on that same cohort: Monday at 9:30 AM America/New_York (the gap, from Friday&apos;s adjusted
+          close to the regular-session open), then Monday, Wednesday, and Friday at 12:00 PM America/New_York.
+          Wednesday at 12:00 PM also opens the next collect window. That is a new cohort. The Wednesday grade
+          still belongs to the book that closed the previous Sunday. A closed session stays blank.
         </p>
       </LegalSection>
 
       <LegalSection id="public" title="Public posts only">
         <p>
-          The board is limited to posts that are public. FinTwitTruth does not seek private messages, direct
+          The board is limited to posts that are public. Charoof FinTwit does not seek private messages, direct
           messages, closed groups, or paid rooms. Do not send non-public material to the corrections address
           and expect it to be graded. A live feed, if one is added later, has to stay inside public posts and
           a licensed source. The site does not scrape X or Twitter.
         </p>
         <p>
-          FinTwitTruth is not affiliated with, endorsed by, or a product of X or Twitter. “FinTwit” describes
-          a public style of commentary.
+          Charoof FinTwit is the FinTwit vertical under Charoof, alongside Charoof Analysts and Charoof Sports.
+          It is not affiliated with, endorsed by, or a product of X or Twitter. “FinTwit” describes a public
+          style of commentary.
         </p>
       </LegalSection>
 
@@ -84,7 +86,7 @@ export default function TermsPage() {
 
       <LegalSection id="advice" title="Not advice and not an adviser">
         <p>
-          FinTwitTruth does not give investment, financial, trading, or tax advice. It is not a registered
+          Charoof FinTwit does not give investment, financial, trading, or tax advice. It is not a registered
           investment adviser, not a broker-dealer, and not a commodity trading advisor. It does not manage
           money. You are responsible for your own decisions. Past grades are not a forecast.
         </p>
@@ -92,7 +94,7 @@ export default function TermsPage() {
 
       <LegalSection id="sale" title="Grades are not for sale">
         <p>
-          Access to the board is free. FinTwitTruth does not sell grades, score improvements, alerts,
+          Access to the board is free. Charoof FinTwit does not sell grades, score improvements, alerts,
           subscriptions, or trading signals. Paying does not change a score, a rank, or what you can read.
         </p>
       </LegalSection>
@@ -100,7 +102,7 @@ export default function TermsPage() {
       <LegalSection id="donations" title="Donations">
         <p>
           Support is donation-only. A donation is a voluntary gift. It is not the price of a signal, a grade,
-          or access. Unless FinTwitTruth later publishes a clear statement that donations are tax-deductible,
+          or access. Unless Charoof FinTwit later publishes a clear statement that donations are tax-deductible,
           they are not tax-deductible. This draft makes no such statement. Details are on the{" "}
           <Link href="/donate" className="text-pine underline-offset-4 hover:underline">
             donate
@@ -123,7 +125,7 @@ export default function TermsPage() {
 
       <LegalSection id="use" title="Acceptable use">
         <p>
-          You may read the board and share links to it. You may not present a grade as FinTwitTruth’s advice
+          You may read the board and share links to it. You may not present a grade as Charoof FinTwit’s advice
           to buy or sell, scrape the site in order to resell the grades, or remove the demo label from demo
           posts. You may not send private or unlawful material and ask for it to be published.
         </p>
@@ -132,20 +134,20 @@ export default function TermsPage() {
       <LegalSection id="warranty" title="No warranty">
         <p>
           The site is provided as-is. Prints, timestamps, and scores can be wrong, late, or revised. The demo
-          can differ from a future live feed. FinTwitTruth does not warrant that the board is complete,
+          can differ from a future live feed. Charoof FinTwit does not warrant that the board is complete,
           uninterrupted, or fit for a trading decision.
         </p>
       </LegalSection>
 
       <LegalSection id="liability" title="Limitation of liability">
         <p>
-          To the fullest extent the law allows, FinTwitTruth is not liable for trading losses, missed moves,
+          To the fullest extent the law allows, Charoof FinTwit is not liable for trading losses, missed moves,
           lost profits, or decisions you make from a grade, a badge, a Chad or Chud label, a consensus line, or
           a print. It is not liable for errors, delays, or interruptions in the board.
         </p>
         <p>
           If a claim about the site is allowed anyway, the total liability is limited to the amount you donated
-          to FinTwitTruth in the three months before the claim, or zero if you donated nothing. FinTwitTruth is
+          to Charoof FinTwit in the three months before the claim, or zero if you donated nothing. Charoof FinTwit is
           not liable for indirect, incidental, special, or consequential damages, to the extent the law allows
           that exclusion.
         </p>

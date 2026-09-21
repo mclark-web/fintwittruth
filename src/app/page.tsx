@@ -23,12 +23,12 @@ export default async function HomePage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <section className="grid items-end gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)]">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-pine">Weekly accountability board</p>
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-pine">Charoof FinTwit</p>
           <h1 className="mt-3 max-w-3xl font-serif text-5xl leading-[1.05] text-ink sm:text-6xl">
             Weekend doom and melt-up noise, graded at the open.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink/80">
-            FinTwitTruth collects one book from Wednesday noon through Sunday 5pm ET: crash calls, war panic,
+            Charoof FinTwit collects one book from Wednesday noon through Sunday 5pm ET: crash calls, war panic,
             sell-the-open posts, and euphoric melt-up calls. Monday&apos;s gap and Monday noon grade that book
             against recorded prints. Wednesday and Friday age the same book.
           </p>

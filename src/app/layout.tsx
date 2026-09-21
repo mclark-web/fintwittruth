@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Newsreader, Outfit } from "next/font/google";
 import { DemoBanner, SiteFooter, SiteHeader } from "@/components/chrome";
+import { PRODUCT_NAME } from "@/lib/brand";
 import "./globals.css";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -16,17 +17,16 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "FinTwitTruth",
-    template: "%s · FinTwitTruth",
+    default: PRODUCT_NAME,
+    template: `%s · ${PRODUCT_NAME}`,
   },
-  description:
-    "FinTwitTruth grades one weekly cohort of bullish and bearish market calls on Monday, Wednesday, and Friday.",
-  applicationName: "FinTwitTruth",
+  description: `${PRODUCT_NAME} grades one weekly cohort on the Monday gap, Monday noon, Wednesday noon, and Friday noon. Grades describe the past. They are not for sale.`,
+  applicationName: PRODUCT_NAME,
   openGraph: {
-    title: "FinTwitTruth",
+    title: PRODUCT_NAME,
     description:
-      "One weekend of calls. Graded Monday, Wednesday, and Friday against the same market path.",
-    siteName: "FinTwitTruth",
+      "One weekend of calls. Graded on the Monday gap and at Monday, Wednesday, and Friday noon. Descriptive only. Grades are not for sale.",
+    siteName: PRODUCT_NAME,
     type: "website",
   },
 };

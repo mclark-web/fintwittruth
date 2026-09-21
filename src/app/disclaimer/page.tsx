@@ -5,7 +5,7 @@ import { LegalPage, LegalSection } from "@/components/legal-page";
 export const metadata: Metadata = {
   title: "Disclaimer",
   description:
-    "Draft disclaimer: FinTwitTruth is not investment advice, not an adviser, and does not sell grades.",
+    "Draft disclaimer: Charoof FinTwit is not investment advice, not an adviser, and does not sell grades.",
 };
 
 export default function DisclaimerPage() {
@@ -13,11 +13,11 @@ export default function DisclaimerPage() {
     <LegalPage
       kicker="Disclaimer"
       title="Read this before you treat a score as a reason to trade."
-      lede="FinTwitTruth is an accountability scoreboard for a style of short, public market commentary. A grade describes a past post against a past print. It is not a recommendation."
+      lede="Charoof FinTwit is an accountability scoreboard for a style of short, public market commentary. A grade describes a past post against a past print. It is not a recommendation."
     >
       <LegalSection id="advice" title="Not investment advice">
         <p>
-          Nothing on FinTwitTruth is investment, financial, trading, legal, or tax advice. Nothing on the board
+          Nothing on Charoof FinTwit is investment, financial, trading, legal, or tax advice. Nothing on the board
           is a solicitation or an offer to buy or sell a security, future, option, or fund. A score, a badge, a
           consensus line, or a leaderboard rank is a description of the past under the published rules. It is
           not a view on what you should do next.
@@ -30,7 +30,7 @@ export default function DisclaimerPage() {
 
       <LegalSection id="ria" title="Not an adviser">
         <p>
-          FinTwitTruth is not a registered investment adviser, not a broker-dealer, and not a commodity trading
+          Charoof FinTwit is not a registered investment adviser, not a broker-dealer, and not a commodity trading
           advisor. It does not manage money, custody assets, or tailor a recommendation to any person. Reading
           the board does not create an advisory relationship.
         </p>
@@ -38,7 +38,7 @@ export default function DisclaimerPage() {
 
       <LegalSection id="sale" title="Grades are not for sale">
         <p>
-          The board is free to read. FinTwitTruth does not sell grades, alerts, subscriptions, or trading
+          The board is free to read. Charoof FinTwit does not sell grades, alerts, subscriptions, or trading
           signals. A payment, if one is accepted later, is a donation. It does not buy a score, a better rank,
           earlier access, or a signal. See{" "}
           <Link href="/donate" className="text-pine underline-offset-4 hover:underline">
@@ -80,11 +80,11 @@ export default function DisclaimerPage() {
           Grades use recorded market prices for the evaluation dates. The weekend reference is the prior Friday
           adjusted close for SPY, QQQ, and DIA, and Friday&apos;s VIX close. Monday&apos;s gap uses the
           regular-session open. Noon grades use the open of the 12:00 PM ET five-minute bar. A closed session
-          stays blank. A date that has not printed is left blank. FinTwitTruth does not invent a price path to
+          stays blank. A date that has not printed is left blank. Charoof FinTwit does not invent a price path to
           make a call look right or wrong, and it does not turn a grade into a buy or sell instruction.
         </p>
         <p>
-          Those prints come from a public market-data source named on the methodology page. FinTwitTruth is not
+          Those prints come from a public market-data source named on the methodology page. Charoof FinTwit is not
           affiliated with that source, with any exchange, or with any broker.
         </p>
       </LegalSection>
@@ -100,23 +100,25 @@ export default function DisclaimerPage() {
 
       <LegalSection id="public" title="Public posts only">
         <p>
-          FinTwitTruth is about posts that are already public. It does not ask for private messages, group
+          Charoof FinTwit is about posts that are already public. It does not ask for private messages, group
           chats, paid rooms, or anything that was not published to a public audience. A grade is not a claim
-          that FinTwitTruth was the intended reader.
+          that Charoof FinTwit was the intended reader.
         </p>
       </LegalSection>
 
       <LegalSection id="affiliation" title="No affiliation with X or Twitter">
         <p>
-          FinTwitTruth is not affiliated with, endorsed by, or a product of X or Twitter. “FinTwit” names a
-          public style of market commentary. It is not a claim of partnership. The app does not scrape X.
+          Charoof FinTwit is the FinTwit vertical under Charoof. Charoof Analysts and Charoof Sports are
+          sibling verticals and are not graded on this board. Charoof FinTwit is not affiliated with, endorsed
+          by, or a product of X or Twitter. “FinTwit” names a public style of market commentary. It is not a
+          claim of partnership. The app does not scrape X.
         </p>
       </LegalSection>
 
       <LegalSection id="liability" title="You can lose money if you trade">
         <p>
           Markets move. Data can be late or wrong. A grade can be revised when a print or a post was recorded
-          incorrectly. To the extent the law allows, FinTwitTruth is not liable for trading losses or for
+          incorrectly. To the extent the law allows, Charoof FinTwit is not liable for trading losses or for
           decisions you make from the board. The fuller limitation is in the{" "}
           <Link href="/terms" className="text-pine underline-offset-4 hover:underline">
             terms

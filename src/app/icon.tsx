@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { MARK } from "@/lib/brand";
 
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
@@ -20,7 +21,7 @@ export default function Icon() {
           letterSpacing: -0.5,
         }}
       >
-        FT
+        {MARK}
       </div>
     ),
     { ...size },
