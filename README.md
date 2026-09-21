@@ -123,4 +123,10 @@ This deploy is a read-only demo. A writable live feed should use Postgres rather
 
 ## Legal
 
-Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. FinTwitTruth is not affiliated with X, Twitter, or Yahoo Finance.
+Draft pages, labeled “Draft for legal review” until counsel signs off:
+
+- `/disclaimer` — not investment advice, not an adviser, grades not for sale
+- `/terms` — public posts, the locked calendar, real prints, liability limitation
+- `/donate` — donation-only; a gift is not a signal and is not tax-deductible unless a later notice says so
+
+Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. FinTwitTruth is not affiliated with X, Twitter, or Yahoo Finance. The corrections address on those pages is a placeholder.

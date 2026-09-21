@@ -40,12 +40,18 @@ export function SiteFooter() {
     <footer className="mt-16 border-t border-line">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
         <p>FinTwitTruth grades a weekly book of calls. It is not a broker, a signal service, or a feed from X.</p>
-        <nav aria-label="Footer" className="flex gap-4">
+        <nav aria-label="Footer" className="flex flex-wrap gap-x-4 gap-y-2">
           <Link href="/methodology" className="underline-offset-4 hover:text-ink hover:underline">
             Methodology
           </Link>
           <Link href="/disclaimer" className="underline-offset-4 hover:text-ink hover:underline">
             Disclaimer
+          </Link>
+          <Link href="/terms" className="underline-offset-4 hover:text-ink hover:underline">
+            Terms
+          </Link>
+          <Link href="/donate" className="underline-offset-4 hover:text-ink hover:underline">
+            Donate
           </Link>
         </nav>
       </div>

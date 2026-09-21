@@ -11,6 +11,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/leaderboard` },
     { url: `${base}/methodology` },
     { url: `${base}/disclaimer` },
+    { url: `${base}/terms` },
+    { url: `${base}/donate` },
     ...slugs.flatMap((slug) => [
       { url: `${base}/weeks/${slug}` },
       ...READOUTS.map((readout) => ({ url: `${base}/weeks/${slug}/${readout}` })),
