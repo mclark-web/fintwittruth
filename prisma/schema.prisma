@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id          String @id
+  handle      String @unique
+  displayName String
+  bio         String
+  posture     String
+  accent      String
+  calls       Call[]
+}
+
+model Cohort {
+  id           String   @id
+  slug         String   @unique
+  title        String
+  summary      String
+  collectStart DateTime
+  collectEnd   DateTime
+  mondayAt     DateTime
+  wednesdayAt  DateTime
+  fridayAt     DateTime
+  isLatest     Boolean  @default(false)
+  dataset      String   @default("demo")
+  calls        Call[]
+  quotes       Quote[]
+  readouts     Readout[]
+}
+
+model Quote {
+  id         String  @id
+  cohortId   String
+  symbol     String
+  name       String
+  ref        Float
+  monday     Float?
+  wednesday  Float?
+  friday     Float?
+  cohort     Cohort  @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  @@unique([cohortId, symbol])
+}
+
+model Call {
+  id          String   @id
+  cohortId    String
+  accountId   String
+  postedAt    DateTime
+  body        String
+  direction   String
+  conviction  String
+  primary     String
+  tickersJson String
+  levelsJson  String
+  explicit    Boolean
+  cohort      Cohort   @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  grades      Grade[]
+
+  @@index([cohortId])
+  @@index([accountId])
+}
+
+model Grade {
+  id                String @id
+  callId            String
+  readout           String
+  score             Int
+  badge             Int
+  directionPoints   Int
+  levelPoints       Int
+  specificityPoints Int
+  rawMovePct        Float
+  signedMovePct     Float
+  isChad            Boolean
+  isChudTerritory   Boolean
+  peerRank          Int
+  peerCount         Int
+  note              String
+  call              Call   @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@unique([callId, readout])
+  @@index([readout])
+}
+
+model Readout {
+  id                 String @id
+  cohortId           String
+  kind               String
+  status             String
+  consensusBullish   Float
+  consensusBearish   Float
+  consensusDirection String
+  realizedDirection  String
+  benchmarkSymbol    String
+  benchmarkMovePct   Float
+  chadCutoff         Int
+  narrative          String
+  cohort             Cohort @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  @@unique([cohortId, kind])
+}

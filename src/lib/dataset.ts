@@ -1,0 +1,343 @@
+import { buildCohortWindow } from "./calendar";
+import {
+  ACCOUNTS,
+  COHORTS,
+  SYMBOL_NAMES,
+  type CallSpec,
+  type CohortSpec,
+} from "./demo-data";
+import {
+  CONVICTION_WEIGHT,
+  READOUTS,
+  consensusDirection,
+  gradeNote,
+  rankPeers,
+  scoreCall,
+  tapeDirection,
+  type Conviction,
+  type Direction,
+  type Level,
+  type ReadoutKind,
+} from "./scoring";
+
+const POST_HOURS = [2, 6, 14, 22, 28, 36, 44, 52, 60, 68, 76, 84, 90, 96, 100];
+
+export type BuiltAccount = {
+  id: string;
+  handle: string;
+  displayName: string;
+  bio: string;
+  posture: string;
+  accent: string;
+};
+
+export type BuiltQuote = {
+  id: string;
+  cohortId: string;
+  symbol: string;
+  name: string;
+  ref: number;
+  monday: number | null;
+  wednesday: number | null;
+  friday: number | null;
+};
+
+export type BuiltCall = {
+  id: string;
+  cohortId: string;
+  accountId: string;
+  handle: string;
+  postedAt: Date;
+  body: string;
+  direction: Direction;
+  conviction: Conviction;
+  primary: string;
+  tickers: string[];
+  levels: Level[];
+  explicit: boolean;
+};
+
+export type BuiltGrade = {
+  id: string;
+  callId: string;
+  readout: ReadoutKind;
+  score: number;
+  badge: number;
+  directionPoints: number;
+  levelPoints: number;
+  specificityPoints: number;
+  rawMovePct: number;
+  signedMovePct: number;
+  isChad: boolean;
+  isChudTerritory: boolean;
+  peerRank: number;
+  peerCount: number;
+  note: string;
+};
+
+export type BuiltReadout = {
+  id: string;
+  cohortId: string;
+  kind: ReadoutKind;
+  status: "published" | "scheduled";
+  consensusBullish: number;
+  consensusBearish: number;
+  consensusDirection: "bullish" | "bearish" | "split";
+  realizedDirection: "bullish" | "bearish" | "flat" | "pending";
+  benchmarkSymbol: string;
+  benchmarkMovePct: number;
+  chadCutoff: number;
+  narrative: string;
+};
+
+export type BuiltCohort = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  collectStart: Date;
+  collectEnd: Date;
+  mondayAt: Date;
+  wednesdayAt: Date;
+  fridayAt: Date;
+  isLatest: boolean;
+  dataset: "demo";
+  quotes: BuiltQuote[];
+  calls: BuiltCall[];
+  grades: BuiltGrade[];
+  readouts: BuiltReadout[];
+};
+
+export type BuiltDataset = {
+  accounts: BuiltAccount[];
+  cohorts: BuiltCohort[];
+};
+
+function quoteAt(
+  quote: BuiltQuote,
+  kind: ReadoutKind,
+): number | null {
+  return quote[kind];
+}
+
+function readoutNarrative(input: {
+  kind: ReadoutKind;
+  status: "published" | "scheduled";
+  whenLabel: string;
+  consensus: "bullish" | "bearish" | "split";
+  bullishShare: number;
+  realized: "bullish" | "bearish" | "flat" | "pending";
+  move: number;
+}): string {
+  const lean = `${Math.round(input.bullishShare * 100)}% conviction-weighted bullish`;
+  if (input.status === "scheduled") {
+    return `${input.whenLabel} is not published yet. It will grade this same cohort at 12:00 PM ET. The book is already ${lean}. No new calls are added between readouts.`;
+  }
+  const pct = `${input.move >= 0 ? "+" : ""}${(input.move * 100).toFixed(2)}%`;
+  const aligned =
+    (input.consensus === "bullish" && input.realized === "bullish") ||
+    (input.consensus === "bearish" && input.realized === "bearish");
+  const relation =
+    input.consensus === "split"
+      ? "The cohort was split, so the tape is the whole story."
+      : aligned
+        ? "The crowd and the tape agree so far."
+        : "The crowd is fighting the tape so far.";
+  return `${input.whenLabel}: SPY is ${pct} from the Sunday 5:00 PM ET reference. The cohort was ${lean}. Realized tape is ${input.realized}. ${relation}`;
+}
+
+function buildCalls(spec: CohortSpec, cohortId: string, collectStart: Date): BuiltCall[] {
+  const handleOrder = ACCOUNTS.map((account) => account.handle);
+  return spec.calls.map((call) => {
+    const index = handleOrder.indexOf(call.handle);
+    const hours = POST_HOURS[index] ?? 12;
+    const postedAt = new Date(collectStart.getTime() + hours * 60 * 60 * 1000);
+    const tickers = call.tickers ?? (call.explicit ? [call.primary] : []);
+    return {
+      id: `${spec.slug}__${call.handle}`,
+      cohortId,
+      accountId: `acct_${call.handle}`,
+      handle: call.handle,
+      postedAt,
+      body: call.body,
+      direction: call.direction,
+      conviction: call.conviction,
+      primary: call.primary,
+      tickers,
+      levels: call.levels ?? [],
+      explicit: call.explicit,
+    };
+  });
+}
+
+function consensus(calls: CallSpec[] | BuiltCall[]) {
+  let bull = 0;
+  let bear = 0;
+  for (const call of calls) {
+    const weight = CONVICTION_WEIGHT[call.conviction];
+    if (call.direction === "bullish") bull += weight;
+    else bear += weight;
+  }
+  const total = bull + bear || 1;
+  const bullishShare = bull / total;
+  return {
+    consensusBullish: bullishShare,
+    consensusBearish: bear / total,
+    consensusDirection: consensusDirection(bullishShare),
+  };
+}
+
+export function buildDataset(): BuiltDataset {
+  const accounts: BuiltAccount[] = ACCOUNTS.map((account) => ({
+    id: `acct_${account.handle}`,
+    ...account,
+  }));
+
+  const cohorts = COHORTS.map((spec) => {
+    const window = buildCohortWindow(spec.monday);
+    const id = `cohort_${spec.slug}`;
+    const quotes: BuiltQuote[] = spec.quotes.map((quote) => ({
+      id: `${spec.slug}__${quote.symbol}`,
+      cohortId: id,
+      symbol: quote.symbol,
+      name: SYMBOL_NAMES[quote.symbol] ?? quote.symbol,
+      ref: quote.ref,
+      monday: quote.monday,
+      wednesday: quote.wednesday,
+      friday: quote.friday,
+    }));
+    const calls = buildCalls(spec, id, window.collectStart);
+    const lean = consensus(calls);
+    const grades: BuiltGrade[] = [];
+    const readouts: BuiltReadout[] = READOUTS.map((kind) => {
+      const whenLabel = {
+        monday: "Monday 12:00 PM ET initial grade",
+        wednesday: "Wednesday 12:00 PM ET mid-week update",
+        friday: "Friday 12:00 PM ET final grade",
+      }[kind];
+      const spy = quotes.find((quote) => quote.symbol === "SPY");
+      const price = spy ? quoteAt(spy, kind) : null;
+      const published = price != null && quotes.every((quote) => quoteAt(quote, kind) != null);
+
+      if (!published || !spy || price == null) {
+        return {
+          id: `${spec.slug}__${kind}`,
+          cohortId: id,
+          kind,
+          status: "scheduled" as const,
+          ...lean,
+          realizedDirection: "pending" as const,
+          benchmarkSymbol: "SPY",
+          benchmarkMovePct: 0,
+          chadCutoff: 0,
+          narrative: readoutNarrative({
+            kind,
+            status: "scheduled",
+            whenLabel,
+            consensus: lean.consensusDirection,
+            bullishShare: lean.consensusBullish,
+            realized: "pending",
+            move: 0,
+          }),
+        };
+      }
+
+      const scored = calls.map((call) => {
+        const quote = quotes.find((item) => item.symbol === call.primary);
+        if (!quote) {
+          throw new Error(`Missing ${call.primary} quote on ${spec.slug}`);
+        }
+        const now = quoteAt(quote, kind);
+        if (now == null) {
+          throw new Error(`Missing ${kind} price for ${call.primary} on ${spec.slug}`);
+        }
+        const parts = scoreCall(
+          {
+            direction: call.direction,
+            primary: call.primary,
+            tickers: call.tickers,
+            levels: call.levels,
+            explicit: call.explicit,
+          },
+          quote.ref,
+          now,
+        );
+        return { call, parts, tieBreak: call.handle };
+      });
+
+      const ranked = rankPeers(
+        scored.map((row) => ({
+          ...row,
+          score: row.parts.score,
+        })),
+      );
+      const chadScores = ranked.filter((row) => row.isChad).map((row) => row.score);
+      const chadCutoff = chadScores.length ? Math.min(...chadScores) : 0;
+
+      for (const row of ranked) {
+        grades.push({
+          id: `${row.call.id}__${kind}`,
+          callId: row.call.id,
+          readout: kind,
+          score: row.parts.score,
+          badge: row.parts.badge,
+          directionPoints: row.parts.directionPoints,
+          levelPoints: row.parts.levelPoints,
+          specificityPoints: row.parts.specificityPoints,
+          rawMovePct: row.parts.rawMovePct,
+          signedMovePct: row.parts.signedMovePct,
+          isChad: row.isChad,
+          isChudTerritory: row.isChudTerritory,
+          peerRank: row.peerRank,
+          peerCount: row.peerCount,
+          note: gradeNote({
+            kind,
+            direction: row.call.direction,
+            symbol: row.call.primary,
+            rawMovePct: row.parts.rawMovePct,
+            score: row.parts.score,
+          }),
+        });
+      }
+
+      const move = (price - spy.ref) / spy.ref;
+      const realized = tapeDirection(move);
+      return {
+        id: `${spec.slug}__${kind}`,
+        cohortId: id,
+        kind,
+        status: "published" as const,
+        ...lean,
+        realizedDirection: realized,
+        benchmarkSymbol: "SPY",
+        benchmarkMovePct: move,
+        chadCutoff,
+        narrative: readoutNarrative({
+          kind,
+          status: "published",
+          whenLabel,
+          consensus: lean.consensusDirection,
+          bullishShare: lean.consensusBullish,
+          realized,
+          move,
+        }),
+      };
+    });
+
+    return {
+      id,
+      slug: spec.slug,
+      title: spec.title,
+      summary: spec.summary,
+      ...window,
+      isLatest: Boolean(spec.isLatest),
+      dataset: "demo" as const,
+      quotes,
+      calls,
+      grades,
+      readouts,
+    };
+  });
+
+  return { accounts, cohorts };
+}
