@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+.vercel
+*.log
+.DS_Store
+prisma/fintwittruth.db
+prisma/fintwittruth.db-journal
+prisma/*.db
+prisma/*.db-journal
+.env.local
+.env.*.local

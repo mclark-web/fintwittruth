@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-mono: var(--font-plex), ui-monospace, monospace;
+  --color-paper: #eef3ec;
+  --color-ink: #14211b;
+  --color-pine: #14352b;
+  --color-lime: #dff56a;
+  --color-card: #fbfef9;
+  --color-line: #d3e0d4;
+  --color-bull: #0c7a45;
+  --color-bear: #a1263d;
+  --color-chad: #8a6410;
+  --color-chad-wash: #fff6d8;
+  --color-chud: #8e2340;
+  --color-chud-wash: #fdecef;
+  --color-muted: #5c6b62;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    background-image:
+      radial-gradient(ellipse at 0% -10%, rgba(223, 245, 106, 0.5), transparent 36%),
+      radial-gradient(ellipse at 100% 0%, rgba(20, 53, 43, 0.08), transparent 30%);
+  }
+
+  ::selection {
+    background: #dff56a;
+    color: #14211b;
+  }
+
+  :focus-visible {
+    outline: 2px solid #14352b;
+    outline-offset: 3px;
+  }
+}
+
+@utility panel {
+  border-radius: 1.25rem;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-card) 92%, white);
+  box-shadow: 0 1px 0 rgba(20, 33, 27, 0.04);
+}
