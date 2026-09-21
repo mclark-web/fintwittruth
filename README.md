@@ -36,9 +36,9 @@ Every published grade shows the full **0–100** score, built from:
 - **Levels (up to 25)** — targets, invalidation, support, and resistance. A busted invalidation caps this part. No level keeps a low floor.
 - **Specificity (up to 15)** — naming a ticker, a target, an invalidation, and a band.
 
-**Under 70 is Chud territory.** That line does not move with the field.
+**CH factor.** Chad means Accuracy & Discipline: the top 30% of the peer set. Chud means Uncertainty & Doubt: any score under 70. On a readout, the peer set is the calls in that cohort. On the leaderboard, it is the accounts. Ties at the Chad cutoff are included. A call can be peer Chad and still sit in Chud territory. Both marks show, and the score stays visible.
 
-**The top 30% of the peer set earns Chad.** On a readout, the peer set is the calls in that cohort. On the leaderboard, it is the accounts. Ties at the cutoff are included. A call can be peer Chad and still sit in Chud territory. Both marks show, and the score stays visible.
+Monday 12:00 PM ET is the primary weekend-noise grade. Wednesday and Friday age that same cohort.
 
 A **1–10 badge** sits beside the score. 0–9 maps to 1 (Chud end). 90–100 maps to 10 (Chad end).
 

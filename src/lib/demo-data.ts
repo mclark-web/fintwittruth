@@ -104,15 +104,15 @@ export const ACCOUNTS: AccountSpec[] = [
   {
     handle: "permapump",
     displayName: "Perma Pump",
-    bio: "Demo account. Always long the index, same destination.",
-    posture: "Perma bull",
+    bio: "Demo account. Weekend melt-up calls. Always long the index.",
+    posture: "Melt-up",
     accent: "#a16207",
   },
   {
     handle: "doomscroll",
     displayName: "Doom Scroll",
-    bio: "Demo account. Always short, crash magnets and wide stops.",
-    posture: "Perma bear",
+    bio: "Demo account. Weekend crash posts, war panic, and sell-the-open calls.",
+    posture: "Doom",
     accent: "#be123c",
   },
   {
@@ -215,9 +215,9 @@ export function renderBody(template: string, levels: Level[]): string {
 export const COHORTS: CohortSpec[] = [
   {
     slug: "2026-08-24",
-    title: "Mixed books",
+    title: "Doom versus melt-up",
     summary:
-      "A demo book of mixed bullish and bearish posts. The Sunday reference is the Friday, August 21 cash close. Monday, Wednesday, and Friday grades use the real 12:00 PM ET prints.",
+      "A demo weekend book: crash and sell-the-open posts beside euphoric melt-up calls. Grades use the Friday, August 21 cash close and the real noon prints.",
     monday: { year: 2026, month: 8, day: 24 },
     calls: [
       {
@@ -226,7 +226,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Weekend longs are trapped. SPY {target} is the magnet, with {support} as the shelf. I am wrong only through {invalidation}.",
+        body: "Markets are doomed. Sell the open. SPY {target} is the crash magnet, {support} is the shelf. I cover only if {invalidation} sticks.",
         levels: [target("SPY", -0.025), support("SPY", -0.028), invalidation("SPY", 0.01)],
       },
       {
@@ -289,7 +289,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "The dip is a gift. {target} is still the upside magnet. I am out only if {invalidation} goes.",
+        body: "Euphoric melt-up. Weekend doom is the fuel. {target} is still the upside magnet. I am out only if {invalidation} goes.",
         levels: [target("SPY", 0.02), invalidation("SPY", -0.015)],
       },
       {
@@ -358,9 +358,9 @@ export const COHORTS: CohortSpec[] = [
   },
   {
     slug: "2026-08-31",
-    title: "Tight levels",
+    title: "Panic with a pin",
     summary:
-      "Demo posts that name a pin and a stop. Whether the tape was actually pinned is whatever the recorded noon prints say.",
+      "Demo weekend posts that mix crash calls with melt-up calls and tight levels. The noon prints are the recorded tape.",
     monday: { year: 2026, month: 8, day: 31 },
     calls: [
       {
@@ -401,7 +401,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Consolidation, then markup. {target} is still the number. I am wrong under {invalidation}.",
+        body: "Melt-up after the quiet posts. {target} is still the number. I am wrong under {invalidation}.",
         levels: [target("SPY", 0.02), invalidation("SPY", -0.018)],
       },
       {
@@ -410,7 +410,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "This calm is distribution. {target} is in play. I am wrong above {invalidation}.",
+        body: "This calm is the crash setup. {target} is in play. I am wrong above {invalidation}.",
         levels: [target("SPY", -0.03), invalidation("SPY", 0.012)],
       },
       {
@@ -506,9 +506,9 @@ export const COHORTS: CohortSpec[] = [
   },
   {
     slug: "2026-09-07",
-    title: "Holiday Monday",
+    title: "Weekend doom",
     summary:
-      "Monday, September 7, 2026 was Labor Day, so that grade repeats Friday's official close. Wednesday and Friday use real noon prints. The posts are still one fictional book.",
+      "Fictional weekend posts: war panic, sell-the-open, and melt-up calls. Monday, September 7, 2026 was Labor Day, so the primary noon grade repeats Friday's official close. Wednesday and Friday use the real noon prints.",
     monday: { year: 2026, month: 9, day: 7 },
     calls: [
       {
@@ -517,7 +517,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Breakout week. {target} SPY. I trail out only if {invalidation} fails.",
+        body: "Euphoric melt-up. Weekend bears are exit liquidity. {target} SPY. I trail out only if {invalidation} fails.",
         levels: [target("SPY", 0.022), invalidation("SPY", -0.016)],
       },
       {
@@ -526,7 +526,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "NVDA",
         explicit: true,
-        body: "NVDA clears the reference and runs {target}. Megacaps lead. Wrong under {invalidation}.",
+        body: "Leaders melt up through the panic posts. NVDA {target}. Wrong under {invalidation}.",
         levels: [target("NVDA", 0.028), invalidation("NVDA", -0.018)],
       },
       {
@@ -535,7 +535,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "QQQ",
         explicit: true,
-        body: "Call wall lifts. QQQ {target} if Sunday night holds a bid. Cut under {invalidation}.",
+        body: "The doom timeline is fuel for the call wall. QQQ {target} if Sunday holds a bid. Cut under {invalidation}.",
         levels: [target("QQQ", 0.018), invalidation("QQQ", -0.01)],
       },
       {
@@ -571,7 +571,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "low",
         primary: "SPY",
         explicit: false,
-        body: "Risk is on. Don't overthink it. The tape wants higher prices.",
+        body: "The weekend timeline is loud and wrong. Melt-up. The tape wants higher prices.",
       },
       {
         handle: "doomscroll",
@@ -579,7 +579,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "The reopen is the trap. SPY {target}, with {support} as the shelf. I cover only if {invalidation} sticks.",
+        body: "WWIII weekend. Markets are doomed. Sell the open. SPY {target} is the crash magnet, {support} is the shelf. I cover only if {invalidation} sticks.",
         levels: [target("SPY", -0.024), support("SPY", -0.026), invalidation("SPY", 0.012)],
       },
       {
@@ -588,7 +588,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "QQQ",
         explicit: true,
-        body: "This is a squeeze, not a trend. QQQ back to {target}. Wrong above {invalidation}.",
+        body: "This is a crash, not a dip. QQQ back to {target}. Wrong above {invalidation}.",
         levels: [target("QQQ", -0.018), invalidation("QQQ", 0.012)],
       },
       {
@@ -597,7 +597,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Fade into {resistance}. Target {target}, shelf {support}, invalid through {invalidation}.",
+        body: "Sell the open into {resistance}. Crash target {target}, shelf {support}, invalid through {invalidation}.",
         levels: [
           target("SPY", -0.01),
           support("SPY", -0.012),
@@ -611,7 +611,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "Sell the reopen rip. {target} cash is the retrace. Stop {invalidation}.",
+        body: "Sell the open. {target} cash is the crash retrace. Stop {invalidation}.",
         levels: [target("SPY", -0.008), invalidation("SPY", 0.01)],
       },
       {
@@ -629,7 +629,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "Own the downside. Spot to {target} is enough. Hedge dies above {invalidation}.",
+        body: "Own the crash. Spot to {target} pays for the weekend panic. Hedge dies above {invalidation}.",
         levels: [target("SPY", -0.012), invalidation("SPY", 0.01)],
       },
       {
@@ -638,7 +638,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "IWM",
         explicit: true,
-        body: "Small caps will not hold a gap. {target} IWM. I am wrong above {invalidation}.",
+        body: "Small caps do not survive a war open. {target} IWM. I am wrong above {invalidation}.",
         levels: [target("IWM", -0.02), invalidation("IWM", 0.012)],
       },
       {
@@ -647,16 +647,16 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "TLT",
         explicit: true,
-        body: "If equities are leaning on fumes, bonds catch a bid toward {target}. Cut {invalidation}.",
+        body: "If the doom bid is real, bonds catch it toward {target}. Cut {invalidation}.",
         levels: [target("TLT", 0.014), invalidation("TLT", -0.012)],
       },
     ],
   },
   {
     slug: "2026-09-14",
-    title: "Second look",
+    title: "Same noise, next week",
     summary:
-      "Another fictional cohort on the real week of September 14. Bullish books and crash books are graded on the same recorded prints.",
+      "Another fictional weekend of crash calls and melt-up calls, graded on the real September 14 prints.",
     monday: { year: 2026, month: 9, day: 14 },
     calls: [
       {
@@ -683,7 +683,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Always the same trade. SPY {target}. Wrong under {invalidation}.",
+        body: "Melt-up, same trade as the weekend. SPY {target}. Wrong under {invalidation}.",
         levels: [target("SPY", 0.02), invalidation("SPY", -0.016)],
       },
       {
@@ -746,7 +746,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Last-chance short. {target}, or I am done above {invalidation}.",
+        body: "Last-chance crash call. Markets are doomed into {target}, or I am done above {invalidation}.",
         levels: [target("SPY", -0.028), invalidation("SPY", 0.01)],
       },
       {
@@ -797,9 +797,9 @@ export const COHORTS: CohortSpec[] = [
   },
   {
     slug: "2026-09-21",
-    title: "Open book",
+    title: "Open weekend book",
     summary:
-      "Monday's noon print is recorded. Wednesday, September 23 and Friday, September 25 had not printed when this history was fetched, so those grades stay scheduled.",
+      "This week's fictional doom and melt-up posts. Monday's real noon print is in. Wednesday, September 23 and Friday, September 25 had not printed when this history was fetched, so those grades stay scheduled.",
     monday: { year: 2026, month: 9, day: 21 },
     isLatest: true,
     calls: [
@@ -845,7 +845,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "{target}. Same call as always. Only a break of {invalidation} changes it.",
+        body: "Melt-up. {target}. Same weekend call as always. Only a break of {invalidation} changes it.",
         levels: [target("SPY", 0.022), invalidation("SPY", -0.018)],
       },
       {
@@ -890,7 +890,7 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Fade the reopen. SPY {target}. I cover only if {invalidation} sticks.",
+        body: "Sell the open. Markets are doomed. SPY {target}. I cover only if {invalidation} sticks.",
         levels: [target("SPY", -0.024), invalidation("SPY", 0.012)],
       },
       {

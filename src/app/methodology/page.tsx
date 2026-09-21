@@ -31,8 +31,8 @@ export default async function MethodologyPage() {
       <p className="text-xs uppercase tracking-wide text-muted">Locked calendar</p>
       <h1 className="mt-2 font-serif text-4xl text-ink">How a week is graded</h1>
       <p className="mt-4 text-lg text-ink/80">
-        FinTwitTruth does not grade three different piles of posts. It watches one weekend-positioning window
-        age against the market from Monday to Friday.
+        FinTwitTruth watches one weekend of doom, crash, and melt-up calls age against recorded prints. Monday
+        noon is the primary grade. Wednesday and Friday keep the same cohort.
       </p>
 
       <section className="mt-8" aria-labelledby="calendar">
@@ -60,11 +60,12 @@ export default async function MethodologyPage() {
             </dd>
           </div>
           <div className="panel p-4">
-            <dt className="font-medium text-ink">Monday 12:00 PM ET — initial grade</dt>
+            <dt className="font-medium text-ink">Monday 12:00 PM ET — weekend-noise grade</dt>
             <dd className="mt-1 text-sm text-muted">
-              First score after the Sunday futures reopen and the Monday morning session. The print is the open
-              of the Yahoo Finance 5-minute bar stamped 12:00 PM America/New_York. If that cash session is
-              closed, the grade repeats the prior official close. No bar is filled in.
+              The primary score. It asks whether the weekend doom, war panic, sell-the-open calls, and melt-up
+              calls survived the cash session. The print is the open of the Yahoo Finance 5-minute bar stamped
+              12:00 PM America/New_York. If that cash session is closed, the grade repeats the prior official
+              close. No bar is filled in.
             </dd>
           </div>
           <div className="panel p-4">
@@ -135,12 +136,16 @@ export default async function MethodologyPage() {
 
       <section className="mt-10" aria-labelledby="marks">
         <h2 id="marks" className="font-serif text-3xl text-ink">
-          Chad, Chud territory, and the badge
+          CH factor: Chad, Chud, and the badge
         </h2>
+        <p className="mt-3 text-ink/80">
+          Chad means Accuracy &amp; Discipline. Chud means Uncertainty &amp; Doubt. Those words are opinions
+          about a past call. The 0–100 score and the 1–10 badge stay visible beside them.
+        </p>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-ink/80">
-          <li>Under {CHUD_THRESHOLD}/100 is Chud territory. The line is absolute. It does not care how the rest of the field did.</li>
+          <li>Under {CHUD_THRESHOLD}/100 is Chud territory: Uncertainty &amp; Doubt. The line is absolute. It does not care how the rest of the field did.</li>
           <li>
-            The top {Math.round(CHAD_FRACTION * 100)}% of the peer set earns Chad. On a readout, the peer set is
+            The top {Math.round(CHAD_FRACTION * 100)}% of the peer set earns Chad: Accuracy &amp; Discipline. On a readout, the peer set is
             the calls in that cohort. On the leaderboard, the peer set is the accounts. Ties at the cutoff are
             included, so a crowded score can put slightly more than 30% in Chad.
           </li>

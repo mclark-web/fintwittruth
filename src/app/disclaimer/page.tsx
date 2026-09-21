@@ -50,10 +50,11 @@ export default function DisclaimerPage() {
 
       <LegalSection id="marks" title="Chad and Chud are opinions">
         <p>
-          “Chad” and “Chud territory” are opinion labels inside this methodology. Under 70 out of 100 is Chud
-          territory. The top 30% of a peer set earns Chad. Both can be true at once. The words are a judgment
-          about how a past call lined up with a past print. They are not a finding about a person’s character,
-          competence, or fitness, and they are not advice.
+          Chad means Accuracy &amp; Discipline. Chud means Uncertainty &amp; Doubt. Together they are the CH
+          factor: opinion labels inside this methodology. Under 70 out of 100 is Chud territory. The top 30% of
+          a peer set earns Chad. Both can be true at once. The words judge how a past call lined up with a past
+          print. They are not a finding about a person’s character, competence, or fitness, and they are not
+          advice.
         </p>
       </LegalSection>
 

@@ -21,9 +21,9 @@ export function CalendarStrip() {
   const steps = [
     { kicker: "Collect opens", title: "Wednesday", detail: "12:00 PM ET" },
     { kicker: "Collect closes", title: "Sunday", detail: "5:00 PM ET" },
-    { kicker: "Initial grade", title: "Monday", detail: "12:00 PM ET" },
-    { kicker: "Mid-week update", title: "Wednesday", detail: "12:00 PM ET" },
-    { kicker: "Final grade", title: "Friday", detail: "12:00 PM ET" },
+    { kicker: "Weekend-noise grade", title: "Monday", detail: "12:00 PM ET" },
+    { kicker: "Same cohort", title: "Wednesday", detail: "12:00 PM ET" },
+    { kicker: "Same cohort, final", title: "Friday", detail: "12:00 PM ET" },
   ];
   return (
     <ol className="grid gap-3 sm:grid-cols-5">

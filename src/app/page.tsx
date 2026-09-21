@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarStrip, Move, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { Avatar, ChudChip, PeerChip } from "@/components/score";
 import { formatPct, formatScore, formatShortDay } from "@/lib/format";
+import { CH_FACTOR, CHAD_MEANING, CHUD_MEANING } from "@/lib/labels";
 import { getFeaturedCohort, getLatestCohort, getLeaderboard, matureGrade } from "@/lib/queries";
 
 export default async function HomePage() {
@@ -23,12 +24,13 @@ export default async function HomePage() {
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.18em] text-pine">Weekly accountability board</p>
           <h1 className="mt-3 max-w-3xl font-serif text-5xl leading-[1.05] text-ink sm:text-6xl">
-            The weekend call, graded in public.
+            Weekend doom and melt-up noise, graded at the open.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink/80">
-            FinTwitTruth keeps one cohort of bullish and bearish calls on the board all week. The book is
-            collected Wednesday noon through Sunday 5pm ET, then graded Monday, Wednesday, and Friday at noon
-            against recorded market prints for those dates.
+            FinTwitTruth collects one book from Wednesday noon through Sunday 5pm ET: crash calls, war panic,
+            sell-the-open posts, and euphoric melt-up calls. Monday at noon is the primary grade — did that
+            weekend noise survive the cash session? Wednesday and Friday age the same book against recorded
+            prints.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href={latest ? `/weeks/${latest.slug}` : "/weeks"} className="rounded-full bg-pine px-5 py-2.5 text-sm font-medium text-lime">
@@ -49,14 +51,18 @@ export default async function HomePage() {
             <dd className="mt-1 font-mono text-3xl text-ink">1–10</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-muted">Chud territory</dt>
+            <dt className="text-xs uppercase tracking-wide text-muted">Chud · {CHUD_MEANING}</dt>
             <dd className="mt-1 text-sm text-ink">Any score under 70</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-muted">Chad</dt>
+            <dt className="text-xs uppercase tracking-wide text-muted">Chad · {CHAD_MEANING}</dt>
             <dd className="mt-1 text-sm text-ink">Top 30% of the peer set</dd>
           </div>
         </dl>
+        <p className="mt-4 max-w-2xl text-sm text-muted lg:col-span-2">
+          {CH_FACTOR}: Chad is {CHAD_MEANING}. Chud is {CHUD_MEANING}. Both are opinions about a past call. The
+          score stays on the card either way.
+        </p>
       </section>
 
       <section className="mt-12" aria-labelledby="calendar-heading">
@@ -64,9 +70,9 @@ export default async function HomePage() {
           One cohort. Three readouts.
         </h2>
         <p className="mt-2 max-w-3xl text-muted">
-          Monday is the first look after the Sunday futures reopen. Wednesday updates that same book. Friday
-          closes it. A new collect window opens Wednesday at noon, and it does not replace the book already
-          being graded.
+          Monday noon is the primary read on the weekend book. Wednesday and Friday keep grading that same
+          cohort. A new collect window opens Wednesday at noon, and it does not replace the book already being
+          graded.
         </p>
         <div className="mt-5">
           <CalendarStrip />

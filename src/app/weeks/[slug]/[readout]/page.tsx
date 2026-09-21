@@ -124,7 +124,7 @@ export default async function ReadoutPage({
           {calls.length} calls in this cohort
         </h2>
         <p className="mt-2 text-sm text-muted">
-          Peer Chad is the top 30% of these calls at this readout, ties at the cutoff included. Under 70/100 is Chud territory either way.
+          Chad is Accuracy &amp; Discipline: the top 30% of these calls, ties at the cutoff included. Chud is Uncertainty &amp; Doubt: under 70/100 either way.
         </p>
         <div className="mt-4 grid gap-4">
           {calls.map((call) => (

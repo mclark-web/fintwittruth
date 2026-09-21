@@ -73,10 +73,10 @@ export default function TermsPage() {
 
       <LegalSection id="marks" title="Scores and opinion labels">
         <p>
-          Every published grade shows a score from 0 to 100 and a badge from 1 to 10. Under 70 is labeled Chud
-          territory. The top 30% of the peer set is labeled Chad. Those two words are opinions about a past
-          call under the published formula. They are not statements of fact about a person’s character, and
-          they are not a recommendation to follow or fade that person.
+          Every published grade shows a score from 0 to 100 and a badge from 1 to 10. Under 70 is Chud,
+          Uncertainty &amp; Doubt. The top 30% of the peer set is Chad, Accuracy &amp; Discipline. Those labels
+          are the CH factor: opinions about a past call under the published formula. They are not statements of
+          fact about a person’s character, and they are not a recommendation to follow or fade that person.
         </p>
       </LegalSection>
 

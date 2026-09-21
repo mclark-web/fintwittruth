@@ -149,7 +149,11 @@ function readoutNarrative(input: {
       : aligned
         ? "The crowd and the tape agree so far."
         : "The crowd is fighting the tape so far.";
-  return `${input.whenLabel}: SPY is ${pct} from the Sunday 5:00 PM ET reference. The cohort was ${lean}. Realized tape is ${input.realized}. ${relation}${sessionNote}`;
+  const mondayNote =
+    input.kind === "monday"
+      ? " Monday noon is the primary read on whether the weekend doom and melt-up noise survived the cash session."
+      : "";
+  return `${input.whenLabel}: SPY is ${pct} from the Sunday 5:00 PM ET reference. The cohort was ${lean}. Realized tape is ${input.realized}. ${relation}${mondayNote}${sessionNote}`;
 }
 
 function buildCalls(
@@ -218,15 +222,25 @@ export function buildDataset(): BuiltDataset {
       wednesday: quote.wednesday,
       friday: quote.friday,
     }));
+    for (const quote of quotes) {
+      if (quote.symbol !== "SPY") continue;
+      for (const price of [quote.ref, quote.monday, quote.wednesday, quote.friday]) {
+        if (price != null && price < 700) {
+          throw new Error(
+            `Refusing SPY ${price} on ${spec.slug}. That is not a 2026 historical print.`,
+          );
+        }
+      }
+    }
     const refs = Object.fromEntries(quotes.map((quote) => [quote.symbol, quote.ref]));
     const calls = buildCalls(spec, id, window.collectStart, refs);
     const lean = consensus(calls);
     const grades: BuiltGrade[] = [];
     const readouts: BuiltReadout[] = READOUTS.map((kind) => {
       const whenLabel = {
-        monday: "Monday 12:00 PM ET initial grade",
-        wednesday: "Wednesday 12:00 PM ET mid-week update",
-        friday: "Friday 12:00 PM ET final grade",
+        monday: "Monday 12:00 PM ET weekend-noise grade",
+        wednesday: "Wednesday 12:00 PM ET update on the same weekend cohort",
+        friday: "Friday 12:00 PM ET final grade on the same weekend cohort",
       }[kind];
       const spy = quotes.find((quote) => quote.symbol === "SPY");
       const price = spy ? quoteAt(spy, kind) : null;

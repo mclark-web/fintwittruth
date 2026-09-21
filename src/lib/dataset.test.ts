@@ -126,6 +126,29 @@ test("the open week keeps future readouts empty", () => {
   assert.throws(() => officialClose("SPY", "2026-09-07"), /Refusing to invent/);
 });
 
+test("doomscroll on the September 7 cohort is graded on real SPY prints in the 760s", () => {
+  const week = data.cohorts.find((cohort) => cohort.slug === FEATURED_COHORT_SLUG);
+  assert.ok(week);
+  const spy = week.quotes.find((quote) => quote.symbol === "SPY");
+  assert.ok(spy);
+  assert.equal(spy.ref, officialClose("SPY", "2026-09-04"));
+  assert.equal(spy.monday, officialClose("SPY", "2026-09-04"));
+  assert.equal(spy.wednesday, noonOpen("SPY", "2026-09-09"));
+  assert.equal(spy.friday, noonOpen("SPY", "2026-09-11"));
+  for (const price of [spy.ref, spy.monday, spy.wednesday, spy.friday]) {
+    assert.ok(price != null && price > 740 && price < 800);
+  }
+  const call = week.calls.find((item) => item.handle === "doomscroll");
+  assert.ok(call);
+  assert.match(call.body, /WWIII|doomed|sell the open/i);
+  assert.doesNotMatch(call.body, /\b552\b|\b547\b|\b546\b|\b558\b/);
+  for (const level of call.levels) {
+    assert.ok(level.price > 740 && level.price < 820);
+  }
+  const monday = week.readouts.find((item) => item.kind === "monday");
+  assert.match(monday?.narrative ?? "", /weekend-noise grade/);
+});
+
 test("a hand-set price that misses the recorded print is rejected", () => {
   assert.throws(() => assertHistoricalPrint("SPY", "2026-09-18", "dailyClose", 557), /Refusing/);
   assert.throws(() => assertHistoricalPrint("NVDA", "2026-08-24", "noonOpen", 126.4), /Refusing/);

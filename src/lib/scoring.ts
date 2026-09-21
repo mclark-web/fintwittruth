@@ -207,9 +207,9 @@ export function gradeNote(input: {
   score: number;
 }): string {
   const when = {
-    monday: "Monday",
-    wednesday: "Wednesday",
-    friday: "Friday",
+    monday: "Monday 12:00 PM ET weekend-noise grade",
+    wednesday: "Wednesday 12:00 PM ET, same weekend cohort",
+    friday: "Friday 12:00 PM ET, same weekend cohort",
   }[input.kind];
   const pct = `${input.rawMovePct >= 0 ? "+" : ""}${(input.rawMovePct * 100).toFixed(2)}%`;
   const helped =
@@ -220,7 +220,7 @@ export function gradeNote(input: {
     (input.direction === "bearish" && input.rawMovePct >= 0.0008);
   const relation = helped ? "with" : hurt ? "against" : "flat versus";
   const territory = input.score < CHUD_THRESHOLD ? " That score is in Chud territory." : "";
-  return `${when} 12:00 PM ET: ${input.symbol} is ${pct} from the Sunday reference, ${relation} this ${input.direction} call.${territory}`;
+  return `${when}: ${input.symbol} is ${pct} from the Sunday reference, ${relation} this ${input.direction} call.${territory}`;
 }
 
 export function tapeDirection(rawMovePct: number): "bullish" | "bearish" | "flat" {
