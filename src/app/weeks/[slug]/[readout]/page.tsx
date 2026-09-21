@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CallCard } from "@/components/call-card";
-import { CohortWindow, Move, QuoteTape, ReadoutCards } from "@/components/market";
+import { CohortWindow, Move, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 import { READOUTS, type ReadoutKind } from "@/lib/scoring";
@@ -116,6 +116,7 @@ export default async function ReadoutPage({
 
       <div className="mt-6">
         <QuoteTape quotes={cohort.quotes} kind={kind} />
+        <PriceSource />
       </div>
 
       <section className="mt-8" aria-labelledby="calls-heading">

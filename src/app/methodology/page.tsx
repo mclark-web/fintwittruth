@@ -55,14 +55,16 @@ export default async function MethodologyPage() {
             <dd className="mt-1 text-sm text-muted">
               The last official cash close, frozen at the Sunday 5:00 PM ET cutoff. Equity index futures are
               shut from Friday 5:00 PM ET until Sunday 6:00 PM ET, so Sunday 5:00 PM ends the book. It is not a
-              new cash print. Every later grade measures the move from that same reference.
+              new cash print. In this demo that close is the Yahoo Finance unadjusted regular-session close of
+              the Friday before readout Monday. Every later grade measures the move from that same reference.
             </dd>
           </div>
           <div className="panel p-4">
             <dt className="font-medium text-ink">Monday 12:00 PM ET — initial grade</dt>
             <dd className="mt-1 text-sm text-muted">
-              First score after the Sunday futures reopen and the Monday morning session. This is the weekend
-              gap plus the morning, not a new set of tweets.
+              First score after the Sunday futures reopen and the Monday morning session. The print is the open
+              of the Yahoo Finance 5-minute bar stamped 12:00 PM America/New_York. If that cash session is
+              closed, the grade repeats the prior official close. No bar is filled in.
             </dd>
           </div>
           <div className="panel p-4">
@@ -227,13 +229,21 @@ export default async function MethodologyPage() {
           Where the posts come from
         </h2>
         <p className="mt-3 text-ink/80">
-          This deployment is a labeled demo. Handles, wording, and prices are fictional and stored with Prisma
-          in SQLite. FinTwitTruth does not scrape X or any ranking site. A later feed would implement the social
-          and market adapters, write into the same cohort shape, and rerun the scorer at each noon. The calendar
-          above does not change when the source changes.
+          Handles and wording in this deployment are a labeled demo. Market outcomes are not. Each grade uses
+          the Yahoo Finance print for that evaluation date, committed in{" "}
+          <span className="font-mono text-xs">src/lib/market-history.json</span> and fetched from the chart API
+          on September 21, 2026. The Friday reference is the unadjusted regular-session close. Monday, Wednesday,
+          and Friday grades are the open of the 5-minute bar at 12:00 PM ET. Yahoo&apos;s dividend-adjusted close
+          is stored beside the official close and is not used, because the noon bars are not dividend-adjusted.
+          Monday, September 7, 2026 was Labor Day, so that readout repeats the September 4 close. Wednesday,
+          September 23 and Friday, September 25 were still ahead of the fetch, so those grades stay empty.
+          FinTwitTruth does not scrape X or any ranking site, and it does not draw a price path when a print is
+          missing. A later feed would implement the social and market adapters, write into the same cohort shape,
+          and rerun the scorer at each noon. The calendar above does not change when the source changes.
         </p>
         <p className="mt-4 text-sm text-muted">
-          Scores describe past demo prints. They are not investment advice, and a hot week is not a forecast.{" "}
+          Scores describe how fictional posts lined up with those recorded prints. They are not investment advice,
+          and a past week is not a forecast. FinTwitTruth is not affiliated with Yahoo Finance.{" "}
           <Link href="/disclaimer" className="text-pine underline-offset-4 hover:underline">
             Read the disclaimer
           </Link>

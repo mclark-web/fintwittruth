@@ -1,4 +1,4 @@
-import type { Conviction, Direction, LevelRole } from "./scoring";
+import type { Conviction, Direction, Level, LevelRole } from "./scoring";
 
 export const FEATURED_COHORT_SLUG = "2026-09-07";
 export const LATEST_COHORT_SLUG = "2026-09-21";
@@ -12,6 +12,8 @@ export const SYMBOL_NAMES: Record<string, string> = {
   MSFT: "Microsoft",
   TLT: "20+ Year Treasury ETF",
 };
+
+export const SYMBOLS = Object.keys(SYMBOL_NAMES);
 
 export type AccountSpec = {
   handle: string;
@@ -129,10 +131,11 @@ export const ACCOUNTS: AccountSpec[] = [
   },
 ];
 
-export type LevelSpec = {
+/** A fictional stated level, as a fraction of that week's real Sunday reference. */
+export type LevelOffset = {
   symbol: string;
-  price: number;
   role: LevelRole;
+  pct: number;
 };
 
 export type CallSpec = {
@@ -141,17 +144,10 @@ export type CallSpec = {
   conviction: Conviction;
   primary: string;
   explicit: boolean;
+  /** Placeholders {target} {invalidation} {support} {resistance} fill from the real reference. */
   body: string;
-  levels?: LevelSpec[];
+  levels?: LevelOffset[];
   tickers?: string[];
-};
-
-export type QuoteSpec = {
-  symbol: string;
-  ref: number;
-  monday: number | null;
-  wednesday: number | null;
-  friday: number | null;
 };
 
 export type CohortSpec = {
@@ -160,53 +156,69 @@ export type CohortSpec = {
   summary: string;
   monday: { year: number; month: number; day: number };
   isLatest?: boolean;
-  quotes: QuoteSpec[];
   calls: CallSpec[];
 };
 
-const target = (symbol: string, price: number): LevelSpec => ({
+const target = (symbol: string, pct: number): LevelOffset => ({ symbol, role: "target", pct });
+const invalidation = (symbol: string, pct: number): LevelOffset => ({
   symbol,
-  price,
-  role: "target",
-});
-const invalidation = (symbol: string, price: number): LevelSpec => ({
-  symbol,
-  price,
   role: "invalidation",
+  pct,
 });
-const support = (symbol: string, price: number): LevelSpec => ({
+const support = (symbol: string, pct: number): LevelOffset => ({ symbol, role: "support", pct });
+const resistance = (symbol: string, pct: number): LevelOffset => ({
   symbol,
-  price,
-  role: "support",
-});
-const resistance = (symbol: string, price: number): LevelSpec => ({
-  symbol,
-  price,
   role: "resistance",
+  pct,
 });
 
+/** Round a fictional offset onto the real reference. The reference itself is never invented. */
+export function priceFromRef(ref: number, pct: number): number {
+  return Math.round(ref * (1 + pct) * 100) / 100;
+}
+
+export function materializeLevels(
+  levels: LevelOffset[] | undefined,
+  refs: Record<string, number>,
+): Level[] {
+  return (levels ?? []).map((level) => {
+    const ref = refs[level.symbol];
+    if (ref == null) {
+      throw new Error(`No reference print for ${level.symbol}. Refusing to price a level.`);
+    }
+    if (Math.abs(level.pct) > 0.1) {
+      throw new Error(
+        `${level.symbol} ${level.role} offset ${level.pct} is too far from the recorded reference.`,
+      );
+    }
+    return { symbol: level.symbol, role: level.role, price: priceFromRef(ref, level.pct) };
+  });
+}
+
+export function renderBody(template: string, levels: Level[]): string {
+  const named: Record<string, string> = {};
+  for (const level of levels) {
+    if (!named[level.role]) named[level.role] = level.price.toFixed(2);
+  }
+  return template.replace(/\{(target|invalidation|support|resistance)\}/g, (match, role: string) => {
+    const value = named[role];
+    if (!value) throw new Error(`Call body placeholder ${match} has no stated level.`);
+    return value;
+  });
+}
+
 /**
- * Demo prices are fictional. Each cohort is one collect window
- * (Wednesday 12:00 PM ET → Sunday 5:00 PM ET) graded on the following
- * Monday, Wednesday, and Friday at 12:00 PM ET. The latest cohort has
- * only the Monday grade published.
+ * Handles and wording are fictional. Stated levels are offsets from the real
+ * Sunday reference in src/lib/market-history.json. Market outcomes are not
+ * stored here.
  */
 export const COHORTS: CohortSpec[] = [
   {
     slug: "2026-08-24",
-    title: "Hot CPI hangover",
+    title: "Mixed books",
     summary:
-      "Weekend books mixed a hot inflation print with dip-buying. The same calls slid lower through Friday.",
+      "A demo book of mixed bullish and bearish posts. The Sunday reference is the Friday, August 21 cash close. Monday, Wednesday, and Friday grades use the real 12:00 PM ET prints.",
     monday: { year: 2026, month: 8, day: 24 },
-    quotes: [
-      { symbol: "SPY", ref: 562, monday: 556.1, wednesday: 551.4, friday: 548.2 },
-      { symbol: "QQQ", ref: 486.5, monday: 479.2, wednesday: 472.8, friday: 468.4 },
-      { symbol: "IWM", ref: 221.4, monday: 217.1, wednesday: 213.6, friday: 210.8 },
-      { symbol: "NVDA", ref: 131.2, monday: 126.4, wednesday: 122.1, friday: 118.6 },
-      { symbol: "AAPL", ref: 228.4, monday: 225.1, wednesday: 222.4, friday: 220.1 },
-      { symbol: "TLT", ref: 93.8, monday: 92.4, wednesday: 91.5, friday: 90.7 },
-      { symbol: "MSFT", ref: 418, monday: 412.2, wednesday: 407.5, friday: 403.2 },
-    ],
     calls: [
       {
         handle: "doomscroll",
@@ -214,8 +226,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Hot print, weekend longs are trapped. SPY 545 is the magnet. I am wrong only through 566.",
-        levels: [target("SPY", 545), support("SPY", 547), invalidation("SPY", 566)],
+        body: "Weekend longs are trapped. SPY {target} is the magnet, with {support} as the shelf. I am wrong only through {invalidation}.",
+        levels: [target("SPY", -0.025), support("SPY", -0.028), invalidation("SPY", 0.01)],
       },
       {
         handle: "macromoth",
@@ -223,8 +235,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "QQQ",
         explicit: true,
-        body: "Real yields do the work. Nasdaq gives the squeeze back toward 470. Out above 490.",
-        levels: [target("QQQ", 470), invalidation("QQQ", 490)],
+        body: "Real yields do the work. Nasdaq gives the bid back toward {target}. Out above {invalidation}.",
+        levels: [target("QQQ", -0.022), invalidation("QQQ", 0.012)],
       },
       {
         handle: "yieldyak",
@@ -232,8 +244,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "TLT",
         explicit: true,
-        body: "The curve reprices the print. TLT 91 before anyone says slowdown. Invalid above 95.",
-        levels: [target("TLT", 91), invalidation("TLT", 95)],
+        body: "The long bond leaks toward {target} before anyone says slowdown. Invalid above {invalidation}.",
+        levels: [target("TLT", -0.015), invalidation("TLT", 0.01)],
       },
       {
         handle: "levellena",
@@ -241,8 +253,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "550 is the magnet. I want 547 tested as a shelf. The short is dead above 565.",
-        levels: [target("SPY", 550), support("SPY", 547), invalidation("SPY", 565)],
+        body: "{target} is the magnet. I want {support} tested as a shelf. The short is dead above {invalidation}.",
+        levels: [target("SPY", -0.012), support("SPY", -0.016), invalidation("SPY", 0.006)],
       },
       {
         handle: "futuresfox",
@@ -250,8 +262,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Sellers live above Friday's settle. Cash SPY rejects 563 and trades 552. Stop 566.",
-        levels: [target("SPY", 552), resistance("SPY", 563), invalidation("SPY", 566)],
+        body: "Sellers live above Friday's settle. Cash SPY rejects {resistance} and trades {target}. Stop {invalidation}.",
+        levels: [target("SPY", -0.014), resistance("SPY", 0.003), invalidation("SPY", 0.008)],
       },
       {
         handle: "volwidow",
@@ -259,8 +271,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "Own the downside convexity. Spot does not need a crash, just a trip through 555.",
-        levels: [target("SPY", 555), invalidation("SPY", 566)],
+        body: "Own the downside convexity. Spot does not need a crash, just a trip through {target}. Hedge dies above {invalidation}.",
+        levels: [target("SPY", -0.01), invalidation("SPY", 0.007)],
       },
       {
         handle: "creditcrab",
@@ -268,8 +280,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "IWM",
         explicit: true,
-        body: "Credit is quieter than equities admit. Small caps wear it first. IWM 212, wrong above 224.",
-        levels: [target("IWM", 212), invalidation("IWM", 224)],
+        body: "Credit is quieter than equities admit. Small caps wear it first. IWM {target}, wrong above {invalidation}.",
+        levels: [target("IWM", -0.02), invalidation("IWM", 0.01)],
       },
       {
         handle: "permapump",
@@ -277,8 +289,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "The dip is a gift. 575 is still the upside magnet. I am out only if 558 goes.",
-        levels: [target("SPY", 575), invalidation("SPY", 558)],
+        body: "The dip is a gift. {target} is still the upside magnet. I am out only if {invalidation} goes.",
+        levels: [target("SPY", 0.02), invalidation("SPY", -0.015)],
       },
       {
         handle: "nasdaqnun",
@@ -286,8 +298,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "NVDA",
         explicit: true,
-        body: "Leaders do not die on one CPI print. NVDA 140 this week. Wrong under 125.",
-        levels: [target("NVDA", 140), invalidation("NVDA", 125)],
+        body: "Leaders do not die on one weekend. NVDA {target} this week. Wrong under {invalidation}.",
+        levels: [target("NVDA", 0.03), invalidation("NVDA", -0.02)],
       },
       {
         handle: "gammagoblin",
@@ -295,8 +307,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "QQQ",
         explicit: true,
-        body: "Call-wall squeeze through 490 into 495 if the Sunday reopen is firm. Cut under 480.",
-        levels: [target("QQQ", 495), invalidation("QQQ", 480)],
+        body: "Call-wall squeeze into {target} if the Sunday reopen is firm. Cut under {invalidation}.",
+        levels: [target("QQQ", 0.016), invalidation("QQQ", -0.01)],
       },
       {
         handle: "dividenddruid",
@@ -304,8 +316,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "AAPL",
         explicit: true,
-        body: "Buy quality on the flush. Apple holds 224 and grinds to 232. I leave under 220.",
-        levels: [target("AAPL", 232), support("AAPL", 224), invalidation("AAPL", 220)],
+        body: "Buy quality on the flush. Apple holds {support} and grinds to {target}. I leave under {invalidation}.",
+        levels: [target("AAPL", 0.012), support("AAPL", -0.008), invalidation("AAPL", -0.015)],
       },
       {
         handle: "smallcapsam",
@@ -313,8 +325,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "IWM",
         explicit: true,
-        body: "Breadth catch-up. IWM 228 if the print was already priced. Invalid under 216.",
-        levels: [target("IWM", 228), invalidation("IWM", 216)],
+        body: "Breadth catch-up. IWM {target} if the weekend was already priced. Invalid under {invalidation}.",
+        levels: [target("IWM", 0.018), invalidation("IWM", -0.012)],
       },
       {
         handle: "narrativened",
@@ -330,8 +342,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "A Monday gap down gets faded back toward Friday's 564 area. I bail under 555.",
-        levels: [target("SPY", 566), resistance("SPY", 564), invalidation("SPY", 555)],
+        body: "A Monday gap down gets faded back toward Friday. Target {target}, resistance {resistance}. I bail under {invalidation}.",
+        levels: [target("SPY", 0.004), resistance("SPY", 0.0015), invalidation("SPY", -0.01)],
       },
       {
         handle: "tapeworm",
@@ -339,26 +351,17 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "MSFT",
         explicit: true,
-        body: "Supply sits in megacap software. Microsoft 405 if the open cannot reclaim. Stop 422.",
-        levels: [target("MSFT", 405), invalidation("MSFT", 422)],
+        body: "Supply sits in megacap software. Microsoft {target} if the open cannot reclaim. Stop {invalidation}.",
+        levels: [target("MSFT", -0.018), invalidation("MSFT", 0.008)],
       },
     ],
   },
   {
     slug: "2026-08-31",
-    title: "Pin week",
+    title: "Tight levels",
     summary:
-      "A flat tape. Posture barely mattered. The call that named the pin was the one that cleared the line.",
+      "Demo posts that name a pin and a stop. Whether the tape was actually pinned is whatever the recorded noon prints say.",
     monday: { year: 2026, month: 8, day: 31 },
-    quotes: [
-      { symbol: "SPY", ref: 550.2, monday: 551.05, wednesday: 549.6, friday: 550.9 },
-      { symbol: "QQQ", ref: 470.4, monday: 471.1, wednesday: 469.8, friday: 470.6 },
-      { symbol: "IWM", ref: 211.5, monday: 212.2, wednesday: 210.9, friday: 211.7 },
-      { symbol: "NVDA", ref: 119.4, monday: 120.1, wednesday: 118.7, friday: 119.8 },
-      { symbol: "AAPL", ref: 221, monday: 221.8, wednesday: 220.4, friday: 221.3 },
-      { symbol: "TLT", ref: 91.2, monday: 91.05, wednesday: 91.4, friday: 91.15 },
-      { symbol: "MSFT", ref: 404.5, monday: 405.2, wednesday: 403.8, friday: 404.9 },
-    ],
     calls: [
       {
         handle: "levellena",
@@ -366,12 +369,12 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Pin at 550–551. Long against 548, resistance 551.50, target a tag of 551.",
+        body: "Pin just over Friday. Long against {support}, resistance {resistance}, target a tag of {target}. Out under {invalidation}.",
         levels: [
-          target("SPY", 551),
-          support("SPY", 549.5),
-          resistance("SPY", 551.5),
-          invalidation("SPY", 548),
+          target("SPY", 0.004),
+          support("SPY", -0.002),
+          resistance("SPY", 0.005),
+          invalidation("SPY", -0.006),
         ],
       },
       {
@@ -380,8 +383,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "Fail at 551.50 and rotate back to 549. This is not a breakdown call. Stop 552.50.",
-        levels: [target("SPY", 549), resistance("SPY", 551.5), invalidation("SPY", 552.5)],
+        body: "Fail at {resistance} and rotate back to {target}. This is not a breakdown call. Stop {invalidation}.",
+        levels: [target("SPY", -0.004), resistance("SPY", 0.003), invalidation("SPY", 0.006)],
       },
       {
         handle: "gapfade",
@@ -389,8 +392,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "QQQ",
         explicit: true,
-        body: "Fade a Monday pop back to 470 on QQQ. Resistance 472. Wrong above 473.",
-        levels: [target("QQQ", 470), resistance("QQQ", 472), invalidation("QQQ", 473)],
+        body: "Fade a Monday pop back to {target} on QQQ. Resistance {resistance}. Wrong above {invalidation}.",
+        levels: [target("QQQ", -0.002), resistance("QQQ", 0.004), invalidation("QQQ", 0.008)],
       },
       {
         handle: "permapump",
@@ -398,8 +401,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Consolidation, then markup. 560 is still the number. I am wrong under 545.",
-        levels: [target("SPY", 560), invalidation("SPY", 545)],
+        body: "Consolidation, then markup. {target} is still the number. I am wrong under {invalidation}.",
+        levels: [target("SPY", 0.02), invalidation("SPY", -0.018)],
       },
       {
         handle: "doomscroll",
@@ -407,8 +410,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "This calm is distribution. 530 is in play. I am wrong above 555.",
-        levels: [target("SPY", 530), invalidation("SPY", 555)],
+        body: "This calm is distribution. {target} is in play. I am wrong above {invalidation}.",
+        levels: [target("SPY", -0.03), invalidation("SPY", 0.012)],
       },
       {
         handle: "nasdaqnun",
@@ -416,8 +419,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "NVDA",
         explicit: true,
-        body: "NVDA bases and pushes 125. Leave it under 116.",
-        levels: [target("NVDA", 125), invalidation("NVDA", 116)],
+        body: "NVDA bases and pushes {target}. Leave it under {invalidation}.",
+        levels: [target("NVDA", 0.025), invalidation("NVDA", -0.018)],
       },
       {
         handle: "macromoth",
@@ -425,8 +428,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "QQQ",
         explicit: true,
-        body: "Leadership rolls. 460 QQQ if the pin breaks down. Invalid above 476.",
-        levels: [target("QQQ", 460), invalidation("QQQ", 476)],
+        body: "Leadership rolls. {target} on QQQ if the range breaks down. Invalid above {invalidation}.",
+        levels: [target("QQQ", -0.02), invalidation("QQQ", 0.012)],
       },
       {
         handle: "narrativened",
@@ -442,8 +445,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "TLT",
         explicit: true,
-        body: "Yields stall here. TLT back to 92. Out if 90.50 breaks.",
-        levels: [target("TLT", 92), invalidation("TLT", 90.5)],
+        body: "Yields stall here. TLT back to {target}. Out if {invalidation} breaks.",
+        levels: [target("TLT", 0.012), invalidation("TLT", -0.01)],
       },
       {
         handle: "smallcapsam",
@@ -451,8 +454,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "IWM",
         explicit: true,
-        body: "IWM holds 210.50 and squeezes toward 214. Invalid under 209.",
-        levels: [target("IWM", 214), support("IWM", 210.5), invalidation("IWM", 209)],
+        body: "IWM holds {support} and squeezes toward {target}. Invalid under {invalidation}.",
+        levels: [target("IWM", 0.014), support("IWM", -0.006), invalidation("IWM", -0.012)],
       },
       {
         handle: "volwidow",
@@ -460,8 +463,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "low",
         primary: "SPY",
         explicit: true,
-        body: "Realized stays dead, but a drift under 547 pays the hedge. Stop 553.",
-        levels: [target("SPY", 547), invalidation("SPY", 553)],
+        body: "Realized stays quiet, but a drift under {target} pays the hedge. Stop {invalidation}.",
+        levels: [target("SPY", -0.012), invalidation("SPY", 0.008)],
       },
       {
         handle: "gammagoblin",
@@ -469,8 +472,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "Gamma pins, then releases higher toward 553. I am out under 549.",
-        levels: [target("SPY", 553), invalidation("SPY", 549)],
+        body: "Gamma pins, then releases higher toward {target}. I am out under {invalidation}.",
+        levels: [target("SPY", 0.012), invalidation("SPY", -0.008)],
       },
       {
         handle: "dividenddruid",
@@ -478,8 +481,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "AAPL",
         explicit: true,
-        body: "Apple respects 220 and tags 223. I leave the add under 218.",
-        levels: [target("AAPL", 223), support("AAPL", 220), invalidation("AAPL", 218)],
+        body: "Apple respects {support} and tags {target}. I leave the add under {invalidation}.",
+        levels: [target("AAPL", 0.01), support("AAPL", -0.006), invalidation("AAPL", -0.012)],
       },
       {
         handle: "creditcrab",
@@ -487,8 +490,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "low",
         primary: "IWM",
         explicit: true,
-        body: "No credit stress, but I do not want small-cap beta. 208 if it slips. Stop 214.",
-        levels: [target("IWM", 208), invalidation("IWM", 214)],
+        body: "No credit stress, but I do not want small-cap beta. {target} if it slips. Stop {invalidation}.",
+        levels: [target("IWM", -0.016), invalidation("IWM", 0.01)],
       },
       {
         handle: "tapeworm",
@@ -496,26 +499,17 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "MSFT",
         explicit: true,
-        body: "Microsoft is a 406 magnet. Long into that print, out through 402.",
-        levels: [target("MSFT", 406), resistance("MSFT", 406.5), invalidation("MSFT", 402)],
+        body: "Microsoft is a {target} magnet. Long into that print, out through {invalidation}. Resistance sits at {resistance}.",
+        levels: [target("MSFT", 0.006), resistance("MSFT", 0.008), invalidation("MSFT", -0.01)],
       },
     ],
   },
   {
     slug: "2026-09-07",
-    title: "Gap and fade",
+    title: "Holiday Monday",
     summary:
-      "Monday looked like a breakout. Friday looked like a trap. Same calls, three grades.",
+      "Monday, September 7, 2026 was Labor Day, so that grade repeats Friday's official close. Wednesday and Friday use real noon prints. The posts are still one fictional book.",
     monday: { year: 2026, month: 9, day: 7 },
-    quotes: [
-      { symbol: "SPY", ref: 552, monday: 558.4, wednesday: 554.1, friday: 546.8 },
-      { symbol: "QQQ", ref: 472, monday: 479.5, wednesday: 474.2, friday: 466.4 },
-      { symbol: "IWM", ref: 212.8, monday: 214.6, wednesday: 213.1, friday: 209.4 },
-      { symbol: "NVDA", ref: 120.5, monday: 124.8, wednesday: 122.1, friday: 116.9 },
-      { symbol: "AAPL", ref: 222.4, monday: 226.1, wednesday: 223.8, friday: 219.5 },
-      { symbol: "TLT", ref: 91.3, monday: 90.6, wednesday: 91.1, friday: 92.4 },
-      { symbol: "MSFT", ref: 406, monday: 412.4, wednesday: 408.2, friday: 401.1 },
-    ],
     calls: [
       {
         handle: "permapump",
@@ -523,8 +517,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Breakout week. 565 SPY. I trail out only if 549 fails.",
-        levels: [target("SPY", 565), invalidation("SPY", 549)],
+        body: "Breakout week. {target} SPY. I trail out only if {invalidation} fails.",
+        levels: [target("SPY", 0.022), invalidation("SPY", -0.016)],
       },
       {
         handle: "nasdaqnun",
@@ -532,8 +526,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "NVDA",
         explicit: true,
-        body: "NVDA clears 122 and runs 128. Megacaps lead. Wrong under 118.",
-        levels: [target("NVDA", 128), invalidation("NVDA", 118)],
+        body: "NVDA clears the reference and runs {target}. Megacaps lead. Wrong under {invalidation}.",
+        levels: [target("NVDA", 0.028), invalidation("NVDA", -0.018)],
       },
       {
         handle: "gammagoblin",
@@ -541,8 +535,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "QQQ",
         explicit: true,
-        body: "Call wall lifts. QQQ 482 if Sunday night holds a bid. Cut under 470.",
-        levels: [target("QQQ", 482), invalidation("QQQ", 470)],
+        body: "Call wall lifts. QQQ {target} if Sunday night holds a bid. Cut under {invalidation}.",
+        levels: [target("QQQ", 0.018), invalidation("QQQ", -0.01)],
       },
       {
         handle: "dividenddruid",
@@ -550,8 +544,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "AAPL",
         explicit: true,
-        body: "Add Apple through the weekend. 221 holds, 228 is the ask. Leave under 218.",
-        levels: [target("AAPL", 228), support("AAPL", 221), invalidation("AAPL", 218)],
+        body: "Add Apple through the weekend. {support} holds, {target} is the ask. Leave under {invalidation}.",
+        levels: [target("AAPL", 0.014), support("AAPL", -0.008), invalidation("AAPL", -0.016)],
       },
       {
         handle: "smallcapsam",
@@ -559,8 +553,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "IWM",
         explicit: true,
-        body: "Breadth finally confirms. IWM 218. Invalid under 210.",
-        levels: [target("IWM", 218), invalidation("IWM", 210)],
+        body: "Breadth finally confirms. IWM {target}. Invalid under {invalidation}.",
+        levels: [target("IWM", 0.016), invalidation("IWM", -0.014)],
       },
       {
         handle: "tapeworm",
@@ -568,8 +562,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "MSFT",
         explicit: true,
-        body: "Opening drive continuation. Microsoft 414. I am wrong under 404.",
-        levels: [target("MSFT", 414), invalidation("MSFT", 404)],
+        body: "Opening drive continuation. Microsoft {target}. I am wrong under {invalidation}.",
+        levels: [target("MSFT", 0.012), invalidation("MSFT", -0.01)],
       },
       {
         handle: "narrativened",
@@ -585,8 +579,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "The gap is the trap. SPY 547, with 546 as the shelf. I cover only if 560 sticks.",
-        levels: [target("SPY", 547), support("SPY", 546), invalidation("SPY", 560)],
+        body: "The reopen is the trap. SPY {target}, with {support} as the shelf. I cover only if {invalidation} sticks.",
+        levels: [target("SPY", -0.024), support("SPY", -0.026), invalidation("SPY", 0.012)],
       },
       {
         handle: "macromoth",
@@ -594,8 +588,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "QQQ",
         explicit: true,
-        body: "This is a squeeze, not a trend. QQQ back to 468. Wrong above 481.",
-        levels: [target("QQQ", 468), invalidation("QQQ", 481)],
+        body: "This is a squeeze, not a trend. QQQ back to {target}. Wrong above {invalidation}.",
+        levels: [target("QQQ", -0.018), invalidation("QQQ", 0.012)],
       },
       {
         handle: "levellena",
@@ -603,12 +597,12 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Fade into 559 resistance. Target 547, shelf 546, invalid through 561.",
+        body: "Fade into {resistance}. Target {target}, shelf {support}, invalid through {invalidation}.",
         levels: [
-          target("SPY", 547),
-          support("SPY", 546),
-          resistance("SPY", 559),
-          invalidation("SPY", 561),
+          target("SPY", -0.01),
+          support("SPY", -0.012),
+          resistance("SPY", 0.008),
+          invalidation("SPY", 0.012),
         ],
       },
       {
@@ -617,8 +611,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "Sell the reopen rip. 550 cash is the retrace. Stop 559.50.",
-        levels: [target("SPY", 550), invalidation("SPY", 559.5)],
+        body: "Sell the reopen rip. {target} cash is the retrace. Stop {invalidation}.",
+        levels: [target("SPY", -0.008), invalidation("SPY", 0.01)],
       },
       {
         handle: "gapfade",
@@ -626,8 +620,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "QQQ",
         explicit: true,
-        body: "Classic weekend gap fade. QQQ back through 471. Resistance 478. Stop 481.",
-        levels: [target("QQQ", 471), resistance("QQQ", 478), invalidation("QQQ", 481)],
+        body: "Classic weekend gap fade. QQQ back through {target}. Resistance {resistance}. Stop {invalidation}.",
+        levels: [target("QQQ", -0.006), resistance("QQQ", 0.008), invalidation("QQQ", 0.014)],
       },
       {
         handle: "volwidow",
@@ -635,8 +629,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "Own the downside. Spot to 549 is enough. Hedge dies above 560.",
-        levels: [target("SPY", 549), invalidation("SPY", 560)],
+        body: "Own the downside. Spot to {target} is enough. Hedge dies above {invalidation}.",
+        levels: [target("SPY", -0.012), invalidation("SPY", 0.01)],
       },
       {
         handle: "creditcrab",
@@ -644,8 +638,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "IWM",
         explicit: true,
-        body: "Small caps will not hold a gap. 208 IWM. I am wrong above 216.",
-        levels: [target("IWM", 208), invalidation("IWM", 216)],
+        body: "Small caps will not hold a gap. {target} IWM. I am wrong above {invalidation}.",
+        levels: [target("IWM", -0.02), invalidation("IWM", 0.012)],
       },
       {
         handle: "yieldyak",
@@ -653,26 +647,17 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "TLT",
         explicit: true,
-        body: "If equities are gapping on fumes, bonds catch a bid toward 92.50. Cut 90.20.",
-        levels: [target("TLT", 92.5), invalidation("TLT", 90.2)],
+        body: "If equities are leaning on fumes, bonds catch a bid toward {target}. Cut {invalidation}.",
+        levels: [target("TLT", 0.014), invalidation("TLT", -0.012)],
       },
     ],
   },
   {
     slug: "2026-09-14",
-    title: "Quiet grind",
+    title: "Second look",
     summary:
-      "No drama. Bullish books that named levels stayed right. The crash books did not get a second act.",
+      "Another fictional cohort on the real week of September 14. Bullish books and crash books are graded on the same recorded prints.",
     monday: { year: 2026, month: 9, day: 14 },
-    quotes: [
-      { symbol: "SPY", ref: 547.5, monday: 550.2, wednesday: 553.8, friday: 556.4 },
-      { symbol: "QQQ", ref: 467.2, monday: 470.4, wednesday: 474.1, friday: 477.6 },
-      { symbol: "IWM", ref: 210.2, monday: 211.4, wednesday: 212.8, friday: 214.1 },
-      { symbol: "NVDA", ref: 117.4, monday: 119.2, wednesday: 121.8, friday: 124.5 },
-      { symbol: "AAPL", ref: 220.1, monday: 221.4, wednesday: 223.2, friday: 225 },
-      { symbol: "TLT", ref: 92.2, monday: 91.8, wednesday: 91.3, friday: 90.9 },
-      { symbol: "MSFT", ref: 402.4, monday: 405.1, wednesday: 408.4, friday: 411.2 },
-    ],
     calls: [
       {
         handle: "nasdaqnun",
@@ -680,8 +665,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "NVDA",
         explicit: true,
-        body: "Back to trend. NVDA 124. Out below 115.",
-        levels: [target("NVDA", 124), invalidation("NVDA", 115)],
+        body: "Back to trend. NVDA {target}. Out below {invalidation}.",
+        levels: [target("NVDA", 0.026), invalidation("NVDA", -0.02)],
       },
       {
         handle: "gammagoblin",
@@ -689,8 +674,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "QQQ",
         explicit: true,
-        body: "Dip gamma is long. QQQ 476. I leave it under 466.",
-        levels: [target("QQQ", 476), invalidation("QQQ", 466)],
+        body: "Dip gamma is long. QQQ {target}. I leave it under {invalidation}.",
+        levels: [target("QQQ", 0.016), invalidation("QQQ", -0.01)],
       },
       {
         handle: "permapump",
@@ -698,8 +683,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Always the same trade. SPY 558. Wrong under 544.",
-        levels: [target("SPY", 558), invalidation("SPY", 544)],
+        body: "Always the same trade. SPY {target}. Wrong under {invalidation}.",
+        levels: [target("SPY", 0.02), invalidation("SPY", -0.016)],
       },
       {
         handle: "dividenddruid",
@@ -707,8 +692,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "AAPL",
         explicit: true,
-        body: "Apple grinds to 225. 219 is the add. I am out under 216.",
-        levels: [target("AAPL", 225), support("AAPL", 219), invalidation("AAPL", 216)],
+        body: "Apple grinds to {target}. {support} is the add. I am out under {invalidation}.",
+        levels: [target("AAPL", 0.012), support("AAPL", -0.008), invalidation("AAPL", -0.016)],
       },
       {
         handle: "levellena",
@@ -716,12 +701,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Accept above 548. Target 555, supply at 556, invalid under 546.",
-        levels: [
-          target("SPY", 555),
-          resistance("SPY", 556),
-          invalidation("SPY", 546),
-        ],
+        body: "Accept above the reference. Target {target}, supply at {resistance}, invalid under {invalidation}.",
+        levels: [target("SPY", 0.01), resistance("SPY", 0.012), invalidation("SPY", -0.008)],
       },
       {
         handle: "futuresfox",
@@ -729,8 +710,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "Hold the Sunday settle and auction to 554. Cut under 546.50.",
-        levels: [target("SPY", 554), invalidation("SPY", 546.5)],
+        body: "Hold the Sunday settle and auction to {target}. Cut under {invalidation}.",
+        levels: [target("SPY", 0.008), invalidation("SPY", -0.008)],
       },
       {
         handle: "smallcapsam",
@@ -738,8 +719,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "IWM",
         explicit: true,
-        body: "IWM participates this time. 214, with support at 209. Invalid under 207.",
-        levels: [target("IWM", 214), support("IWM", 209), invalidation("IWM", 207)],
+        body: "IWM participates this time. {target}, with support at {support}. Invalid under {invalidation}.",
+        levels: [target("IWM", 0.014), support("IWM", -0.008), invalidation("IWM", -0.014)],
       },
       {
         handle: "tapeworm",
@@ -747,8 +728,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "MSFT",
         explicit: true,
-        body: "Microsoft reclaim. Target 410. Wrong under 400.",
-        levels: [target("MSFT", 410), invalidation("MSFT", 400)],
+        body: "Microsoft reclaim. Target {target}. Wrong under {invalidation}.",
+        levels: [target("MSFT", 0.014), invalidation("MSFT", -0.012)],
       },
       {
         handle: "yieldyak",
@@ -756,8 +737,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "TLT",
         explicit: true,
-        body: "Stocks up, bonds down. TLT 91. I cover above 93.",
-        levels: [target("TLT", 91), invalidation("TLT", 93)],
+        body: "Stocks up, bonds down. TLT {target}. I cover above {invalidation}.",
+        levels: [target("TLT", -0.012), invalidation("TLT", 0.01)],
       },
       {
         handle: "doomscroll",
@@ -765,8 +746,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Last-chance short. 535, or I am done above 552.",
-        levels: [target("SPY", 535), invalidation("SPY", 552)],
+        body: "Last-chance short. {target}, or I am done above {invalidation}.",
+        levels: [target("SPY", -0.028), invalidation("SPY", 0.01)],
       },
       {
         handle: "macromoth",
@@ -774,8 +755,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "QQQ",
         explicit: true,
-        body: "Fade the grind. QQQ 458. Wrong above 473.",
-        levels: [target("QQQ", 458), invalidation("QQQ", 473)],
+        body: "Fade the grind. QQQ {target}. Wrong above {invalidation}.",
+        levels: [target("QQQ", -0.02), invalidation("QQQ", 0.012)],
       },
       {
         handle: "gapfade",
@@ -783,8 +764,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "Monday strength is a fade back to 546. Resistance 551. Stop 553.",
-        levels: [target("SPY", 546), resistance("SPY", 551), invalidation("SPY", 553)],
+        body: "Monday strength is a fade back to {target}. Resistance {resistance}. Stop {invalidation}.",
+        levels: [target("SPY", -0.006), resistance("SPY", 0.004), invalidation("SPY", 0.008)],
       },
       {
         handle: "volwidow",
@@ -792,8 +773,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "low",
         primary: "QQQ",
         explicit: true,
-        body: "Hedge the grind. QQQ 465 pays for the puts. Hedge off above 475.",
-        levels: [target("QQQ", 465), invalidation("QQQ", 475)],
+        body: "Hedge the grind. QQQ {target} pays for the puts. Hedge off above {invalidation}.",
+        levels: [target("QQQ", -0.012), invalidation("QQQ", 0.01)],
       },
       {
         handle: "creditcrab",
@@ -801,8 +782,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "low",
         primary: "SPY",
         explicit: true,
-        body: "Not brave, just long the index into 552 with a tight line at 545.",
-        levels: [target("SPY", 552), invalidation("SPY", 545)],
+        body: "Not brave, just long the index into {target} with a tight line at {invalidation}.",
+        levels: [target("SPY", 0.006), invalidation("SPY", -0.008)],
       },
       {
         handle: "narrativened",
@@ -816,20 +797,11 @@ export const COHORTS: CohortSpec[] = [
   },
   {
     slug: "2026-09-21",
-    title: "Reopen bid",
+    title: "Open book",
     summary:
-      "The newest cohort. Monday's initial grade is in. Wednesday and Friday are still on the clock.",
+      "Monday's noon print is recorded. Wednesday, September 23 and Friday, September 25 had not printed when this history was fetched, so those grades stay scheduled.",
     monday: { year: 2026, month: 9, day: 21 },
     isLatest: true,
-    quotes: [
-      { symbol: "SPY", ref: 557, monday: 560.3, wednesday: null, friday: null },
-      { symbol: "QQQ", ref: 478.4, monday: 481.9, wednesday: null, friday: null },
-      { symbol: "IWM", ref: 214.6, monday: 215.4, wednesday: null, friday: null },
-      { symbol: "NVDA", ref: 125.2, monday: 127.4, wednesday: null, friday: null },
-      { symbol: "AAPL", ref: 225.4, monday: 226.8, wednesday: null, friday: null },
-      { symbol: "TLT", ref: 90.7, monday: 90.2, wednesday: null, friday: null },
-      { symbol: "MSFT", ref: 412, monday: 415.2, wednesday: null, friday: null },
-    ],
     calls: [
       {
         handle: "levellena",
@@ -837,8 +809,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Sunday settle holds. Target 560, support 556, invalid under 553.",
-        levels: [target("SPY", 560), support("SPY", 556), invalidation("SPY", 553)],
+        body: "Sunday settle holds. Target {target}, support {support}, invalid under {invalidation}.",
+        levels: [target("SPY", 0.006), support("SPY", -0.004), invalidation("SPY", -0.008)],
       },
       {
         handle: "futuresfox",
@@ -846,8 +818,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "Auction toward 561. Cut the long under 555.",
-        levels: [target("SPY", 561), invalidation("SPY", 555)],
+        body: "Auction toward {target}. Cut the long under {invalidation}.",
+        levels: [target("SPY", 0.008), invalidation("SPY", -0.01)],
       },
       {
         handle: "nasdaqnun",
@@ -855,8 +827,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "NVDA",
         explicit: true,
-        body: "NVDA 130 this week. I am wrong under 122.",
-        levels: [target("NVDA", 130), invalidation("NVDA", 122)],
+        body: "NVDA {target} this week. I am wrong under {invalidation}.",
+        levels: [target("NVDA", 0.03), invalidation("NVDA", -0.02)],
       },
       {
         handle: "gammagoblin",
@@ -864,8 +836,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "QQQ",
         explicit: true,
-        body: "QQQ pushes 485 if the call wall stays bid. Out under 476.",
-        levels: [target("QQQ", 485), invalidation("QQQ", 476)],
+        body: "QQQ pushes {target} if the call wall stays bid. Out under {invalidation}.",
+        levels: [target("QQQ", 0.016), invalidation("QQQ", -0.01)],
       },
       {
         handle: "permapump",
@@ -873,8 +845,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "570. Same call as always. Only a break of 550 changes it.",
-        levels: [target("SPY", 570), invalidation("SPY", 550)],
+        body: "{target}. Same call as always. Only a break of {invalidation} changes it.",
+        levels: [target("SPY", 0.022), invalidation("SPY", -0.018)],
       },
       {
         handle: "dividenddruid",
@@ -882,8 +854,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "AAPL",
         explicit: true,
-        body: "Apple holds 224 and works toward 228. I leave under 222.",
-        levels: [target("AAPL", 228), support("AAPL", 224), invalidation("AAPL", 222)],
+        body: "Apple holds {support} and works toward {target}. I leave under {invalidation}.",
+        levels: [target("AAPL", 0.012), support("AAPL", -0.006), invalidation("AAPL", -0.012)],
       },
       {
         handle: "smallcapsam",
@@ -891,8 +863,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "IWM",
         explicit: true,
-        body: "Small caps tag along to 218. Invalid under 212.",
-        levels: [target("IWM", 218), invalidation("IWM", 212)],
+        body: "Small caps tag along to {target}. Invalid under {invalidation}.",
+        levels: [target("IWM", 0.016), invalidation("IWM", -0.012)],
       },
       {
         handle: "tapeworm",
@@ -900,8 +872,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "MSFT",
         explicit: true,
-        body: "Microsoft is a 416 print. I am wrong back through 410.",
-        levels: [target("MSFT", 416), invalidation("MSFT", 410)],
+        body: "Microsoft is a {target} print. I am wrong back through {invalidation}.",
+        levels: [target("MSFT", 0.012), invalidation("MSFT", -0.008)],
       },
       {
         handle: "yieldyak",
@@ -909,8 +881,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "TLT",
         explicit: true,
-        body: "The reopen bid leaks into bonds. TLT 89.50. Cover above 91.40.",
-        levels: [target("TLT", 89.5), invalidation("TLT", 91.4)],
+        body: "The reopen bid leaks into bonds. TLT {target}. Cover above {invalidation}.",
+        levels: [target("TLT", -0.014), invalidation("TLT", 0.01)],
       },
       {
         handle: "doomscroll",
@@ -918,8 +890,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "SPY",
         explicit: true,
-        body: "Fade the reopen. SPY 548. I cover only if 561 sticks.",
-        levels: [target("SPY", 548), invalidation("SPY", 561)],
+        body: "Fade the reopen. SPY {target}. I cover only if {invalidation} sticks.",
+        levels: [target("SPY", -0.024), invalidation("SPY", 0.012)],
       },
       {
         handle: "macromoth",
@@ -927,8 +899,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "high",
         primary: "QQQ",
         explicit: true,
-        body: "Leadership is tired. QQQ back to 470. Wrong above 483.",
-        levels: [target("QQQ", 470), invalidation("QQQ", 483)],
+        body: "Leadership is tired. QQQ back to {target}. Wrong above {invalidation}.",
+        levels: [target("QQQ", -0.018), invalidation("QQQ", 0.012)],
       },
       {
         handle: "gapfade",
@@ -936,8 +908,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "medium",
         primary: "SPY",
         explicit: true,
-        body: "Fade the Monday bid back to 555. Resistance 559. Stop 562.",
-        levels: [target("SPY", 555), resistance("SPY", 559), invalidation("SPY", 562)],
+        body: "Fade the Monday bid back to {target}. Resistance {resistance}. Stop {invalidation}.",
+        levels: [target("SPY", -0.006), resistance("SPY", 0.004), invalidation("SPY", 0.008)],
       },
       {
         handle: "volwidow",
@@ -945,8 +917,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "low",
         primary: "QQQ",
         explicit: true,
-        body: "Keep the hedge on. QQQ 476 is enough to pay for it. Off above 484.",
-        levels: [target("QQQ", 476), invalidation("QQQ", 484)],
+        body: "Keep the hedge on. QQQ {target} is enough to pay for it. Off above {invalidation}.",
+        levels: [target("QQQ", -0.008), invalidation("QQQ", 0.012)],
       },
       {
         handle: "creditcrab",
@@ -954,8 +926,8 @@ export const COHORTS: CohortSpec[] = [
         conviction: "low",
         primary: "SPY",
         explicit: true,
-        body: "Small long. Target 559, stop 554. Nothing heroic.",
-        levels: [target("SPY", 559), invalidation("SPY", 554)],
+        body: "Small long. Target {target}, stop {invalidation}. Nothing heroic.",
+        levels: [target("SPY", 0.005), invalidation("SPY", -0.008)],
       },
       {
         handle: "narrativened",

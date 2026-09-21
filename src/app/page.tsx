@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarStrip, Move, QuoteTape, ReadoutCards } from "@/components/market";
+import { CalendarStrip, Move, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { Avatar, ChudChip, PeerChip } from "@/components/score";
 import { formatPct, formatScore, formatShortDay } from "@/lib/format";
 import { getFeaturedCohort, getLatestCohort, getLeaderboard, matureGrade } from "@/lib/queries";
@@ -28,7 +28,7 @@ export default async function HomePage() {
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink/80">
             FinTwitTruth keeps one cohort of bullish and bearish calls on the board all week. The book is
             collected Wednesday noon through Sunday 5pm ET, then graded Monday, Wednesday, and Friday at noon
-            against the same market path.
+            against recorded market prints for those dates.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href={latest ? `/weeks/${latest.slug}` : "/weeks"} className="rounded-full bg-pine px-5 py-2.5 text-sm font-medium text-lime">
@@ -90,6 +90,7 @@ export default async function HomePage() {
           </div>
           <div className="mt-5">
             <QuoteTape quotes={latest.quotes} kind="latest" />
+            <PriceSource />
           </div>
           <div className="mt-4">
             <ReadoutCards slug={latest.slug} readouts={latest.readouts} />

@@ -2,10 +2,14 @@ import { buildCohortWindow } from "./calendar";
 import {
   ACCOUNTS,
   COHORTS,
+  SYMBOLS,
   SYMBOL_NAMES,
+  materializeLevels,
+  renderBody,
   type CallSpec,
   type CohortSpec,
 } from "./demo-data";
+import { quotesForCohort, sessionFor } from "./quotes";
 import {
   CONVICTION_WEIGHT,
   READOUTS,
@@ -128,12 +132,14 @@ function readoutNarrative(input: {
   bullishShare: number;
   realized: "bullish" | "bearish" | "flat" | "pending";
   move: number;
+  sessionReason?: string;
 }): string {
   const lean = `${Math.round(input.bullishShare * 100)}% conviction-weighted bullish`;
   if (input.status === "scheduled") {
     return `${input.whenLabel} is not published yet. It will grade this same cohort at 12:00 PM ET. The book is already ${lean}. No new calls are added between readouts.`;
   }
   const pct = `${input.move >= 0 ? "+" : ""}${(input.move * 100).toFixed(2)}%`;
+  const sessionNote = input.sessionReason ? ` ${input.sessionReason}` : "";
   const aligned =
     (input.consensus === "bullish" && input.realized === "bullish") ||
     (input.consensus === "bearish" && input.realized === "bearish");
@@ -143,28 +149,34 @@ function readoutNarrative(input: {
       : aligned
         ? "The crowd and the tape agree so far."
         : "The crowd is fighting the tape so far.";
-  return `${input.whenLabel}: SPY is ${pct} from the Sunday 5:00 PM ET reference. The cohort was ${lean}. Realized tape is ${input.realized}. ${relation}`;
+  return `${input.whenLabel}: SPY is ${pct} from the Sunday 5:00 PM ET reference. The cohort was ${lean}. Realized tape is ${input.realized}. ${relation}${sessionNote}`;
 }
 
-function buildCalls(spec: CohortSpec, cohortId: string, collectStart: Date): BuiltCall[] {
+function buildCalls(
+  spec: CohortSpec,
+  cohortId: string,
+  collectStart: Date,
+  refs: Record<string, number>,
+): BuiltCall[] {
   const handleOrder = ACCOUNTS.map((account) => account.handle);
   return spec.calls.map((call) => {
     const index = handleOrder.indexOf(call.handle);
     const hours = POST_HOURS[index] ?? 12;
     const postedAt = new Date(collectStart.getTime() + hours * 60 * 60 * 1000);
     const tickers = call.tickers ?? (call.explicit ? [call.primary] : []);
+    const levels = materializeLevels(call.levels, refs);
     return {
       id: `${spec.slug}__${call.handle}`,
       cohortId,
       accountId: `acct_${call.handle}`,
       handle: call.handle,
       postedAt,
-      body: call.body,
+      body: renderBody(call.body, levels),
       direction: call.direction,
       conviction: call.conviction,
       primary: call.primary,
       tickers,
-      levels: call.levels ?? [],
+      levels,
       explicit: call.explicit,
     };
   });
@@ -196,7 +208,7 @@ export function buildDataset(): BuiltDataset {
   const cohorts = COHORTS.map((spec) => {
     const window = buildCohortWindow(spec.monday);
     const id = `cohort_${spec.slug}`;
-    const quotes: BuiltQuote[] = spec.quotes.map((quote) => ({
+    const quotes: BuiltQuote[] = quotesForCohort(spec.slug, SYMBOLS).map((quote) => ({
       id: `${spec.slug}__${quote.symbol}`,
       cohortId: id,
       symbol: quote.symbol,
@@ -206,7 +218,8 @@ export function buildDataset(): BuiltDataset {
       wednesday: quote.wednesday,
       friday: quote.friday,
     }));
-    const calls = buildCalls(spec, id, window.collectStart);
+    const refs = Object.fromEntries(quotes.map((quote) => [quote.symbol, quote.ref]));
+    const calls = buildCalls(spec, id, window.collectStart, refs);
     const lean = consensus(calls);
     const grades: BuiltGrade[] = [];
     const readouts: BuiltReadout[] = READOUTS.map((kind) => {
@@ -218,6 +231,8 @@ export function buildDataset(): BuiltDataset {
       const spy = quotes.find((quote) => quote.symbol === "SPY");
       const price = spy ? quoteAt(spy, kind) : null;
       const published = price != null && quotes.every((quote) => quoteAt(quote, kind) != null);
+      const session = sessionFor(spec.slug, kind);
+      const sessionReason = session?.session === "closed" ? session.reason : undefined;
 
       if (!published || !spy || price == null) {
         return {
@@ -320,6 +335,7 @@ export function buildDataset(): BuiltDataset {
           bullishShare: lean.consensusBullish,
           realized,
           move,
+          sessionReason,
         }),
       };
     });

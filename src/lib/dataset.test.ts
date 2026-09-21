@@ -1,8 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { zonedToUtc } from "./calendar";
-import { FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG } from "./demo-data";
+import { FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG, SYMBOLS } from "./demo-data";
 import { buildDataset } from "./dataset";
+import {
+  assertHistoricalPrint,
+  noonOpen,
+  officialClose,
+  quotesForCohort,
+} from "./quotes";
 import { CHUD_THRESHOLD, scoreToBadge } from "./scoring";
 
 const data = buildDataset();
@@ -74,22 +80,53 @@ test("scores stay on 0-100 with a 1-10 badge, Chad cut, and Chud line", () => {
   }
 });
 
-test("gap-and-fade bulls lead Monday and fade by Friday", () => {
+test("every published quote is the recorded Yahoo print", () => {
+  for (const cohort of data.cohorts) {
+    const recorded = quotesForCohort(cohort.slug, SYMBOLS);
+    assert.equal(cohort.quotes.length, recorded.length);
+    for (const quote of cohort.quotes) {
+      const expected = recorded.find((item) => item.symbol === quote.symbol);
+      assert.ok(expected);
+      assert.equal(quote.ref, expected.ref);
+      assert.equal(quote.monday, expected.monday);
+      assert.equal(quote.wednesday, expected.wednesday);
+      assert.equal(quote.friday, expected.friday);
+      assertHistoricalPrint(quote.symbol, expected.refDate, "dailyClose", quote.ref);
+      for (const level of cohort.calls.filter((call) => call.primary === quote.symbol).flatMap((call) => call.levels)) {
+        assert.ok(Math.abs(level.price - quote.ref) / quote.ref <= 0.1);
+      }
+    }
+  }
+});
+
+test("Labor Day Monday repeats Friday's official close and does not invent a session", () => {
   const week = data.cohorts.find((cohort) => cohort.slug === FEATURED_COHORT_SLUG);
   assert.ok(week);
-  const grade = (handle: string, readout: "monday" | "friday") =>
-    week.grades.find((item) => item.callId.endsWith(`__${handle}`) && item.readout === readout);
-  const pumpMon = grade("permapump", "monday");
-  const pumpFri = grade("permapump", "friday");
-  const doomMon = grade("doomscroll", "monday");
-  const doomFri = grade("doomscroll", "friday");
-  assert.ok(pumpMon && pumpFri && doomMon && doomFri);
-  assert.ok(pumpMon.score > pumpFri.score);
-  assert.ok(doomFri.score > doomMon.score);
-  assert.equal(pumpMon.isChad, true);
-  assert.equal(pumpMon.isChudTerritory, false);
-  assert.equal(pumpFri.isChudTerritory, true);
-  assert.equal(doomMon.isChudTerritory, true);
-  assert.equal(doomFri.isChudTerritory, false);
-  assert.equal(doomFri.isChad, true);
+  for (const quote of week.quotes) {
+    const prior = officialClose(quote.symbol, "2026-09-04");
+    assert.equal(quote.ref, prior);
+    assert.equal(quote.monday, prior);
+    assert.throws(() => noonOpen(quote.symbol, "2026-09-07"), /Refusing to invent/);
+  }
+  const monday = week.readouts.find((item) => item.kind === "monday");
+  assert.equal(monday?.status, "published");
+  assert.equal(monday?.benchmarkMovePct, 0);
+  assert.match(monday?.narrative ?? "", /Labor Day/);
+});
+
+test("the open week keeps future readouts empty", () => {
+  const latest = data.cohorts.find((cohort) => cohort.slug === LATEST_COHORT_SLUG);
+  assert.ok(latest);
+  for (const quote of latest.quotes) {
+    assert.equal(quote.monday, noonOpen(quote.symbol, "2026-09-21"));
+    assert.equal(quote.wednesday, null);
+    assert.equal(quote.friday, null);
+  }
+  assert.throws(() => noonOpen("SPY", "2026-09-23"), /Refusing to invent/);
+  assert.throws(() => officialClose("SPY", "2026-09-07"), /Refusing to invent/);
+});
+
+test("a hand-set price that misses the recorded print is rejected", () => {
+  assert.throws(() => assertHistoricalPrint("SPY", "2026-09-18", "dailyClose", 557), /Refusing/);
+  assert.throws(() => assertHistoricalPrint("NVDA", "2026-08-24", "noonOpen", 126.4), /Refusing/);
 });

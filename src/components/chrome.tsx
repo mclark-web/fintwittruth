@@ -9,7 +9,7 @@ export function DemoBanner() {
   return (
     <div className="bg-pine text-lime">
       <p className="mx-auto max-w-6xl px-4 py-2 text-center text-sm font-medium tracking-wide">
-        Demo data — fictional accounts and prices. Not investment advice. Not affiliated with X or Twitter.
+        Demo posts — fictional accounts. Market prints are historical Yahoo Finance prices. Not investment advice. Not affiliated with X or Yahoo.
       </p>
     </div>
   );

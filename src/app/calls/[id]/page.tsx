@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PricePath } from "@/components/market";
+import { PricePath, PriceSource } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ScoreMark } from "@/components/score";
 import { formatPct, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
@@ -112,7 +112,12 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           <p className="mt-3 text-xs text-muted">Posted {formatWhen(call.postedAt)} inside the collect window.</p>
         </div>
         <div className="panel p-5">
-          {quote ? <PricePath quote={quote} /> : null}
+          {quote ? (
+            <>
+              <PricePath quote={quote} />
+              <PriceSource />
+            </>
+          ) : null}
         </div>
       </article>
 
@@ -121,8 +126,8 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           Grade evolution
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          The words do not change. Monday, Wednesday, and Friday each rescore this call against the price path
-          from the Sunday reference.
+          The words do not change. Monday, Wednesday, and Friday each rescore this call against recorded Yahoo
+          Finance prints measured from the Sunday reference.
         </p>
         <ol className="mt-4 grid gap-4 lg:grid-cols-3">
           {(["monday", "wednesday", "friday"] as const satisfies readonly ReadoutKind[]).map((kind) => {

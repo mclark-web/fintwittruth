@@ -2,7 +2,7 @@
 
 FinTwitTruth is a public scoreboard for FinTwit-style bullish and bearish calls. It grades **one cohort per week**, then watches that same book age against the market.
 
-This repository ships a labeled **demo**. Handles, posts, and prices are fictional. The app does not scrape X or any ranking site.
+This repository ships a labeled **demo**. Handles and posts are fictional. The market prints used to grade them are real historical Yahoo Finance prices for those evaluation dates. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing.
 
 ## Evaluation calendar
 
@@ -23,6 +23,8 @@ That window is one cohort. The calls do not change for the rest of the week.
 Wednesday noon is also when the **next** collect window opens. That is a new cohort. The Wednesday grade still belongs to the book that closed the previous Sunday.
 
 The reference price is the last official cash close, frozen at the Sunday 5:00 PM ET cutoff. Index futures are shut from Friday 5:00 PM ET until Sunday 6:00 PM ET, so the cutoff ends the book. It is not a new cash print. Later grades measure the move from that same reference.
+
+In the seed, that close is the Yahoo Finance **unadjusted** regular-session close (`interval=1d`, field `close`) of the Friday before readout Monday. Each Monday, Wednesday, and Friday grade is the **open** of the 5-minute bar stamped 12:00 PM America/New_York. Yahoo's dividend-adjusted close is stored next to the official close and is not used in the score, because the noon bars are not dividend-adjusted. When the cash market is closed, the readout repeats the prior official close. Monday, September 7, 2026 was Labor Day, so that grade is the September 4 close. A date with no print yet stays null. The series is committed in `src/lib/market-history.json` (chart API `query1.finance.yahoo.com`, fetched September 21, 2026). `src/lib/quotes.ts` throws if a required print is missing.
 
 The in-app methodology page states this again, and the seed includes Monday, Wednesday, and Friday boards for each finished week. The latest demo week has Monday published and Wednesday/Friday still scheduled, so you can see an open book.
 
@@ -72,11 +74,13 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Seed sources:
 
-- `src/lib/demo-data.ts` — fictional accounts, cohorts, posts, and price paths
+- `src/lib/market-history.json` — recorded Yahoo Finance closes and 12:00 PM ET prints
+- `src/lib/quotes.ts` — reads that file and refuses a missing print
+- `src/lib/demo-data.ts` — fictional accounts and posts. Stated levels are offsets from the real Sunday reference, not a made-up spot
 - `src/lib/dataset.ts` — applies the locked calendar and the scorer
 - `prisma/seed.ts` — writes the result with Prisma
 
-Finished cohorts in the demo (`2026-08-24`, `2026-08-31`, `2026-09-07`, `2026-09-14`) each have Monday, Wednesday, and Friday grades on the same calls. `2026-09-07` (“Gap and fade”) is the worked example: Monday’s bulls do not survive Friday. `2026-09-21` is the latest board: Monday is graded, Wednesday and Friday are scheduled.
+Finished cohorts in the demo (`2026-08-24`, `2026-08-31`, `2026-09-07`, `2026-09-14`) each have Monday, Wednesday, and Friday grades on the same calls. `2026-09-07` is the worked example because Monday was Labor Day: the grade uses Friday's close, and Wednesday and Friday use real noon prints. `2026-09-21` is the latest board: Monday's noon print is in, and Wednesday and Friday are still scheduled because those sessions had not happened at fetch time.
 
 Cohort slugs are the readout Monday (`YYYY-MM-DD`).
 
@@ -119,4 +123,4 @@ This deploy is a read-only demo. A writable live feed should use Postgres rather
 
 ## Legal
 
-Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and prices are fictional. FinTwitTruth is not affiliated with X or Twitter.
+Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. FinTwitTruth is not affiliated with X, Twitter, or Yahoo Finance.

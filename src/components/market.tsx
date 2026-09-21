@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { formatPct, formatPrice, formatShortDay, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
+import { PRICE_SOURCE_SHORT } from "@/lib/quotes";
 import type { QuoteView, ReadoutView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
+
+export function PriceSource() {
+  return <p className="mt-2 text-xs text-muted">{PRICE_SOURCE_SHORT}</p>;
+}
 
 export function Move({ value }: { value: number }) {
   const up = value > 0.00005;
@@ -92,7 +97,7 @@ export function PricePath({
         <span className="font-medium text-ink">
           {quote.symbol} <span className="font-normal text-muted">{quote.name}</span>
         </span>
-        <span className="text-xs text-muted">Sunday reference through each noon print</span>
+        <span className="text-xs text-muted">Sunday reference, then each recorded noon print</span>
       </figcaption>
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${quote.symbol} path from the Sunday reference`} className="w-full">
         <rect x="0" y="0" width={width} height={height} rx="16" fill="#ffffff" />

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CohortWindow, QuoteTape, ReadoutCards } from "@/components/market";
+import { CohortWindow, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { DirectionChip, PeerChip, ChudChip } from "@/components/score";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
 
@@ -59,6 +59,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
       </div>
       <div className="mt-6">
         <QuoteTape quotes={cohort.quotes} kind="latest" />
+        <PriceSource />
       </div>
       <div className="mt-4">
         <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} />
