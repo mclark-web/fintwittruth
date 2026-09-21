@@ -50,20 +50,21 @@ export default function DisclaimerPage() {
 
       <LegalSection id="marks" title="Chad and Chud are opinions">
         <p>
-          Chad means Accuracy &amp; Discipline. Chud means Uncertainty &amp; Doubt. Together they are the CH
-          factor: opinion labels inside this methodology. Under 70 out of 100 is Chud territory. The top 30% of
-          a peer set earns Chad. Both can be true at once. The words judge how a past call lined up with a past
-          print. They are not a finding about a person’s character, competence, or fitness, and they are not
-          advice.
+          Chad means Accuracy &amp; Discipline. Chud means Uncertainty &amp; Doubt. Together they are the
+          Charoof CH factor: opinion labels inside this methodology. Under 70 out of 100 is Chud territory. Chad
+          is the top 30% of a peer set and also a score of at least 70. A score under 70 is not Chad. The words
+          judge how a past call lined up with a past print. They are not a finding about a person’s character,
+          competence, or fitness, and they are not advice.
         </p>
       </LegalSection>
 
-      <LegalSection id="calendar" title="One cohort, three readouts">
+      <LegalSection id="calendar" title="One cohort, four readouts">
         <p>
           The calendar is fixed. Posts are collected from Wednesday at 12:00 PM America/New_York through Sunday
-          at 5:00 PM America/New_York. That same cohort is graded on Monday, Wednesday, and Friday, each time
-          at 12:00 PM America/New_York. Wednesday noon also opens the next collect window. That new window is a
-          different cohort. The Wednesday grade still belongs to the book that closed the previous Sunday.
+          at 5:00 PM America/New_York. That same cohort is graded on the Monday regular-session open, then at
+          12:00 PM America/New_York on Monday, Wednesday, and Friday. Wednesday noon also opens the next collect
+          window. That new window is a different cohort. The Wednesday grade still belongs to the book that
+          closed the previous Sunday.
         </p>
         <p>
           The rules are written out on the{" "}
@@ -76,10 +77,11 @@ export default function DisclaimerPage() {
 
       <LegalSection id="prints" title="Market outcomes are real prints">
         <p>
-          Grades use recorded market prices for the evaluation dates. The Sunday reference is the unadjusted
-          Friday regular-session close. Each noon grade is the open of the 12:00 PM ET five-minute bar when the
-          cash market was open. A closed session repeats the prior official close. A date that has not printed
-          is left blank. FinTwitTruth does not invent a price path to make a call look right or wrong.
+          Grades use recorded market prices for the evaluation dates. The weekend reference is the prior Friday
+          adjusted close for SPY, QQQ, and DIA, and Friday&apos;s VIX close. Monday&apos;s gap uses the
+          regular-session open. Noon grades use the open of the 12:00 PM ET five-minute bar. A closed session
+          stays blank. A date that has not printed is left blank. FinTwitTruth does not invent a price path to
+          make a call look right or wrong, and it does not turn a grade into a buy or sell instruction.
         </p>
         <p>
           Those prints come from a public market-data source named on the methodology page. FinTwitTruth is not

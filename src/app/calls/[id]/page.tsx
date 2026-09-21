@@ -6,7 +6,7 @@ import { Avatar, DirectionChip, LevelList, ScoreMark } from "@/components/score"
 import { formatPct, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
 import { getCall, listCallIds } from "@/lib/queries";
-import { DIRECTION_MAX, LEVEL_MAX, SPECIFICITY_MAX, type ReadoutKind } from "@/lib/scoring";
+import { DIRECTION_MAX, LEVEL_MAX, READOUTS, SPECIFICITY_MAX, VIX_MAX } from "@/lib/scoring";
 
 export async function generateStaticParams() {
   const ids = await listCallIds();
@@ -33,15 +33,18 @@ function Breakdown({
   directionPoints,
   levelPoints,
   specificityPoints,
+  vixPoints,
 }: {
   directionPoints: number;
   levelPoints: number;
   specificityPoints: number;
+  vixPoints: number;
 }) {
   const rows = [
-    { label: "Direction", value: directionPoints, max: DIRECTION_MAX },
+    { label: "Direction vs tape", value: directionPoints, max: DIRECTION_MAX },
     { label: "Levels", value: levelPoints, max: LEVEL_MAX },
     { label: "Specificity", value: specificityPoints, max: SPECIFICITY_MAX },
+    { label: "VIX factor", value: vixPoints, max: VIX_MAX },
   ];
   return (
     <ul className="mt-3 grid gap-2">
@@ -126,11 +129,11 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           Grade evolution
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          The words do not change. Monday, Wednesday, and Friday each rescore this call against recorded Yahoo
-          Finance prints measured from the Sunday reference.
+          The words do not change. The Monday gap, Monday noon, Wednesday, and Friday each rescore this call
+          against recorded prints measured from Friday&apos;s adjusted close.
         </p>
-        <ol className="mt-4 grid gap-4 lg:grid-cols-3">
-          {(["monday", "wednesday", "friday"] as const satisfies readonly ReadoutKind[]).map((kind) => {
+        <ol className="mt-4 grid gap-4 lg:grid-cols-2">
+          {READOUTS.map((kind) => {
             const grade = call.grades[kind];
             const meta = READOUT_META[kind];
             const readout = cohort.readouts[kind];
@@ -153,12 +156,14 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                     </div>
                     <p className="mt-3 text-sm text-ink/80">{grade.note}</p>
                     <p className="mt-2 font-mono text-xs text-muted">
-                      Symbol move {formatPct(grade.rawMovePct)} · signed {formatPct(grade.signedMovePct)}
+                      Tape {formatPct(grade.rawMovePct)} · signed {formatPct(grade.signedMovePct)} · VIX{" "}
+                      {formatPct(grade.vixMovePct)}
                     </p>
                     <Breakdown
                       directionPoints={grade.directionPoints}
                       levelPoints={grade.levelPoints}
                       specificityPoints={grade.specificityPoints}
+                      vixPoints={grade.vixPoints}
                     />
                     <Link href={`/weeks/${cohort.slug}/${kind}`} className="mt-3 inline-block text-sm text-pine underline-offset-4 hover:underline">
                       Open the {meta.label} board

@@ -6,7 +6,6 @@ type Session = "open" | "closed";
 export type ReadoutPrint = {
   date: string;
   session: Session;
-  carriedFrom?: string;
   reason?: string;
 };
 
@@ -18,8 +17,8 @@ type CohortHistory = {
 };
 
 type SymbolHistory = {
-  dailyClose: Record<string, number>;
   adjClose: Record<string, number>;
+  dailyOpen: Record<string, number>;
   noonOpen: Record<string, number>;
   noonBar: Record<string, string>;
 };
@@ -27,8 +26,8 @@ type SymbolHistory = {
 type HistoryFile = {
   source: string;
   endpoint: string;
+  vixSymbol: string;
   fetchedAt: string;
-  currency: string;
   adjustment: string;
   closedMarketRule: string;
   futureRule: string;
@@ -39,13 +38,13 @@ type HistoryFile = {
 const file = history as HistoryFile;
 
 export const PRICE_SOURCE = file.source;
-export const PRICE_ENDPOINT = file.endpoint;
 export const PRICE_FETCHED_AT = file.fetchedAt;
 export const PRICE_ADJUSTMENT = file.adjustment;
 export const PRICE_CLOSED_RULE = file.closedMarketRule;
+export const VIX_VENDOR_SYMBOL = file.vixSymbol;
 
 export const PRICE_SOURCE_SHORT =
-  "Market prints are Yahoo Finance unadjusted prices: the Friday regular-session close is the Sunday reference, and each grade is the open of the 12:00 PM ET 5-minute bar. A closed session repeats the prior official close. Nothing here is a drawn path.";
+  "Weekend reference is the prior Friday Yahoo Finance adjusted close for SPY, QQQ, DIA, and VIX. Monday's gap uses the regular-session open. Noon grades use the open of the 12:00 PM ET 5-minute bar. A closed or future session is left blank.";
 
 function finite(value: number | undefined, label: string): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -54,38 +53,54 @@ function finite(value: number | undefined, label: string): number {
   return value;
 }
 
-/** Official unadjusted cash close. Throws when Yahoo has no session for that date. */
-export function officialClose(symbol: string, date: string): number {
+function seriesFor(symbol: string): SymbolHistory {
   const series = file.symbols[symbol];
   if (!series) {
     throw new Error(`No Yahoo Finance history for ${symbol}. Refusing to invent a print.`);
   }
-  return finite(
-    series.dailyClose[date],
-    `No Yahoo Finance official close for ${symbol} on ${date}.`,
-  );
+  return series;
 }
 
-/** Open of the 5-minute bar stamped 12:00 America/New_York. Throws when that bar is absent. */
-export function noonOpen(symbol: string, date: string): number {
-  const series = file.symbols[symbol];
-  if (!series) {
-    throw new Error(`No Yahoo Finance history for ${symbol}. Refusing to invent a print.`);
+export function adjustedClose(symbol: string, date: string): number {
+  const value = finite(
+    seriesFor(symbol).adjClose[date],
+    `No Yahoo Finance adjusted close for ${symbol} on ${date}.`,
+  );
+  if (symbol === "SPY" && value < 700) {
+    throw new Error(`Refusing SPY adjusted close ${value} on ${date}. That is not a 2026 print.`);
   }
+  return value;
+}
+
+export function sessionOpen(symbol: string, date: string): number {
+  const value = finite(
+    seriesFor(symbol).dailyOpen[date],
+    `No Yahoo Finance regular-session open for ${symbol} on ${date}.`,
+  );
+  if (symbol === "SPY" && value < 700) {
+    throw new Error(`Refusing SPY open ${value} on ${date}. That is not a 2026 print.`);
+  }
+  return value;
+}
+
+export function noonOpen(symbol: string, date: string): number {
+  const series = seriesFor(symbol);
   const bar = series.noonBar[date];
   if (!bar || !bar.includes("T12:00:00")) {
     throw new Error(
       `No Yahoo Finance 12:00 PM ET bar for ${symbol} on ${date}. Refusing to invent a print.`,
     );
   }
-  return finite(series.noonOpen[date], `No Yahoo Finance noon print for ${symbol} on ${date}.`);
+  const value = finite(series.noonOpen[date], `No Yahoo Finance noon print for ${symbol} on ${date}.`);
+  if (symbol === "SPY" && value < 700) {
+    throw new Error(`Refusing SPY noon print ${value} on ${date}. That is not a 2026 print.`);
+  }
+  return value;
 }
 
-export function sessionFor(slug: string, kind: ReadoutKind): ReadoutPrint | null {
+export function sessionFor(slug: string, kind: "monday" | "wednesday" | "friday"): ReadoutPrint | null {
   const cohort = file.cohorts[slug];
-  if (!cohort) {
-    throw new Error(`No market history for cohort ${slug}.`);
-  }
+  if (!cohort) throw new Error(`No market history for cohort ${slug}.`);
   return cohort[kind];
 }
 
@@ -93,20 +108,20 @@ export type CohortQuotePrint = {
   symbol: string;
   ref: number;
   refDate: string;
+  mondayOpen: number | null;
   monday: number | null;
   wednesday: number | null;
   friday: number | null;
 };
 
-function readoutPrice(symbol: string, spec: ReadoutPrint | null): number | null {
+function sessionPrice(
+  symbol: string,
+  spec: ReadoutPrint | null,
+  field: "dailyOpen" | "noonOpen",
+): number | null {
   if (spec == null) return null;
-  if (spec.session === "closed") {
-    if (!spec.carriedFrom) {
-      throw new Error(`Closed session on ${spec.date} has no prior official close.`);
-    }
-    return officialClose(symbol, spec.carriedFrom);
-  }
-  return noonOpen(symbol, spec.date);
+  if (spec.session === "closed") return null;
+  return field === "dailyOpen" ? sessionOpen(symbol, spec.date) : noonOpen(symbol, spec.date);
 }
 
 /** Quotes for one cohort. Every number comes from market-history.json. */
@@ -117,25 +132,27 @@ export function quotesForCohort(slug: string, symbols: readonly string[]): Cohor
   }
   return symbols.map((symbol) => ({
     symbol,
-    ref: officialClose(symbol, cohort.referenceDate),
+    ref: adjustedClose(symbol, cohort.referenceDate),
     refDate: cohort.referenceDate,
-    monday: readoutPrice(symbol, cohort.monday),
-    wednesday: readoutPrice(symbol, cohort.wednesday),
-    friday: readoutPrice(symbol, cohort.friday),
+    mondayOpen: sessionPrice(symbol, cohort.monday, "dailyOpen"),
+    monday: sessionPrice(symbol, cohort.monday, "noonOpen"),
+    wednesday: sessionPrice(symbol, cohort.wednesday, "noonOpen"),
+    friday: sessionPrice(symbol, cohort.friday, "noonOpen"),
   }));
 }
 
-/**
- * Reject a price that is not the recorded print. Tolerance is one cent of
- * float noise, not a license to substitute a path.
- */
 export function assertHistoricalPrint(
   symbol: string,
   date: string,
-  field: "dailyClose" | "noonOpen",
+  field: "adjClose" | "dailyOpen" | "noonOpen",
   price: number,
 ): void {
-  const expected = field === "noonOpen" ? noonOpen(symbol, date) : officialClose(symbol, date);
+  const expected =
+    field === "adjClose"
+      ? adjustedClose(symbol, date)
+      : field === "dailyOpen"
+        ? sessionOpen(symbol, date)
+        : noonOpen(symbol, date);
   if (Math.abs(price - expected) > 0.02) {
     throw new Error(
       `Refusing ${symbol} ${date} ${field} ${price}. Recorded Yahoo Finance print is ${expected}.`,

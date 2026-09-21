@@ -1,4 +1,4 @@
-import type { Conviction, Direction, Level, LevelRole } from "./scoring";
+import type { Conviction, Direction, Level, LevelRole, Sentiment } from "./scoring";
 
 export const FEATURED_COHORT_SLUG = "2026-09-07";
 export const LATEST_COHORT_SLUG = "2026-09-21";
@@ -11,6 +11,8 @@ export const SYMBOL_NAMES: Record<string, string> = {
   AAPL: "Apple",
   MSFT: "Microsoft",
   TLT: "20+ Year Treasury ETF",
+  DIA: "Dow Jones ETF",
+  VIX: "CBOE Volatility Index",
 };
 
 export const SYMBOLS = Object.keys(SYMBOL_NAMES);
@@ -21,6 +23,7 @@ export type AccountSpec = {
   bio: string;
   posture: string;
   accent: string;
+  bucket?: "watchlist" | "viral";
 };
 
 export const ACCOUNTS: AccountSpec[] = [
@@ -129,9 +132,41 @@ export const ACCOUNTS: AccountSpec[] = [
     posture: "Vague narrative",
     accent: "#57534e",
   },
+  {
+    handle: "doomsiren",
+    displayName: "Doom Siren",
+    bio: "Demo viral bucket. Keyword spike on crash, war, and sell-the-open posts.",
+    posture: "Viral panic",
+    accent: "#7f1d1d",
+    bucket: "viral",
+  },
+  {
+    handle: "openselloff",
+    displayName: "Open Selloff",
+    bio: "Demo viral bucket. Engagement spike on sell-the-open wording.",
+    posture: "Viral selloff",
+    accent: "#9f1239",
+    bucket: "viral",
+  },
+  {
+    handle: "hypespike",
+    displayName: "Hype Spike",
+    bio: "Demo viral bucket. Melt-up and squeeze wording with a high engagement count.",
+    posture: "Viral melt-up",
+    accent: "#a16207",
+    bucket: "viral",
+  },
+  {
+    handle: "callwall",
+    displayName: "Call Wall",
+    bio: "Demo viral bucket. Euphoric squeeze posts that travel on engagement.",
+    posture: "Viral squeeze",
+    accent: "#0f766e",
+    bucket: "viral",
+  },
 ];
 
-/** A fictional stated level, as a fraction of that week's real Sunday reference. */
+/** A fictional stated level, as a fraction of that week's real Friday adjusted close. */
 export type LevelOffset = {
   symbol: string;
   role: LevelRole;
@@ -144,6 +179,8 @@ export type CallSpec = {
   conviction: Conviction;
   primary: string;
   explicit: boolean;
+  sentiment?: Sentiment;
+  engagement?: number;
   /** Placeholders {target} {invalidation} {support} {resistance} fill from the real reference. */
   body: string;
   levels?: LevelOffset[];
@@ -209,7 +246,7 @@ export function renderBody(template: string, levels: Level[]): string {
 
 /**
  * Handles and wording are fictional. Stated levels are offsets from the real
- * Sunday reference in src/lib/market-history.json. Market outcomes are not
+ * Friday adjusted close in src/lib/market-history.json. Market outcomes are not
  * stored here.
  */
 export const COHORTS: CohortSpec[] = [
@@ -508,7 +545,7 @@ export const COHORTS: CohortSpec[] = [
     slug: "2026-09-07",
     title: "Weekend doom",
     summary:
-      "Fictional weekend posts: war panic, sell-the-open, and melt-up calls. Monday, September 7, 2026 was Labor Day, so the primary noon grade repeats Friday's official close. Wednesday and Friday use the real noon prints.",
+      "Fictional weekend posts: war panic, sell-the-open, and melt-up calls. Monday, September 7, 2026 was Labor Day, so the gap and the noon grade stay blank. Wednesday and Friday use the real noon prints.",
     monday: { year: 2026, month: 9, day: 7 },
     calls: [
       {
@@ -799,7 +836,7 @@ export const COHORTS: CohortSpec[] = [
     slug: "2026-09-21",
     title: "Open weekend book",
     summary:
-      "This week's fictional doom and melt-up posts. Monday's real noon print is in. Wednesday, September 23 and Friday, September 25 had not printed when this history was fetched, so those grades stay scheduled.",
+      "This week's fictional doom and melt-up posts. Monday's real open and noon prints are in. Wednesday, September 23 and Friday, September 25 had not printed when this history was fetched, so those grades stay scheduled.",
     monday: { year: 2026, month: 9, day: 21 },
     isLatest: true,
     calls: [
@@ -938,5 +975,53 @@ export const COHORTS: CohortSpec[] = [
         body: "Bulls look in control again. I would not fade a tape that feels this firm.",
       },
     ],
+  },
+];
+
+/** Viral doom / hype spike posts. Appended to every cohort. Engagement is a demo count. */
+export const VIRAL_CALLS: CallSpec[] = [
+  {
+    handle: "doomsiren",
+    direction: "bearish",
+    sentiment: "panic",
+    conviction: "high",
+    primary: "SPY",
+    explicit: true,
+    engagement: 84000,
+    body: "WWIII weekend. Markets are doomed. Sell the open. SPY crash magnet {target}, shelf {support}. Cover only through {invalidation}.",
+    levels: [target("SPY", -0.03), support("SPY", -0.034), invalidation("SPY", 0.012)],
+  },
+  {
+    handle: "openselloff",
+    direction: "bearish",
+    sentiment: "panic",
+    conviction: "high",
+    primary: "DIA",
+    explicit: true,
+    engagement: 41000,
+    body: "Selloff spike. The Dow proxy gaps and does not bounce. DIA {target}. Wrong above {invalidation}.",
+    levels: [target("DIA", -0.02), invalidation("DIA", 0.01)],
+  },
+  {
+    handle: "hypespike",
+    direction: "bullish",
+    sentiment: "meltup",
+    conviction: "high",
+    primary: "QQQ",
+    explicit: true,
+    engagement: 67000,
+    body: "Melt-up spike. Weekend doom is the squeeze. QQQ {target}. Leave it under {invalidation}.",
+    levels: [target("QQQ", 0.02), invalidation("QQQ", -0.012)],
+  },
+  {
+    handle: "callwall",
+    direction: "bullish",
+    sentiment: "meltup",
+    conviction: "medium",
+    primary: "SPY",
+    explicit: true,
+    engagement: 29000,
+    body: "Complacency bid. The panic posts are the fuel. SPY {target}, invalid under {invalidation}.",
+    levels: [target("SPY", 0.015), invalidation("SPY", -0.01)],
   },
 ];

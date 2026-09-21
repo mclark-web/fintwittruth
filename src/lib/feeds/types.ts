@@ -38,6 +38,6 @@ export interface SocialFeed {
 
 export interface MarketFeed {
   readonly id: MarketProviderId;
-  /** Official prints used as the Sunday reference and the noon readouts. */
+  /** Official prints used as the Friday reference, the Monday open, and the noon readouts. */
   fetchPrints(symbols: string[], asOf: Date): Promise<PricePrint[]>;
 }

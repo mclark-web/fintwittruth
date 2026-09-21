@@ -4,6 +4,7 @@ import {
   COHORTS,
   SYMBOLS,
   SYMBOL_NAMES,
+  VIRAL_CALLS,
   materializeLevels,
   renderBody,
   type CallSpec,
@@ -12,19 +13,23 @@ import {
 import { quotesForCohort, sessionFor } from "./quotes";
 import {
   CONVICTION_WEIGHT,
+  EQUITY_TAPE,
   READOUTS,
   consensusDirection,
+  equityTapeMove,
   gradeNote,
   rankPeers,
   scoreCall,
   tapeDirection,
+  weekendNoise,
   type Conviction,
   type Direction,
   type Level,
   type ReadoutKind,
+  type Sentiment,
 } from "./scoring";
 
-const POST_HOURS = [2, 6, 14, 22, 28, 36, 44, 52, 60, 68, 76, 84, 90, 96, 100];
+const POST_HOURS = [2, 6, 14, 22, 28, 36, 44, 52, 60, 68, 76, 84, 90, 96, 100, 10, 30, 50, 80];
 
 export type BuiltAccount = {
   id: string;
@@ -33,6 +38,7 @@ export type BuiltAccount = {
   bio: string;
   posture: string;
   accent: string;
+  bucket: "watchlist" | "viral";
 };
 
 export type BuiltQuote = {
@@ -41,6 +47,7 @@ export type BuiltQuote = {
   symbol: string;
   name: string;
   ref: number;
+  mondayOpen: number | null;
   monday: number | null;
   wednesday: number | null;
   friday: number | null;
@@ -56,6 +63,8 @@ export type BuiltCall = {
   direction: Direction;
   conviction: Conviction;
   primary: string;
+  sentiment: Sentiment;
+  engagement: number;
   tickers: string[];
   levels: Level[];
   explicit: boolean;
@@ -70,8 +79,10 @@ export type BuiltGrade = {
   directionPoints: number;
   levelPoints: number;
   specificityPoints: number;
+  vixPoints: number;
   rawMovePct: number;
   signedMovePct: number;
+  vixMovePct: number;
   isChad: boolean;
   isChudTerritory: boolean;
   peerRank: number;
@@ -117,10 +128,8 @@ export type BuiltDataset = {
   cohorts: BuiltCohort[];
 };
 
-function quoteAt(
-  quote: BuiltQuote,
-  kind: ReadoutKind,
-): number | null {
+function quoteAt(quote: BuiltQuote, kind: ReadoutKind): number | null {
+  if (kind === "monday-gap") return quote.mondayOpen;
   return quote[kind];
 }
 
@@ -133,10 +142,12 @@ function readoutNarrative(input: {
   realized: "bullish" | "bearish" | "flat" | "pending";
   move: number;
   sessionReason?: string;
+  panicShare?: number;
 }): string {
   const lean = `${Math.round(input.bullishShare * 100)}% conviction-weighted bullish`;
   if (input.status === "scheduled") {
-    return `${input.whenLabel} is not published yet. It will grade this same cohort at 12:00 PM ET. The book is already ${lean}. No new calls are added between readouts.`;
+    const closed = input.sessionReason ? ` ${input.sessionReason}` : "";
+    return `${input.whenLabel} is not published.${closed} The book is already ${lean}. No new calls are added between readouts.`;
   }
   const pct = `${input.move >= 0 ? "+" : ""}${(input.move * 100).toFixed(2)}%`;
   const sessionNote = input.sessionReason ? ` ${input.sessionReason}` : "";
@@ -152,8 +163,14 @@ function readoutNarrative(input: {
   const mondayNote =
     input.kind === "monday"
       ? " Monday noon is the primary read on whether the weekend doom and melt-up noise survived the cash session."
-      : "";
-  return `${input.whenLabel}: SPY is ${pct} from the Sunday 5:00 PM ET reference. The cohort was ${lean}. Realized tape is ${input.realized}. ${relation}${mondayNote}${sessionNote}`;
+      : input.kind === "monday-gap"
+        ? " The gap is Friday's adjusted close to the regular-session open."
+        : "";
+  const noise =
+    input.panicShare == null
+      ? ""
+      : ` Weekend Noise Index is ${Math.round(input.panicShare * 100)}% panic posts.`;
+  return `${input.whenLabel}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's adjusted close. The cohort was ${lean}. Realized tape is ${input.realized}.${noise} ${relation}${mondayNote}${sessionNote} Descriptive only. Not a signal.`;
 }
 
 function buildCalls(
@@ -163,12 +180,13 @@ function buildCalls(
   refs: Record<string, number>,
 ): BuiltCall[] {
   const handleOrder = ACCOUNTS.map((account) => account.handle);
-  return spec.calls.map((call) => {
+  return [...spec.calls, ...VIRAL_CALLS].map((call) => {
     const index = handleOrder.indexOf(call.handle);
     const hours = POST_HOURS[index] ?? 12;
     const postedAt = new Date(collectStart.getTime() + hours * 60 * 60 * 1000);
     const tickers = call.tickers ?? (call.explicit ? [call.primary] : []);
     const levels = materializeLevels(call.levels, refs);
+    const account = ACCOUNTS.find((item) => item.handle === call.handle);
     return {
       id: `${spec.slug}__${call.handle}`,
       cohortId,
@@ -179,6 +197,8 @@ function buildCalls(
       direction: call.direction,
       conviction: call.conviction,
       primary: call.primary,
+      sentiment: call.sentiment ?? (call.direction === "bearish" ? "panic" : "meltup"),
+      engagement: call.engagement ?? (account?.bucket === "viral" ? 20000 : 800),
       tickers,
       levels,
       explicit: call.explicit,
@@ -206,7 +226,12 @@ function consensus(calls: CallSpec[] | BuiltCall[]) {
 export function buildDataset(): BuiltDataset {
   const accounts: BuiltAccount[] = ACCOUNTS.map((account) => ({
     id: `acct_${account.handle}`,
-    ...account,
+    handle: account.handle,
+    displayName: account.displayName,
+    bio: account.bio,
+    posture: account.posture,
+    accent: account.accent,
+    bucket: account.bucket ?? "watchlist",
   }));
 
   const cohorts = COHORTS.map((spec) => {
@@ -218,13 +243,14 @@ export function buildDataset(): BuiltDataset {
       symbol: quote.symbol,
       name: SYMBOL_NAMES[quote.symbol] ?? quote.symbol,
       ref: quote.ref,
+      mondayOpen: quote.mondayOpen,
       monday: quote.monday,
       wednesday: quote.wednesday,
       friday: quote.friday,
     }));
     for (const quote of quotes) {
       if (quote.symbol !== "SPY") continue;
-      for (const price of [quote.ref, quote.monday, quote.wednesday, quote.friday]) {
+      for (const price of [quote.ref, quote.mondayOpen, quote.monday, quote.wednesday, quote.friday]) {
         if (price != null && price < 700) {
           throw new Error(
             `Refusing SPY ${price} on ${spec.slug}. That is not a 2026 historical print.`,
@@ -238,17 +264,23 @@ export function buildDataset(): BuiltDataset {
     const grades: BuiltGrade[] = [];
     const readouts: BuiltReadout[] = READOUTS.map((kind) => {
       const whenLabel = {
+        "monday-gap": "Monday gap, Friday adjusted close to the 9:30 AM ET open",
         monday: "Monday 12:00 PM ET weekend-noise grade",
         wednesday: "Wednesday 12:00 PM ET update on the same weekend cohort",
         friday: "Friday 12:00 PM ET final grade on the same weekend cohort",
       }[kind];
-      const spy = quotes.find((quote) => quote.symbol === "SPY");
-      const price = spy ? quoteAt(spy, kind) : null;
-      const published = price != null && quotes.every((quote) => quoteAt(quote, kind) != null);
-      const session = sessionFor(spec.slug, kind);
+      const priceOf = (symbol: string) => {
+        const quote = quotes.find((item) => item.symbol === symbol);
+        return quote ? quoteAt(quote, kind) : null;
+      };
+      const needed = [...EQUITY_TAPE, "VIX", ...calls.map((call) => call.primary)];
+      const published = needed.every((symbol) => priceOf(symbol) != null);
+      const sessionKind = kind === "monday-gap" ? "monday" : kind;
+      const session = sessionFor(spec.slug, sessionKind);
       const sessionReason = session?.session === "closed" ? session.reason : undefined;
+      const noise = weekendNoise(calls.map((call) => call.sentiment));
 
-      if (!published || !spy || price == null) {
+      if (!published) {
         return {
           id: `${spec.slug}__${kind}`,
           cohortId: id,
@@ -256,7 +288,7 @@ export function buildDataset(): BuiltDataset {
           status: "scheduled" as const,
           ...lean,
           realizedDirection: "pending" as const,
-          benchmarkSymbol: "SPY",
+          benchmarkSymbol: "SPY+QQQ+DIA",
           benchmarkMovePct: 0,
           chadCutoff: 0,
           narrative: readoutNarrative({
@@ -267,9 +299,26 @@ export function buildDataset(): BuiltDataset {
             bullishShare: lean.consensusBullish,
             realized: "pending",
             move: 0,
+            sessionReason,
+            panicShare: noise.panicShare,
           }),
         };
       }
+
+      const moveOf = (symbol: string) => {
+        const quote = quotes.find((item) => item.symbol === symbol);
+        const now = quote ? quoteAt(quote, kind) : null;
+        if (!quote || now == null) {
+          throw new Error(`Missing ${kind} print for ${symbol} on ${spec.slug}`);
+        }
+        return (now - quote.ref) / quote.ref;
+      };
+      const tapeMove = equityTapeMove({
+        SPY: moveOf("SPY"),
+        QQQ: moveOf("QQQ"),
+        DIA: moveOf("DIA"),
+      });
+      const vixMove = moveOf("VIX");
 
       const scored = calls.map((call) => {
         const quote = quotes.find((item) => item.symbol === call.primary);
@@ -283,13 +332,18 @@ export function buildDataset(): BuiltDataset {
         const parts = scoreCall(
           {
             direction: call.direction,
+            sentiment: call.sentiment,
             primary: call.primary,
             tickers: call.tickers,
             levels: call.levels,
             explicit: call.explicit,
           },
-          quote.ref,
-          now,
+          {
+            tapeMove,
+            primaryRef: quote.ref,
+            primaryNow: now,
+            vixMove,
+          },
         );
         return { call, parts, tieBreak: call.handle };
       });
@@ -313,8 +367,10 @@ export function buildDataset(): BuiltDataset {
           directionPoints: row.parts.directionPoints,
           levelPoints: row.parts.levelPoints,
           specificityPoints: row.parts.specificityPoints,
+          vixPoints: row.parts.vixPoints,
           rawMovePct: row.parts.rawMovePct,
           signedMovePct: row.parts.signedMovePct,
+          vixMovePct: row.parts.vixMovePct,
           isChad: row.isChad,
           isChudTerritory: row.isChudTerritory,
           peerRank: row.peerRank,
@@ -322,15 +378,14 @@ export function buildDataset(): BuiltDataset {
           note: gradeNote({
             kind,
             direction: row.call.direction,
-            symbol: row.call.primary,
             rawMovePct: row.parts.rawMovePct,
+            vixMovePct: row.parts.vixMovePct,
             score: row.parts.score,
           }),
         });
       }
 
-      const move = (price - spy.ref) / spy.ref;
-      const realized = tapeDirection(move);
+      const realized = tapeDirection(tapeMove);
       return {
         id: `${spec.slug}__${kind}`,
         cohortId: id,
@@ -338,8 +393,8 @@ export function buildDataset(): BuiltDataset {
         status: "published" as const,
         ...lean,
         realizedDirection: realized,
-        benchmarkSymbol: "SPY",
-        benchmarkMovePct: move,
+        benchmarkSymbol: "SPY+QQQ+DIA",
+        benchmarkMovePct: tapeMove,
         chadCutoff,
         narrative: readoutNarrative({
           kind,
@@ -348,8 +403,9 @@ export function buildDataset(): BuiltDataset {
           consensus: lean.consensusDirection,
           bullishShare: lean.consensusBullish,
           realized,
-          move,
+          move: tapeMove,
           sessionReason,
+          panicShare: noise.panicShare,
         }),
       };
     });

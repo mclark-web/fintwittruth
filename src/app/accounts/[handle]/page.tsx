@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar, ChudChip, DirectionChip, PeerChip, ScoreMark } from "@/components/score";
 import { formatPct, formatScore } from "@/lib/format";
+import { READOUT_META } from "@/lib/labels";
 import { getAccount, listHandles } from "@/lib/queries";
+import { READOUTS } from "@/lib/scoring";
 
 export async function generateStaticParams() {
   const handles = await listHandles();
@@ -49,7 +51,9 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
         <div className="flex gap-4">
           <Avatar name={account.displayName} accent={account.accent} />
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted">Demo account · rank {row.peerRank} of {row.peerCount}</p>
+            <p className="text-xs uppercase tracking-wide text-muted">
+              Demo {account.bucket === "viral" ? "viral" : "watchlist"} account · rank {row.peerRank} of {row.peerCount} in this bucket
+            </p>
             <h1 className="font-serif text-4xl text-ink">{account.displayName}</h1>
             <p className="text-muted">@{account.handle} · {account.posture}</p>
             <p className="mt-3 max-w-2xl text-ink/80">{account.bio}</p>
@@ -95,7 +99,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                 {calls[0]?.cohortTitle}
               </Link>
             </h2>
-            <p className="text-sm text-muted">Same posts, rescored Monday, Wednesday, and Friday.</p>
+            <p className="text-sm text-muted">Same posts, rescored at the gap, Monday noon, Wednesday, and Friday.</p>
             <ul className="mt-3 grid gap-3">
               {calls.map((call) => (
                 <li key={call.id} className="panel p-4">
@@ -108,13 +112,13 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                       {call.body}
                     </Link>
                   </p>
-                  <ol className="mt-3 grid gap-2 sm:grid-cols-3">
-                    {(["monday", "wednesday", "friday"] as const).map((kind) => {
+                  <ol className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                    {READOUTS.map((kind) => {
                       const grade = call.grades[kind];
                       return (
                         <li key={kind} className="rounded-xl bg-white px-3 py-2">
                           <Link href={`/weeks/${slug}/${kind}`} className="text-[11px] uppercase text-muted hover:underline">
-                            {kind}
+                            {READOUT_META[kind].short}
                           </Link>
                           {grade ? (
                             <>

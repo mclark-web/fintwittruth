@@ -1,15 +1,16 @@
 import Link from "next/link";
-import { CalendarStrip, Move, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
+import { CalendarStrip, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { Avatar, ChudChip, PeerChip } from "@/components/score";
 import { formatPct, formatScore, formatShortDay } from "@/lib/format";
-import { CH_FACTOR, CHAD_MEANING, CHUD_MEANING } from "@/lib/labels";
-import { getFeaturedCohort, getLatestCohort, getLeaderboard, matureGrade } from "@/lib/queries";
+import { CH_FACTOR, CHAD_MEANING, CHUD_MEANING, READOUT_META } from "@/lib/labels";
+import { getFeaturedCohort, getLatestCohort, getLeaderboard } from "@/lib/queries";
+import { READOUTS } from "@/lib/scoring";
 
 export default async function HomePage() {
   const [latest, featured, board] = await Promise.all([
     getLatestCohort(),
     getFeaturedCohort(),
-    getLeaderboard(),
+    getLeaderboard("watchlist"),
   ]);
 
   const spotlight = featured
@@ -28,9 +29,8 @@ export default async function HomePage() {
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink/80">
             FinTwitTruth collects one book from Wednesday noon through Sunday 5pm ET: crash calls, war panic,
-            sell-the-open posts, and euphoric melt-up calls. Monday at noon is the primary grade — did that
-            weekend noise survive the cash session? Wednesday and Friday age the same book against recorded
-            prints.
+            sell-the-open posts, and euphoric melt-up calls. Monday&apos;s gap and Monday noon grade that book
+            against recorded prints. Wednesday and Friday age the same book.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href={latest ? `/weeks/${latest.slug}` : "/weeks"} className="rounded-full bg-pine px-5 py-2.5 text-sm font-medium text-lime">
@@ -56,7 +56,7 @@ export default async function HomePage() {
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide text-muted">Chad · {CHAD_MEANING}</dt>
-            <dd className="mt-1 text-sm text-ink">Top 30% of the peer set</dd>
+            <dd className="mt-1 text-sm text-ink">Top 30% and at least 70</dd>
           </div>
         </dl>
         <p className="mt-4 max-w-2xl text-sm text-muted lg:col-span-2">
@@ -67,12 +67,12 @@ export default async function HomePage() {
 
       <section className="mt-12" aria-labelledby="calendar-heading">
         <h2 id="calendar-heading" className="font-serif text-3xl text-ink">
-          One cohort. Three readouts.
+          One cohort. Gap, noon, then the week.
         </h2>
         <p className="mt-2 max-w-3xl text-muted">
-          Monday noon is the primary read on the weekend book. Wednesday and Friday keep grading that same
-          cohort. A new collect window opens Wednesday at noon, and it does not replace the book already being
-          graded.
+          Monday&apos;s open and Monday noon are the primary reads on the weekend book. Wednesday and Friday keep
+          grading that same cohort. A new collect window opens Wednesday at noon, and it does not replace the
+          book already being graded.
         </p>
         <div className="mt-5">
           <CalendarStrip />
@@ -101,6 +101,9 @@ export default async function HomePage() {
           <div className="mt-4">
             <ReadoutCards slug={latest.slug} readouts={latest.readouts} />
           </div>
+          <div className="mt-4">
+            <NoiseIndex calls={latest.calls} quotes={latest.quotes} />
+          </div>
         </section>
       ) : null}
 
@@ -108,7 +111,7 @@ export default async function HomePage() {
         <section className="mt-12" aria-labelledby="case-heading">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted">Why three grades exist</p>
+              <p className="text-xs uppercase tracking-wide text-muted">Labor Day week, left blank on Monday</p>
               <h2 id="case-heading" className="font-serif text-3xl text-ink">
                 {featured.title}
               </h2>
@@ -133,13 +136,13 @@ export default async function HomePage() {
                   </div>
                 </div>
                 <p className="mt-3 text-ink">{call.body}</p>
-                <ol className="mt-4 grid grid-cols-3 gap-2">
-                  {(["monday", "wednesday", "friday"] as const).map((kind) => {
+                <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {READOUTS.map((kind) => {
                     const grade = call.grades[kind];
                     return (
                       <li key={kind}>
                         <Link href={`/weeks/${featured.slug}/${kind}`} className="block rounded-xl bg-white px-3 py-2">
-                          <span className="text-[11px] uppercase text-muted">{kind}</span>
+                          <span className="text-[11px] uppercase text-muted">{READOUT_META[kind].short}</span>
                           <span className="mt-1 block font-mono text-2xl">
                             {grade ? grade.score : "—"}
                             <span className="text-sm text-muted">/100</span>
@@ -171,7 +174,8 @@ export default async function HomePage() {
           </Link>
         </div>
         <p className="mt-2 text-sm text-muted">
-          Each account&apos;s average uses the furthest grade on every call: Friday if it exists, otherwise Wednesday, otherwise Monday. Chad on this table is the top 30% of accounts.
+          Watchlist accounts, ranked inside that bucket. Each average uses the furthest grade on every call. Chad
+          is the top 30% of this board and also at least 70.
         </p>
         <ol className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
           {board.slice(0, 5).map((row) => (

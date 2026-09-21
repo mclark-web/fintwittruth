@@ -17,6 +17,7 @@ model Account {
   bio         String
   posture     String
   accent      String
+  bucket      String
   calls       Call[]
 }
 
@@ -43,6 +44,7 @@ model Quote {
   symbol     String
   name       String
   ref        Float
+  mondayOpen Float?
   monday     Float?
   wednesday  Float?
   friday     Float?
@@ -60,6 +62,8 @@ model Call {
   direction   String
   conviction  String
   primary     String
+  sentiment   String
+  engagement  Int
   tickersJson String
   levelsJson  String
   explicit    Boolean
@@ -80,8 +84,10 @@ model Grade {
   directionPoints   Int
   levelPoints       Int
   specificityPoints Int
+  vixPoints         Int
   rawMovePct        Float
   signedMovePct     Float
+  vixMovePct        Float
   isChad            Boolean
   isChudTerritory   Boolean
   peerRank          Int

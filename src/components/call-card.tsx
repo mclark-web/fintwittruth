@@ -20,6 +20,9 @@ export function CallCard({ call, readout }: { call: CallView; readout: ReadoutKi
             </p>
           </div>
           <DirectionChip direction={call.direction} />
+          <span className="rounded-full border border-line px-2 py-0.5 text-xs text-muted">
+            {call.sentiment === "panic" ? "Panic" : "Melt-up"} · {call.bucket === "viral" ? "Viral" : "Watchlist"}
+          </span>
           <span className="rounded-full bg-pine/5 px-2 py-0.5 font-mono text-xs text-pine">{call.primary}</span>
           <span className="text-xs uppercase tracking-wide text-muted">{call.conviction} conviction</span>
         </header>

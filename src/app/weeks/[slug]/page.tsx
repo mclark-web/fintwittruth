@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CohortWindow, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
+import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { DirectionChip, PeerChip, ChudChip } from "@/components/score";
+import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
+import { READOUTS } from "@/lib/scoring";
 
 export async function generateStaticParams() {
   const slugs = await listCohortSlugs();
@@ -64,17 +66,20 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
       <div className="mt-4">
         <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} />
       </div>
+      <div className="mt-4">
+        <NoiseIndex calls={cohort.calls} quotes={cohort.quotes} />
+      </div>
 
       <section className="mt-10" aria-labelledby="evolution-heading">
         <h2 id="evolution-heading" className="font-serif text-3xl text-ink">
-          Same calls, three grades
+          Same calls, four grades
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          Every row is one post from the Wednesday–Sunday window. Monday, Wednesday, and Friday score that
-          post again. Nothing new is added midweek.
+          Every row is one post from the Wednesday–Sunday window. The gap, Monday noon, Wednesday, and Friday
+          score that post again. Watchlist and viral posts share this board. Nothing new is added midweek.
         </p>
         <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
-          <table className="min-w-[720px] w-full text-left text-sm">
+          <table className="min-w-[860px] w-full text-left text-sm">
             <caption className="sr-only">Grade evolution for {cohort.title}</caption>
             <thead className="bg-white text-xs uppercase tracking-wide text-muted">
               <tr>
@@ -84,15 +89,11 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                 <th scope="col" className="px-4 py-3 font-medium">
                   Call
                 </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Monday
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Wednesday
-                </th>
-                <th scope="col" className="px-4 py-3 font-medium">
-                  Friday
-                </th>
+                {READOUTS.map((kind) => (
+                  <th key={kind} scope="col" className="px-4 py-3 font-medium">
+                    {READOUT_META[kind].short}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -113,7 +114,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                       <span className="font-mono text-xs text-pine">{call.primary}</span>
                     </span>
                   </td>
-                  {(["monday", "wednesday", "friday"] as const).map((kind) => {
+                  {READOUTS.map((kind) => {
                     const grade = call.grades[kind];
                     return (
                       <td key={kind} className="px-4 py-3">

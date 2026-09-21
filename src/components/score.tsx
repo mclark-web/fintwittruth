@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { initials } from "@/lib/format";
 import type { GradeView } from "@/lib/queries";
-import type { ReadoutKind } from "@/lib/scoring";
+import { READOUTS, type ReadoutKind } from "@/lib/scoring";
 import { CHAD_MEANING, CHUD_MEANING, READOUT_META } from "@/lib/labels";
 
 export function Avatar({ name, accent }: { name: string; accent: string }) {
@@ -106,7 +106,7 @@ export function Evolution({
 }) {
   return (
     <ol className="flex flex-wrap gap-2">
-      {(["monday", "wednesday", "friday"] as const).map((kind) => {
+      {READOUTS.map((kind) => {
         const grade = grades[kind];
         const current = active === kind;
         return (
@@ -118,7 +118,7 @@ export function Evolution({
               }`}
             >
               <span className="block text-[10px] uppercase tracking-wide opacity-80">
-                {READOUT_META[kind].label.slice(0, 3)}
+                {READOUT_META[kind].short}
               </span>
               <span className="font-mono text-sm">
                 {grade ? (

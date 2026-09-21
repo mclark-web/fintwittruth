@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CallCard } from "@/components/call-card";
-import { CohortWindow, Move, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
+import { CohortWindow, Move, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
-import { READOUTS, type ReadoutKind } from "@/lib/scoring";
+import { READOUTS, isReadoutKind, type ReadoutKind } from "@/lib/scoring";
 
 export async function generateStaticParams() {
   const slugs = await listCohortSlugs();
@@ -15,8 +15,7 @@ export async function generateStaticParams() {
 export const dynamicParams = false;
 
 function asReadout(value: string): ReadoutKind | null {
-  if (value === "monday" || value === "wednesday" || value === "friday") return value;
-  return null;
+  return isReadoutKind(value) ? value : null;
 }
 
 export async function generateMetadata({
@@ -104,7 +103,7 @@ export default async function ReadoutPage({
           <p className="font-mono text-sm text-ink">
             {readout.status === "published" ? (
               <>
-                {readout.benchmarkSymbol} <Move value={readout.benchmarkMovePct} /> from Sunday
+                {readout.benchmarkSymbol} <Move value={readout.benchmarkMovePct} /> from Friday&apos;s close
                 {readout.chadCutoff > 0 ? ` · Chad line ${readout.chadCutoff}/100` : ""}
               </>
             ) : (
@@ -113,6 +112,12 @@ export default async function ReadoutPage({
           </p>
         </div>
       </section>
+
+      {kind === "monday-gap" || kind === "monday" ? (
+        <div className="mt-6">
+          <NoiseIndex calls={cohort.calls} quotes={cohort.quotes} />
+        </div>
+      ) : null}
 
       <div className="mt-6">
         <QuoteTape quotes={cohort.quotes} kind={kind} />
@@ -124,7 +129,7 @@ export default async function ReadoutPage({
           {calls.length} calls in this cohort
         </h2>
         <p className="mt-2 text-sm text-muted">
-          Chad is Accuracy &amp; Discipline: the top 30% of these calls, ties at the cutoff included. Chud is Uncertainty &amp; Doubt: under 70/100 either way.
+          Chad is Accuracy &amp; Discipline: the top 30% of these calls, ties at the cutoff included, and only when the score is also at least 70. Chud is Uncertainty &amp; Doubt: under 70/100. Watchlist and viral posts share this weekly board.
         </p>
         <div className="mt-4 grid gap-4">
           {calls.map((call) => (

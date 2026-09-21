@@ -2,15 +2,16 @@ import type { ReadoutKind } from "./scoring";
 
 export const READOUT_META: Record<
   ReadoutKind,
-  { label: string; role: string; time: string }
+  { label: string; short: string; role: string; time: string }
 > = {
-  monday: { label: "Monday", role: "Weekend-noise grade", time: "12:00 PM ET" },
-  wednesday: { label: "Wednesday", role: "Same cohort, mid-week", time: "12:00 PM ET" },
-  friday: { label: "Friday", role: "Same cohort, final", time: "12:00 PM ET" },
+  "monday-gap": { label: "Monday gap", short: "Gap", role: "Friday close to the open", time: "9:30 AM ET" },
+  monday: { label: "Monday noon", short: "Noon", role: "Weekend-noise grade", time: "12:00 PM ET" },
+  wednesday: { label: "Wednesday", short: "Wed", role: "Same cohort, noon", time: "12:00 PM ET" },
+  friday: { label: "Friday", short: "Fri", role: "Same cohort, final", time: "12:00 PM ET" },
 };
 
 /** Opinion labels. Chad is Accuracy & Discipline. Chud is Uncertainty & Doubt. */
-export const CH_FACTOR = "CH factor";
+export const CH_FACTOR = "Charoof CH factor";
 export const CHAD_MEANING = "Accuracy & Discipline";
 export const CHUD_MEANING = "Uncertainty & Doubt";
 

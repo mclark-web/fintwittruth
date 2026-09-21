@@ -3,7 +3,7 @@ import { formatPct, formatPrice, formatShortDay, formatWhen } from "@/lib/format
 import { READOUT_META } from "@/lib/labels";
 import { PRICE_SOURCE_SHORT } from "@/lib/quotes";
 import type { QuoteView, ReadoutView } from "@/lib/queries";
-import type { ReadoutKind } from "@/lib/scoring";
+import { EQUITY_TAPE, READOUTS, equityTapeMove, weekendNoise, type ReadoutKind, type Sentiment } from "@/lib/scoring";
 
 export function PriceSource() {
   return <p className="mt-2 text-xs text-muted">{PRICE_SOURCE_SHORT}</p>;
@@ -40,6 +40,12 @@ export function CalendarStrip() {
   );
 }
 
+export function printAt(quote: QuoteView, kind: ReadoutKind | "latest"): number | null {
+  if (kind === "latest") return quote.friday ?? quote.wednesday ?? quote.monday ?? quote.mondayOpen;
+  if (kind === "monday-gap") return quote.mondayOpen;
+  return quote[kind];
+}
+
 export function QuoteTape({
   quotes,
   kind,
@@ -48,12 +54,9 @@ export function QuoteTape({
   kind: ReadoutKind | "latest";
 }) {
   return (
-    <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+    <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
       {quotes.map((quote) => {
-        const now =
-          kind === "latest"
-            ? (quote.friday ?? quote.wednesday ?? quote.monday)
-            : quote[kind];
+        const now = printAt(quote, kind);
         const move = now == null ? null : (now - quote.ref) / quote.ref;
         return (
           <li key={quote.symbol} className="rounded-xl border border-line bg-white px-3 py-2">
@@ -73,10 +76,11 @@ export function PricePath({
   quote: QuoteView;
 }) {
   const points = [
-    { label: "Sun ref", value: quote.ref },
-    { label: "Mon", value: quote.monday },
-    { label: "Wed", value: quote.wednesday },
-    { label: "Fri", value: quote.friday },
+    { label: "Fri ref", value: quote.ref },
+    { label: "Mon open", value: quote.mondayOpen },
+    { label: "Mon noon", value: quote.monday },
+    { label: "Wed noon", value: quote.wednesday },
+    { label: "Fri noon", value: quote.friday },
   ];
   const present = points.filter((point): point is { label: string; value: number } => point.value != null);
   const min = Math.min(...present.map((point) => point.value));
@@ -97,9 +101,9 @@ export function PricePath({
         <span className="font-medium text-ink">
           {quote.symbol} <span className="font-normal text-muted">{quote.name}</span>
         </span>
-        <span className="text-xs text-muted">Sunday reference, then each recorded noon print</span>
+        <span className="text-xs text-muted">Friday adjusted close, then the recorded open and noon prints</span>
       </figcaption>
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${quote.symbol} path from the Sunday reference`} className="w-full">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${quote.symbol} path from Friday's adjusted close`} className="w-full">
         <rect x="0" y="0" width={width} height={height} rx="16" fill="#ffffff" />
         <path d={path} fill="none" stroke="#14352b" strokeWidth="3" />
         {coords.map((point) => (
@@ -111,7 +115,7 @@ export function PricePath({
           </g>
         ))}
       </svg>
-      <ul className="mt-2 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+      <ul className="mt-2 grid grid-cols-2 gap-2 text-sm sm:grid-cols-5">
         {points.map((point) => (
           <li key={point.label} className="font-mono text-ink">
             <span className="block text-[11px] uppercase text-muted">{point.label}</span>
@@ -133,8 +137,8 @@ export function ReadoutCards({
   active?: ReadoutKind;
 }) {
   return (
-    <ul className="grid gap-3 md:grid-cols-3">
-      {(["monday", "wednesday", "friday"] as const).map((kind) => {
+    <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {READOUTS.map((kind) => {
         const readout = readouts[kind];
         const meta = READOUT_META[kind];
         const current = active === kind;
@@ -150,7 +154,7 @@ export function ReadoutCards({
               <p className="mt-3 text-sm text-ink">
                 {readout.status === "published" ? (
                   <>
-                    SPY <Move value={readout.benchmarkMovePct} /> · tape {readout.realizedDirection}
+                    Tape <Move value={readout.benchmarkMovePct} /> · {readout.realizedDirection}
                   </>
                 ) : (
                   <span className="text-muted">Scheduled · same cohort</span>
@@ -164,6 +168,86 @@ export function ReadoutCards({
         );
       })}
     </ul>
+  );
+}
+
+function tapeMove(quotes: QuoteView[], kind: "monday-gap" | "monday"): number | null {
+  const moves = {} as Record<(typeof EQUITY_TAPE)[number], number>;
+  for (const symbol of EQUITY_TAPE) {
+    const quote = quotes.find((item) => item.symbol === symbol);
+    const now = quote ? printAt(quote, kind) : null;
+    if (!quote || now == null) return null;
+    moves[symbol] = (now - quote.ref) / quote.ref;
+  }
+  return equityTapeMove(moves);
+}
+
+function vixMove(quotes: QuoteView[], kind: "monday-gap" | "monday"): number | null {
+  const quote = quotes.find((item) => item.symbol === "VIX");
+  const now = quote ? printAt(quote, kind) : null;
+  if (!quote || now == null) return null;
+  return (now - quote.ref) / quote.ref;
+}
+
+export function NoiseIndex({
+  calls,
+  quotes,
+}: {
+  calls: { sentiment: Sentiment; engagement: number }[];
+  quotes: QuoteView[];
+}) {
+  const noise = weekendNoise(
+    calls.map((call) => call.sentiment),
+    calls.map((call) => call.engagement),
+  );
+  const gap = tapeMove(quotes, "monday-gap");
+  const noon = tapeMove(quotes, "monday");
+  const vixGap = vixMove(quotes, "monday-gap");
+  const vixNoon = vixMove(quotes, "monday");
+  const stats = [
+    { label: "Monday gap tape", value: gap },
+    { label: "Monday noon tape", value: noon },
+    { label: "VIX at the open", value: vixGap },
+    { label: "VIX at noon", value: vixNoon },
+  ];
+  return (
+    <section className="panel p-5" aria-labelledby="wni-heading">
+      <h2 id="wni-heading" className="font-serif text-2xl text-ink">
+        Weekend Noise Index
+      </h2>
+      <p className="mt-2 max-w-3xl text-sm text-muted">
+        Share of this cohort tagged panic, crash, or selloff, next to the equal-weight SPY, QQQ, and DIA move
+        from Friday&apos;s adjusted close. Descriptive only. Not a signal.
+      </p>
+      <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+        <div>
+          <div
+            className="flex h-3 overflow-hidden rounded-full bg-line"
+            role="img"
+            aria-label={`${Math.round(noise.panicShare * 100)} percent panic and ${Math.round(noise.meltupShare * 100)} percent melt-up`}
+          >
+            <div className="bg-bear" style={{ width: `${noise.panicShare * 100}%` }} />
+            <div className="bg-bull" style={{ width: `${noise.meltupShare * 100}%` }} />
+          </div>
+          <p className="mt-2 text-sm text-ink">
+            {Math.round(noise.panicShare * 100)}% panic · {Math.round(noise.meltupShare * 100)}% melt-up
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            Engagement-weighted panic share {Math.round(noise.engagementPanicShare * 100)}%.
+          </p>
+        </div>
+        <ul className="grid grid-cols-2 gap-2">
+          {stats.map((stat) => (
+            <li key={stat.label} className="rounded-xl border border-line bg-white px-3 py-2">
+              <p className="text-[11px] uppercase tracking-wide text-muted">{stat.label}</p>
+              <p className="font-mono text-lg text-ink">
+                {stat.value == null ? "Pending" : <Move value={stat.value} />}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
 

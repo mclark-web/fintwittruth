@@ -65,18 +65,20 @@ export default function TermsPage() {
         <p>
           This deployment is a labeled demo. Handles and wording in the seed are fictional. They are not quotes
           from real people. Market outcomes are not fictional. A published grade uses the recorded print for
-          that evaluation date: the unadjusted Friday cash close as the Sunday reference, and the 12:00 PM ET
-          print on Monday, Wednesday, and Friday when the cash market is open. A closed session repeats the
-          prior official close. A future session stays blank. Missing history is not filled in.
+          that evaluation date: the prior Friday adjusted close as the weekend reference, the regular-session
+          open for Monday&apos;s gap, and the 12:00 PM ET print on Monday, Wednesday, and Friday when the cash
+          market is open. VIX is part of every published grade. A closed session stays blank. A future session
+          stays blank. Missing history is not filled in.
         </p>
       </LegalSection>
 
       <LegalSection id="marks" title="Scores and opinion labels">
         <p>
           Every published grade shows a score from 0 to 100 and a badge from 1 to 10. Under 70 is Chud,
-          Uncertainty &amp; Doubt. The top 30% of the peer set is Chad, Accuracy &amp; Discipline. Those labels
-          are the CH factor: opinions about a past call under the published formula. They are not statements of
-          fact about a person’s character, and they are not a recommendation to follow or fade that person.
+          Uncertainty &amp; Doubt. Chad, Accuracy &amp; Discipline, is the top 30% of the peer set and also a
+          score of at least 70. Those labels are the Charoof CH factor: opinions about a past call under the
+          published formula. They are not statements of fact about a person’s character, and they are not a
+          recommendation to follow or fade that person.
         </p>
       </LegalSection>
 

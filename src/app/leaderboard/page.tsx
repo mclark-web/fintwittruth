@@ -2,26 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChudChip, PeerChip } from "@/components/score";
 import { formatPct, formatScore } from "@/lib/format";
-import { getLeaderboard } from "@/lib/queries";
+import { getLeaderboard, type LeaderRow } from "@/lib/queries";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
-  description: "FinTwitTruth account scoreboard. Top 30% of handles earn Chad. Averages under 70 sit in Chud territory.",
+  description:
+    "FinTwitTruth account scoreboards. Watchlist and viral handles are ranked separately. Chad requires the top 30% and a score of at least 70.",
 };
 
-export default async function LeaderboardPage() {
-  const rows = await getLeaderboard();
+function Board({ title, note, rows }: { title: string; note: string; rows: LeaderRow[] }) {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="font-serif text-4xl text-ink">Leaderboard</h1>
-      <p className="mt-3 max-w-3xl text-muted">
-        Ranked on the average of each account&apos;s most mature grade: Friday when the week is finished,
-        otherwise the latest published noon. The peer set is these accounts. The top 30% earn Chad. An average
-        under 70 is still Chud territory, even for a relative Chad in a weak field.
-      </p>
-      <div className="mt-6 overflow-x-auto rounded-2xl border border-line bg-card">
+    <section className="mt-8">
+      <h2 className="font-serif text-3xl text-ink">{title}</h2>
+      <p className="mt-2 max-w-3xl text-sm text-muted">{note}</p>
+      <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
         <table className="min-w-[860px] w-full text-left text-sm">
-          <caption className="sr-only">Account leaderboard</caption>
+          <caption className="sr-only">{title}</caption>
           <thead className="bg-white text-xs uppercase tracking-wide text-muted">
             <tr>
               <th scope="col" className="px-4 py-3 font-medium">Rank</th>
@@ -57,7 +53,7 @@ export default async function LeaderboardPage() {
                 </td>
                 <td className="px-4 py-3">
                   <span className="flex flex-wrap gap-1">
-                    {row.isChad ? <PeerChip isChad /> : <PeerChip isChad={false} />}
+                    <PeerChip isChad={row.isChad} />
                     {row.isChudTerritory ? <ChudChip /> : null}
                   </span>
                 </td>
@@ -72,6 +68,32 @@ export default async function LeaderboardPage() {
           </tbody>
         </table>
       </div>
+    </section>
+  );
+}
+
+export default async function LeaderboardPage() {
+  const [watchlist, viral] = await Promise.all([
+    getLeaderboard("watchlist"),
+    getLeaderboard("viral"),
+  ]);
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-10">
+      <h1 className="font-serif text-4xl text-ink">Leaderboards</h1>
+      <p className="mt-3 max-w-3xl text-muted">
+        Two buckets, ranked apart. Both still feed each week&apos;s board. An average uses the furthest grade
+        on every call. Chad is the top 30% of that bucket and also at least 70. Under 70 is Chud territory.
+      </p>
+      <Board
+        title="Named watchlist"
+        note="Accounts on the standing watchlist, ranked against each other."
+        rows={watchlist}
+      />
+      <Board
+        title="Viral doom and hype"
+        note="Keyword and engagement spikes in the demo seed, ranked against each other."
+        rows={viral}
+      />
     </div>
   );
 }

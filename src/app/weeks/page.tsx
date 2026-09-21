@@ -7,7 +7,7 @@ import { READOUTS } from "@/lib/scoring";
 
 export const metadata: Metadata = {
   title: "Weeks",
-  description: "Every FinTwitTruth cohort, with Monday, Wednesday, and Friday grades on the same calls.",
+  description: "Every FinTwitTruth cohort, with Monday gap, Monday noon, Wednesday, and Friday grades on the same calls.",
 };
 
 export default async function WeeksPage() {
@@ -16,8 +16,8 @@ export default async function WeeksPage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-serif text-4xl text-ink">Weekly cohorts</h1>
       <p className="mt-3 max-w-2xl text-muted">
-        Each card is one collect window. The three numbers are the average score of that same book at Monday,
-        Wednesday, and Friday noon. A dash means the readout is still scheduled.
+        Each card is one collect window. The numbers are the average score of that same book at the Monday gap,
+        Monday noon, Wednesday noon, and Friday noon. Pending means the readout is still blank.
       </p>
       <ul className="mt-8 grid gap-4">
         {cohorts.map((cohort) => (
@@ -39,7 +39,7 @@ export default async function WeeksPage() {
                   </p>
                 </div>
               </div>
-              <ol className="mt-4 grid gap-2 sm:grid-cols-3">
+              <ol className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                 {READOUTS.map((kind) => {
                   const avg = cohort.averages[kind];
                   return (
@@ -53,7 +53,9 @@ export default async function WeeksPage() {
                           {avg == null ? null : <span className="text-sm text-muted">/100</span>}
                         </span>
                         <span className="text-xs text-muted">
-                          {cohort.statuses[kind] === "published" ? "Published 12:00 PM ET" : "Scheduled 12:00 PM ET"}
+                          {cohort.statuses[kind] === "published"
+                            ? `Published ${READOUT_META[kind].time}`
+                            : `Blank · ${READOUT_META[kind].time}`}
                         </span>
                       </Link>
                     </li>
