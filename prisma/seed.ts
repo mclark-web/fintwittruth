@@ -1,7 +1,12 @@
+import path from "path";
 import { PrismaClient } from "@prisma/client";
 import { buildDataset } from "../src/lib/dataset";
 
-const prisma = new PrismaClient();
+process.env.DATABASE_URL = `file:${path.join(process.cwd(), "prisma", "fintwittruth.db")}`;
+
+const prisma = new PrismaClient({
+  datasources: { db: { url: process.env.DATABASE_URL } },
+});
 
 async function main() {
   const dataset = buildDataset();

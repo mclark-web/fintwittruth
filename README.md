@@ -44,6 +44,8 @@ Consensus is conviction-weighted (high 3, medium 2, low 1) and compared with SPY
 
 ## Run
 
+Requires Node.js 22.
+
 ```bash
 npm install
 npm test
@@ -52,19 +54,19 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-`npm run dev` generates the Prisma client, creates `prisma/dev.db`, and loads the demo seed.
+`npm run dev` runs `predev` first, which creates `prisma/fintwittruth.db` and seeds it when the file is missing. No API keys are required.
 
-## Build
+| Command | What it does |
+| --- | --- |
+| `npm test` | Calendar, scoring, and Chad/Chud checks |
+| `npm run db:seed` | Rebuild the demo rows in place |
+| `npm run db:reset` | Recreate the SQLite file and seed it |
+| `npm run build` | Generate the client, seed SQLite, and build Next.js |
+| `npm start` | Serve the production build |
 
-```bash
-npm install
-npm run build
-npm start
-```
+`npm install && npm run build` is enough for a production build. npm runs `prebuild` before `build`: Prisma generates the client, creates `prisma/fintwittruth.db`, and seeds it. Then `next build` prerenders the pages.
 
-The build runs the scoring tests, writes the SQLite demo, and prerenders the pages. No API keys are required.
-
-`DATABASE_URL` in `.env` points at the local SQLite file (`file:./dev.db`, resolved beside the Prisma schema). It is not a secret. Copy `.env.example` if you need a fresh env file.
+`DATABASE_URL` in `.env` is `file:./fintwittruth.db`. The Prisma CLI resolves that path next to `prisma/schema.prisma`. It is not a secret. Copy `.env.example` if you need a fresh env file.
 
 ## Demo data
 
@@ -87,19 +89,33 @@ Keep the calendar and the scorer. Swap the inputs.
 3. Set `FEED_PROVIDER=x-api` and `MARKET_DATA_PROVIDER=licensed-bars`. `src/lib/feeds/index.ts` selects the adapters. The demo adapters stay in place until those variables are set.
 4. Map posts into the cohort / call / quote tables (see `prisma/schema.prisma` and `buildDataset` in `src/lib/dataset.ts` for the shape). Run grading with `scoreCall` and `rankPeers` from `src/lib/scoring.ts` at each readout: Monday, Wednesday, and Friday at 12:00 PM ET.
 5. Set `NEXT_PUBLIC_DATA_MODE=live` only after demo rows are gone, so the demo banner comes off. Keep the disclaimer. Past scores are still not a forecast.
-6. For anything beyond this demo, point Prisma at a hosted database. Serverless instances can read a SQLite file created at build time; they are a poor place to persist live writes. The demo build is static on purpose.
+6. Postgres, when you outgrow the file: point `DATABASE_URL` at a `postgresql://` URL, change the Prisma datasource provider to `postgresql`, and run `prisma db push`. `src/lib/prisma.ts` already uses a Postgres URL when it sees one, and otherwise opens the SQLite file. Grades still have to be written by your feed job. This demo does not call a market-data vendor.
 
 `X_BEARER_TOKEN` is unused until the X adapter is implemented.
 
-## Deploy
+## Deploy on Vercel
 
-The demo is a Next.js App Router app aimed at a static deploy:
+Import the GitHub repository. No environment variables and no secrets. The demo database is created during the build.
 
-- Install command: `npm install`
-- Build command: `npm run build`
-- No required environment secrets
+Use these settings. The defaults already match. Do not override the build command.
 
-Pages are prerendered from the seeded database, so the scoreboard does not need a live database connection after the build. If you later ingest a real feed, move `DATABASE_URL` to a hosted Prisma database and stop baking grades at build time.
+| Setting | Value |
+| --- | --- |
+| Framework preset | Next.js |
+| Root directory | repository root |
+| Node.js version | 22.x (`engines` in `package.json`) |
+| Install command | `npm install` (leave the default) |
+| Build command | `npm run build` (leave the default) |
+| Output directory | leave the Next.js default |
+| Environment variables | none |
+
+`npm run build` runs `prebuild` first: Prisma generates the client (including the Vercel runtime engine), creates `prisma/fintwittruth.db`, and seeds it. That file is traced into the server bundle. Pages are prerendered from it. On Vercel the filesystem is read-only except `/tmp`, so a server instance copies the seed to `/tmp/fintwittruth.db` before reading it.
+
+Do not change the build command to bare `next build`. That skips the seed and the routes have no database.
+
+Do not set `DATABASE_URL` in the project settings for the demo. Do not set `NODE_ENV` yourself. A `postgresql://` `DATABASE_URL` is only for a later hosted database, and it also requires changing the Prisma datasource provider to `postgresql`.
+
+This deploy is a read-only demo. A writable live feed should use Postgres rather than SQLite on serverless disk.
 
 ## Legal
 

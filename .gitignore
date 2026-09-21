@@ -4,8 +4,8 @@ out
 .vercel
 *.log
 .DS_Store
-prisma/dev.db
-prisma/dev.db-journal
+prisma/fintwittruth.db
+prisma/fintwittruth.db-journal
 prisma/*.db
 prisma/*.db-journal
 .env.local
