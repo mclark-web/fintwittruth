@@ -91,10 +91,9 @@ export default async function LeaderboardPage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-serif text-4xl text-ink">Leaderboards</h1>
       <p className="mt-3 max-w-3xl text-muted">
-        Two buckets, ranked apart. Both still feed each week&apos;s graded board. An average uses the furthest
-        settled grade on each call. Hit rate, Chad rate, and Chud rate count settled grades only. A call with
-        no grade yet is not in the rank. Chad is the top 30% of that bucket and also at least 70. Under 70 is
-        Chud territory.
+        Verified handles only. Fictional DEMO accounts are not ranked here. An average uses the furthest settled
+        grade on each call. Hit rate, Chad rate, and Chud rate count settled grades only. Chad is the top 30% of
+        that bucket and also at least 70. Under 70 is Chud territory.
       </p>
       <div className="mt-3">
         <PendingSettleLink href="/pending" />
@@ -106,7 +105,7 @@ export default async function LeaderboardPage() {
       />
       <Board
         title="Viral doom and hype"
-        note="Keyword and engagement spikes in the demo seed, ranked against each other."
+        note="Verified viral posts, when the operator stores one. Fictional spike accounts stay on the DEMO board."
         rows={viral}
       />
     </div>

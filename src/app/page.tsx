@@ -5,23 +5,19 @@ import { Avatar, ChudChip, PeerChip } from "@/components/score";
 import { pendingReadoutKinds, settledGradeKinds, settledReadoutKinds } from "@/lib/board";
 import { formatPct, formatScore, formatShortDay } from "@/lib/format";
 import { CH_FACTOR, CHAD_MEANING, CHUD_MEANING, READOUT_META } from "@/lib/labels";
-import { getFeaturedCohort, getLatestCohort, getLeaderboard, type CallView } from "@/lib/queries";
+import { getLatestCohort, getLeaderboard } from "@/lib/queries";
 
 export default async function HomePage() {
-  const [latest, featured, board] = await Promise.all([
+  const [latest, board] = await Promise.all([
     getLatestCohort(),
-    getFeaturedCohort(),
     getLeaderboard("watchlist"),
   ]);
 
-  const spotlight = featured
-    ? ["permapump", "doomscroll"]
-        .map((handle) => featured.calls.find((call) => call.handle === handle))
-        .filter((call): call is CallView => call != null && settledGradeKinds(call.grades).length > 0)
+  const gradedCalls = latest
+    ? latest.calls.filter((call) => settledGradeKinds(call.grades).length > 0)
     : [];
-  const featuredReadouts = featured ? Object.values(featured.readouts) : [];
-  const featuredKinds = settledReadoutKinds(featuredReadouts);
-  const featuredWaiting = pendingReadoutKinds(featuredReadouts);
+  const featuredKinds = latest ? settledReadoutKinds(Object.values(latest.readouts)) : [];
+  const featuredWaiting = latest ? pendingReadoutKinds(Object.values(latest.readouts)) : [];
   const latestTapes = latest
     ? (["monday-gap", "monday"] as const).filter((kind) => latest.readouts[kind].status === "published")
     : [];
@@ -90,7 +86,7 @@ export default async function HomePage() {
         <section className="mt-12" aria-labelledby="latest-heading">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted">Current cohort · demo</p>
+              <p className="text-xs uppercase tracking-wide text-muted">Live cohort · verified posts</p>
               <h2 id="latest-heading" className="font-serif text-3xl text-ink">
                 {latest.title}
               </h2>
@@ -123,22 +119,38 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      {featured && spotlight.length > 0 ? (
-        <section className="mt-12" aria-labelledby="case-heading">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-muted">Labor Day week, left blank on Monday</p>
-              <h2 id="case-heading" className="font-serif text-3xl text-ink">
-                {featured.title}
-              </h2>
-              <p className="mt-1 max-w-2xl text-muted">{featured.summary}</p>
-            </div>
-            <Link href={`/weeks/${featured.slug}`} className="text-sm font-medium text-pine underline-offset-4 hover:underline">
-              See the graded board
-            </Link>
+      <section className="mt-12" aria-labelledby="case-heading">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted">Graded book</p>
+            <h2 id="case-heading" className="font-serif text-3xl text-ink">
+              Verified calls
+            </h2>
+            <p className="mt-1 max-w-2xl text-muted">
+              Only posts with a source URL and a timestamp inside the collect window. A bearish call on a green
+              Monday stays under 70.
+            </p>
           </div>
+          <Link href="/demo" className="text-sm font-medium text-pine underline-offset-4 hover:underline">
+            DEMO board
+          </Link>
+        </div>
+        {gradedCalls.length === 0 ? (
+          <div className="panel mt-5 p-5">
+            <h3 className="font-serif text-2xl text-ink">No verified calls on this board yet</h3>
+            <p className="mt-2 max-w-2xl text-sm text-muted">
+              The live book is empty until the operator pastes a public post. Fictional weekend cards are labeled
+              DEMO and are not ranked here.
+            </p>
+            <p className="mt-3 text-sm">
+              <Link href="/demo" className="font-medium text-pine underline-offset-4 hover:underline">
+                Open the DEMO board
+              </Link>
+            </p>
+          </div>
+        ) : (
           <ul className="mt-5 grid gap-3 lg:grid-cols-2">
-            {spotlight.map((call) => (
+            {gradedCalls.map((call) => (
               <li key={call.id} className="panel p-4">
                 <div className="flex items-center gap-3">
                   <Avatar name={call.displayName} accent={call.accent} />
@@ -148,17 +160,25 @@ export default async function HomePage() {
                     </Link>
                     <p className="text-sm text-muted">
                       {call.direction} {call.primary}
+                      {call.toneLabel ? ` · ${call.toneLabel}` : ""}
                     </p>
                   </div>
                 </div>
                 <p className="mt-3 text-ink">{call.body}</p>
+                {call.sourceUrl ? (
+                  <p className="mt-2 text-xs">
+                    <a href={call.sourceUrl} className="text-pine underline-offset-4 hover:underline">
+                      Source
+                    </a>
+                  </p>
+                ) : null}
                 <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {featuredKinds.map((kind) => {
                     const grade = call.grades[kind];
                     if (!grade) return null;
                     return (
                       <li key={kind}>
-                        <Link href={`/weeks/${featured.slug}/${kind}`} className="block rounded-xl bg-white px-3 py-2">
+                        <Link href={`/weeks/${latest?.slug}/${kind}`} className="block rounded-xl bg-white px-3 py-2">
                           <span className="text-[11px] uppercase text-muted">{READOUT_META[kind].short}</span>
                           <span className="mt-1 block font-mono text-2xl">
                             {grade.score}
@@ -176,13 +196,13 @@ export default async function HomePage() {
               </li>
             ))}
           </ul>
-          {featuredWaiting.length > 0 ? (
-            <div className="mt-3">
-              <PendingSettleLink href={`/weeks/${featured.slug}/pending`} waiting={featuredWaiting.length} />
-            </div>
-          ) : null}
-        </section>
-      ) : null}
+        )}
+        {latest && featuredWaiting.length > 0 ? (
+          <div className="mt-3">
+            <PendingSettleLink href={`/weeks/${latest.slug}/pending`} waiting={featuredWaiting.length} />
+          </div>
+        ) : null}
+      </section>
 
       <section className="mt-12" aria-labelledby="board-heading">
         <div className="flex items-end justify-between gap-3">
@@ -194,10 +214,18 @@ export default async function HomePage() {
           </Link>
         </div>
         <p className="mt-2 text-sm text-muted">
-          Watchlist accounts with a settled grade, ranked inside that bucket. Each average uses the furthest
-          settled grade. Chad, Chud, and hit rate count settled grades only. Chad is the top 30% of this board
-          and also at least 70.
+          Verified watchlist accounts with a settled grade. Fictional DEMO handles are not in this rank. Chad is
+          the top 30% of this board and also at least 70.
         </p>
+        {board.length === 0 ? (
+          <p className="panel mt-4 p-5 text-sm text-muted">
+            No verified handle has a settled grade yet.{" "}
+            <Link href="/demo" className="text-pine underline-offset-4 hover:underline">
+              DEMO handles
+            </Link>{" "}
+            stay off this list.
+          </p>
+        ) : (
         <ol className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
           {board.slice(0, 5).map((row) => (
             <li key={row.handle} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3">
@@ -221,6 +249,7 @@ export default async function HomePage() {
             </li>
           ))}
         </ol>
+        )}
         <div className="mt-3">
           <PendingSettleLink href="/pending" />
         </div>

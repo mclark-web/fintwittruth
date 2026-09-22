@@ -74,7 +74,7 @@ export default function DonatePage() {
           The calendar stays the same whether or not anyone gives: posts from Wednesday at 12:00 PM
           America/New_York through Sunday at 5:00 PM America/New_York, graded on the Monday regular-session open
           and at Monday, Wednesday, and Friday noon. A closed session stays blank. Outcomes are recorded market
-          prints, including VIX. The shipped posts are a labeled demo.
+          prints, including VIX. Verified posts stay on the live board. Fictional posts are labeled DEMO.
           Only public posts belong on the board. Charoof FinTwit is not affiliated with X or Twitter.
         </p>
         <p>

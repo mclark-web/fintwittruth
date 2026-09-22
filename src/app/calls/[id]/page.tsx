@@ -92,7 +92,9 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
       </p>
       <article className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <div className="panel p-5">
-          <p className="text-xs uppercase tracking-wide text-muted">Demo call</p>
+          <p className="text-xs uppercase tracking-wide text-muted">
+            {cohort.dataset === "demo" ? "DEMO call" : "Verified public post"}
+          </p>
           <header className="mt-3 flex flex-wrap items-center gap-3">
             <Avatar name={call.displayName} accent={call.accent} />
             <div>
@@ -116,7 +118,19 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           ) : (
             <p className="mt-3 text-sm text-muted">No ticker named. Specificity stays at the floor.</p>
           )}
-          <p className="mt-3 text-xs text-muted">Posted {formatWhen(call.postedAt)} inside the collect window.</p>
+          <p className="mt-3 text-xs text-muted">
+            Posted {formatWhen(call.postedAt)} inside the collect window.
+            {call.sourceUrl ? (
+              <>
+                {" "}
+                <a href={call.sourceUrl} className="text-pine underline-offset-4 hover:underline">
+                  Source
+                </a>
+              </>
+            ) : cohort.dataset === "demo" ? (
+              " Fictional wording. Not a real post."
+            ) : null}
+          </p>
         </div>
         <div className="panel p-5">
           {quote ? (

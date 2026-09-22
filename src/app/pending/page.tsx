@@ -12,7 +12,9 @@ export const metadata: Metadata = {
 
 export default async function PendingPage() {
   const slugs = await listCohortSlugs();
-  const cohorts = (await Promise.all(slugs.map((slug) => getCohort(slug)))).filter((cohort) => cohort != null);
+  const cohorts = (await Promise.all(slugs.map((slug) => getCohort(slug)))).flatMap((cohort) =>
+    cohort != null && cohort.dataset === "live" ? [cohort] : [],
+  );
   const waiting = cohorts
     .map((cohort) => ({
       cohort,
@@ -33,7 +35,7 @@ export default async function PendingPage() {
       <p className="mt-3 max-w-3xl text-muted">
         These horizons are not on the home tape, the weekly boards, or the leaderboards. A call joins those
         rankings after Monday&apos;s open, Monday noon, Wednesday, or Friday settles. This page is the waiting
-        list, not a score.
+        list for the live book, not a score. DEMO cohorts keep their own waiting lists on the demo week.
       </p>
       {waiting.length === 0 ? (
         <p className="panel mt-8 p-5 text-sm text-muted">
