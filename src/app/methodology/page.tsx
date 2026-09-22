@@ -85,15 +85,16 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Weekend reference</dt>
             <dd className="mt-1 text-sm text-muted">
-              There is no Sunday cash print. The reference is the prior Friday adjusted close for SPY, QQQ,
-              DIA, and the Friday VIX close. Equity index futures are shut from Friday 5:00 PM ET until Sunday
-              6:00 PM ET, so Sunday 5:00 PM only ends the book.
+              There is no Sunday cash print. The reference is the prior Friday regular-session close for SPY,
+              QQQ, DIA, and the Friday VIX close. Equity index futures are shut from Friday 5:00 PM ET until
+              Sunday 6:00 PM ET, so Sunday 5:00 PM only ends the book. Yahoo adjclose is stored for audit and is
+              not used against the unadjusted open or noon bar.
             </dd>
           </div>
           <div className="panel p-4">
             <dt className="font-medium text-ink">Monday gap — 9:30 AM ET</dt>
             <dd className="mt-1 text-sm text-muted">
-              Friday adjusted close to the regular-hours open for SPY, QQQ, and DIA. VIX uses Friday&apos;s
+              Friday regular-session close to the regular-hours open for SPY, QQQ, and DIA. VIX uses Friday&apos;s
               close to Monday&apos;s regular-session open.
             </dd>
           </div>
@@ -130,10 +131,11 @@ export default async function MethodologyPage() {
         </p>
         <h3 className="mt-6 font-medium text-ink">Direction versus the equity tape</h3>
         <p className="mt-1 text-sm text-muted">
-          The tape is the equal-weight percent move of SPY, QQQ, and DIA from Friday&apos;s adjusted close to
-          the readout print. Each name counts one third. A bullish call is scored on that tape. A bearish call
-          is scored on the inverse. Flat tape is a push. Numbered targets are still checked on the call&apos;s
-          own symbol.
+          The tape is the equal-weight percent move of SPY, QQQ, and DIA from Friday&apos;s regular-session
+          close to the readout print. Each name counts one third. A bullish call is scored on that tape. A
+          bearish call is scored on the inverse. Flat tape is a push. Numbered targets are still checked on the
+          call&apos;s own symbol. Selloff calls only score well when the tape is down; melt-up calls only when
+          the tape is up.
         </p>
         <table className="mt-3 w-full text-left text-sm">
           <caption className="sr-only">Direction point bands</caption>

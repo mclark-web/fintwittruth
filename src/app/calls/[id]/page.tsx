@@ -130,7 +130,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
           The words do not change. The Monday gap, Monday noon, Wednesday, and Friday each rescore this call
-          against recorded prints measured from Friday&apos;s adjusted close.
+          against recorded prints measured from Friday&apos;s regular-session close.
         </p>
         <ol className="mt-4 grid gap-4 lg:grid-cols-2">
           {READOUTS.map((kind) => {

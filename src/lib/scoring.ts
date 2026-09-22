@@ -69,7 +69,7 @@ export function scoreToBadge(score: number): number {
   return Math.floor(clamped / 10) + 1;
 }
 
-/** Equal-weight move of SPY, QQQ, and DIA from the Friday adjusted close. */
+/** Equal-weight move of SPY, QQQ, and DIA from the Friday regular-session close. */
 export function equityTapeMove(moves: Record<(typeof EQUITY_TAPE)[number], number>): number {
   return (moves.SPY + moves.QQQ + moves.DIA) / 3;
 }
@@ -260,7 +260,7 @@ export function gradeNote(input: {
   score: number;
 }): string {
   const when = {
-    "monday-gap": "Monday gap, from Friday's adjusted close to the regular-session open",
+    "monday-gap": "Monday gap, from Friday's regular-session close to the regular-session open",
     monday: "Monday noon weekend-noise grade",
     wednesday: "Wednesday noon, same weekend cohort",
     friday: "Friday noon, same weekend cohort",
@@ -275,7 +275,7 @@ export function gradeNote(input: {
     (input.direction === "bearish" && input.rawMovePct >= 0.0008);
   const relation = helped ? "with" : hurt ? "against" : "flat versus";
   const territory = input.score < CHUD_THRESHOLD ? " That score is in Chud territory." : "";
-  return `${when}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's adjusted close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;
+  return `${when}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's regular-session close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;
 }
 
 export function tapeDirection(rawMovePct: number): "bullish" | "bearish" | "flat" {

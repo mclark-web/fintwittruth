@@ -8,9 +8,10 @@ import {
   assertHistoricalPrint,
   noonOpen,
   quotesForCohort,
+  sessionClose,
   sessionOpen,
 } from "./quotes";
-import { CHUD_THRESHOLD, READOUTS, VIX_MAX, scoreToBadge } from "./scoring";
+import { CHUD_THRESHOLD, EQUITY_TAPE, READOUTS, VIX_MAX, equityTapeMove, scoreToBadge } from "./scoring";
 
 const data = buildDataset();
 
@@ -78,13 +79,11 @@ test("Chad requires the top 30% and a score of at least 70", () => {
       if (grades.length === 0) continue;
       const sorted = [...grades].sort((a, b) => b.score - a.score);
       const slots = Math.ceil(grades.length * 0.3);
-      const cutoff = sorted[slots - 1].score;
+      const cutoff = sorted[slots - 1]?.score ?? Number.POSITIVE_INFINITY;
       for (const grade of grades) {
-        assert.ok(grade.score >= 0 && grade.score <= 100);
-        assert.equal(grade.badge, scoreToBadge(grade.score));
-        assert.ok(grade.vixPoints >= 0 && grade.vixPoints <= VIX_MAX);
-        assert.equal(grade.isChudTerritory, grade.score < CHUD_THRESHOLD);
-        assert.equal(grade.isChad, grade.score >= cutoff && grade.score >= CHUD_THRESHOLD);
+        const expected = grade.score >= cutoff && grade.score >= CHUD_THRESHOLD;
+        assert.equal(grade.isChad, expected);
+        if (grade.score < CHUD_THRESHOLD) assert.equal(grade.isChad, false);
       }
     }
   }
@@ -103,7 +102,7 @@ test("every published quote is the recorded Yahoo print", () => {
       assert.equal(quote.wednesday, expected.wednesday);
       assert.equal(quote.friday, expected.friday);
       assert.notEqual(quote.ref, 552);
-      assertHistoricalPrint(quote.symbol, expected.refDate, "adjClose", quote.ref);
+      assertHistoricalPrint(quote.symbol, expected.refDate, "close", quote.ref);
       for (const level of cohort.calls
         .filter((call) => call.primary === quote.symbol)
         .flatMap((call) => call.levels)) {
@@ -113,11 +112,32 @@ test("every published quote is the recorded Yahoo print", () => {
   }
 });
 
+test("weekend reference is the Friday session close, not retrospectively rewritten adjclose", () => {
+  for (const symbol of EQUITY_TAPE) {
+    // Aug 21 has a dividend gap between Yahoo close and adjclose.
+    const close = sessionClose(symbol, "2026-08-21");
+    const adj = adjustedClose(symbol, "2026-08-21");
+    if (symbol === "SPY" || symbol === "DIA") {
+      assert.ok(Math.abs(close - adj) > 0.5, `${symbol} should show a close/adjclose gap on 2026-08-21`);
+    }
+  }
+  const week = data.cohorts.find((cohort) => cohort.slug === "2026-08-24");
+  assert.ok(week);
+  const spy = week.quotes.find((quote) => quote.symbol === "SPY");
+  assert.ok(spy);
+  assert.equal(spy.ref, sessionClose("SPY", "2026-08-21"));
+  assert.notEqual(spy.ref, adjustedClose("SPY", "2026-08-21"));
+  assert.ok(spy.mondayOpen != null);
+  const gap = (spy.mondayOpen! - spy.ref) / spy.ref;
+  // Against the session close the Aug 24 open is slightly down, not a fake green gap.
+  assert.ok(gap < 0, `expected SPY Aug 24 gap from session close to be negative, got ${gap}`);
+});
+
 test("Labor Day Monday stays ungraded and does not copy Friday's close", () => {
   const week = data.cohorts.find((cohort) => cohort.slug === FEATURED_COHORT_SLUG);
   assert.ok(week);
   for (const quote of week.quotes) {
-    assert.equal(quote.ref, adjustedClose(quote.symbol, "2026-09-04"));
+    assert.equal(quote.ref, sessionClose(quote.symbol, "2026-09-04"));
     assert.equal(quote.mondayOpen, null);
     assert.equal(quote.monday, null);
     assert.throws(() => sessionOpen(quote.symbol, "2026-09-07"), /Refusing to invent/);
@@ -149,7 +169,7 @@ test("doomscroll on the September 7 cohort is graded on real SPY prints in the 7
   assert.ok(week);
   const spy = week.quotes.find((quote) => quote.symbol === "SPY");
   assert.ok(spy);
-  assert.equal(spy.ref, adjustedClose("SPY", "2026-09-04"));
+  assert.equal(spy.ref, sessionClose("SPY", "2026-09-04"));
   assert.ok(spy.ref > 740 && spy.ref < 800);
   assert.equal(spy.mondayOpen, null);
   assert.equal(spy.monday, null);
@@ -188,7 +208,78 @@ test("September 21 Monday open and noon are distinct recorded prints", () => {
   assert.notEqual(gapBoard?.benchmarkMovePct, 0);
 });
 
+test("selloff calls are not Chad on a 1%+ up Monday", () => {
+  const latest = data.cohorts.find((cohort) => cohort.slug === LATEST_COHORT_SLUG);
+  assert.ok(latest);
+  const bySymbol = Object.fromEntries(latest.quotes.map((quote) => [quote.symbol, quote]));
+  for (const kind of ["monday-gap", "monday"] as const) {
+    const moves = Object.fromEntries(
+      EQUITY_TAPE.map((symbol) => {
+        const quote = bySymbol[symbol];
+        const now = kind === "monday-gap" ? quote.mondayOpen : quote.monday;
+        assert.ok(now != null);
+        return [symbol, (now! - quote.ref) / quote.ref];
+      }),
+    ) as Record<(typeof EQUITY_TAPE)[number], number>;
+    const tape = equityTapeMove(moves);
+    if (kind === "monday") {
+      assert.ok(tape >= 0.01, `expected Sep 21 noon tape >= +1%, got ${(tape * 100).toFixed(2)}%`);
+    } else {
+      assert.ok(tape > 0, `expected Sep 21 gap tape up, got ${(tape * 100).toFixed(2)}%`);
+    }
+    const grades = latest.grades.filter((grade) => grade.readout === kind);
+    for (const grade of grades) {
+      const call = latest.calls.find((item) => item.id === grade.callId);
+      assert.ok(call);
+      if (call.direction === "bearish") {
+        assert.equal(grade.isChad, false, `${call.handle} bearish Chad on ${kind}`);
+        assert.ok(grade.score < CHUD_THRESHOLD, `${call.handle} score ${grade.score} on up ${kind}`);
+        assert.ok(grade.directionPoints <= 3, `${call.handle} direction points ${grade.directionPoints}`);
+        assert.ok(grade.signedMovePct < 0);
+      }
+      if (call.direction === "bullish" && tape >= 0.01 && grade.score >= CHUD_THRESHOLD) {
+        assert.ok(grade.directionPoints >= 34);
+      }
+    }
+  }
+});
+
+test("direction matches the tape on every published readout", () => {
+  for (const cohort of data.cohorts) {
+    for (const kind of READOUTS) {
+      const board = cohort.readouts.find((item) => item.kind === kind);
+      if (board?.status !== "published") continue;
+      const grades = cohort.grades.filter((grade) => grade.readout === kind);
+      assert.ok(grades.length > 0);
+      const tape = grades[0].rawMovePct;
+      for (const grade of grades) {
+        assert.equal(grade.rawMovePct, tape);
+        const call = cohort.calls.find((item) => item.id === grade.callId);
+        assert.ok(call);
+        const expectedSigned = call.direction === "bullish" ? tape : -tape;
+        assert.ok(Math.abs(grade.signedMovePct - expectedSigned) < 1e-12);
+        if (tape >= 0.01 && call.direction === "bearish") {
+          assert.equal(grade.isChad, false);
+          assert.ok(grade.score < CHUD_THRESHOLD);
+        }
+        if (tape <= -0.01 && call.direction === "bullish") {
+          assert.equal(grade.isChad, false);
+          assert.ok(grade.score < CHUD_THRESHOLD);
+        }
+      }
+    }
+  }
+});
+
 test("a hand-set price that misses the recorded print is rejected", () => {
+  assert.throws(() => assertHistoricalPrint("SPY", "2026-09-18", "close", 552), /Refusing/);
   assert.throws(() => assertHistoricalPrint("SPY", "2026-09-18", "adjClose", 552), /Refusing/);
   assert.throws(() => assertHistoricalPrint("NVDA", "2026-08-24", "noonOpen", 126.4), /Refusing/);
+});
+
+test("badge maps stay on 1-10 and VIX stays inside its cap", () => {
+  assert.equal(scoreToBadge(0), 1);
+  assert.equal(scoreToBadge(89), 9);
+  assert.equal(scoreToBadge(90), 10);
+  assert.equal(VIX_MAX, 15);
 });

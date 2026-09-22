@@ -59,8 +59,9 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
           mondayAt={cohort.mondayAt}
         />
       </div>
-      <div className="mt-6">
-        <QuoteTape quotes={cohort.quotes} kind="latest" />
+      <div className="mt-6 space-y-4">
+        <QuoteTape quotes={cohort.quotes} kind="monday-gap" />
+        <QuoteTape quotes={cohort.quotes} kind="monday" />
         <PriceSource />
       </div>
       <div className="mt-4">

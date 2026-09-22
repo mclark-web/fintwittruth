@@ -67,10 +67,10 @@ export default function TermsPage() {
         <p>
           This deployment is a labeled demo. Handles and wording in the seed are fictional. They are not quotes
           from real people. Market outcomes are not fictional. A published grade uses the recorded print for
-          that evaluation date: the prior Friday adjusted close as the weekend reference, the regular-session
-          open for Monday&apos;s gap, and the 12:00 PM ET print on Monday, Wednesday, and Friday when the cash
-          market is open. VIX is part of every published grade. A closed session stays blank. A future session
-          stays blank. Missing history is not filled in.
+          that evaluation date: the prior Friday regular-session close as the weekend reference, the
+          regular-session open for Monday&apos;s gap, and the 12:00 PM ET print on Monday, Wednesday, and Friday
+          when the cash market is open. VIX is part of every published grade. A closed session stays blank. A
+          future session stays blank. Missing history is not filled in.
         </p>
       </LegalSection>
 

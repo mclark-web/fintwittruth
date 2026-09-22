@@ -166,7 +166,7 @@ export const ACCOUNTS: AccountSpec[] = [
   },
 ];
 
-/** A fictional stated level, as a fraction of that week's real Friday adjusted close. */
+/** A fictional stated level, as a fraction of that week's real Friday regular-session close. */
 export type LevelOffset = {
   symbol: string;
   role: LevelRole;
@@ -246,7 +246,7 @@ export function renderBody(template: string, levels: Level[]): string {
 
 /**
  * Handles and wording are fictional. Stated levels are offsets from the real
- * Friday adjusted close in src/lib/market-history.json. Market outcomes are not
+ * Friday regular-session close in src/lib/market-history.json. Market outcomes are not
  * stored here.
  */
 export const COHORTS: CohortSpec[] = [

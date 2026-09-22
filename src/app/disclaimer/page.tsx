@@ -78,7 +78,7 @@ export default function DisclaimerPage() {
       <LegalSection id="prints" title="Market outcomes are real prints">
         <p>
           Grades use recorded market prices for the evaluation dates. The weekend reference is the prior Friday
-          adjusted close for SPY, QQQ, and DIA, and Friday&apos;s VIX close. Monday&apos;s gap uses the
+          regular-session close for SPY, QQQ, and DIA, and Friday&apos;s VIX close. Monday&apos;s gap uses the
           regular-session open. Noon grades use the open of the 12:00 PM ET five-minute bar. A closed session
           stays blank. A date that has not printed is left blank. Charoof FinTwit does not invent a price path to
           make a call look right or wrong, and it does not turn a grade into a buy or sell instruction.

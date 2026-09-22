@@ -21,12 +21,13 @@ export function CalendarStrip() {
   const steps = [
     { kicker: "Collect opens", title: "Wednesday", detail: "12:00 PM ET" },
     { kicker: "Collect closes", title: "Sunday", detail: "5:00 PM ET" },
-    { kicker: "Weekend-noise grade", title: "Monday", detail: "12:00 PM ET" },
+    { kicker: "Monday gap", title: "Monday", detail: "9:30 AM ET" },
+    { kicker: "Weekend-noise grade", title: "Monday noon", detail: "12:00 PM ET" },
     { kicker: "Same cohort", title: "Wednesday", detail: "12:00 PM ET" },
     { kicker: "Same cohort, final", title: "Friday", detail: "12:00 PM ET" },
   ];
   return (
-    <ol className="grid gap-3 sm:grid-cols-5">
+    <ol className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
       {steps.map((step, index) => (
         <li key={`${step.title}-${step.kicker}`} className="panel px-4 py-3">
           <p className="text-[11px] uppercase tracking-wide text-muted">
@@ -46,6 +47,14 @@ export function printAt(quote: QuoteView, kind: ReadoutKind | "latest"): number 
   return quote[kind];
 }
 
+export function printLabel(kind: ReadoutKind | "latest"): string {
+  if (kind === "latest") return "Latest recorded print";
+  if (kind === "monday-gap") return "Monday regular-session open";
+  if (kind === "monday") return "Monday 12:00 PM ET print";
+  if (kind === "wednesday") return "Wednesday 12:00 PM ET print";
+  return "Friday 12:00 PM ET print";
+}
+
 export function QuoteTape({
   quotes,
   kind,
@@ -54,19 +63,22 @@ export function QuoteTape({
   kind: ReadoutKind | "latest";
 }) {
   return (
-    <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
-      {quotes.map((quote) => {
-        const now = printAt(quote, kind);
-        const move = now == null ? null : (now - quote.ref) / quote.ref;
-        return (
-          <li key={quote.symbol} className="rounded-xl border border-line bg-white px-3 py-2">
-            <p className="font-mono text-[11px] uppercase tracking-wide text-muted">{quote.symbol}</p>
-            <p className="font-mono text-lg text-ink">{now == null ? "—" : formatPrice(now)}</p>
-            <p className="text-xs">{move == null ? <span className="text-muted">Pending</span> : <Move value={move} />}</p>
-          </li>
-        );
-      })}
-    </ul>
+    <div>
+      <p className="mb-2 text-xs uppercase tracking-wide text-muted">{printLabel(kind)} vs Friday session close</p>
+      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+        {quotes.map((quote) => {
+          const now = printAt(quote, kind);
+          const move = now == null ? null : (now - quote.ref) / quote.ref;
+          return (
+            <li key={quote.symbol} className="rounded-xl border border-line bg-white px-3 py-2">
+              <p className="font-mono text-[11px] uppercase tracking-wide text-muted">{quote.symbol}</p>
+              <p className="font-mono text-lg text-ink">{now == null ? "—" : formatPrice(now)}</p>
+              <p className="text-xs">{move == null ? <span className="text-muted">Pending</span> : <Move value={move} />}</p>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -101,9 +113,9 @@ export function PricePath({
         <span className="font-medium text-ink">
           {quote.symbol} <span className="font-normal text-muted">{quote.name}</span>
         </span>
-        <span className="text-xs text-muted">Friday adjusted close, then the recorded open and noon prints</span>
+        <span className="text-xs text-muted">Friday session close, then the recorded open and noon prints</span>
       </figcaption>
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${quote.symbol} path from Friday's adjusted close`} className="w-full">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${quote.symbol} path from Friday's regular-session close`} className="w-full">
         <rect x="0" y="0" width={width} height={height} rx="16" fill="#ffffff" />
         <path d={path} fill="none" stroke="#14352b" strokeWidth="3" />
         {coords.map((point) => (
@@ -217,7 +229,7 @@ export function NoiseIndex({
       </h2>
       <p className="mt-2 max-w-3xl text-sm text-muted">
         Share of this cohort tagged panic, crash, or selloff, next to the equal-weight SPY, QQQ, and DIA move
-        from Friday&apos;s adjusted close. Descriptive only. Not a signal.
+        from Friday&apos;s regular-session close. Descriptive only. Not a signal.
       </p>
       <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <div>

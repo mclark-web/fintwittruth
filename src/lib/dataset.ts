@@ -164,13 +164,13 @@ function readoutNarrative(input: {
     input.kind === "monday"
       ? " Monday noon is the primary read on whether the weekend doom and melt-up noise survived the cash session."
       : input.kind === "monday-gap"
-        ? " The gap is Friday's adjusted close to the regular-session open."
+        ? " The gap is Friday's regular-session close to the regular-session open."
         : "";
   const noise =
     input.panicShare == null
       ? ""
       : ` Weekend Noise Index is ${Math.round(input.panicShare * 100)}% panic posts.`;
-  return `${input.whenLabel}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's adjusted close. The cohort was ${lean}. Realized tape is ${input.realized}.${noise} ${relation}${mondayNote}${sessionNote} Descriptive only. Not a signal.`;
+  return `${input.whenLabel}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's regular-session close. The cohort was ${lean}. Realized tape is ${input.realized}.${noise} ${relation}${mondayNote}${sessionNote} Descriptive only. Not a signal.`;
 }
 
 function buildCalls(
@@ -264,7 +264,7 @@ export function buildDataset(): BuiltDataset {
     const grades: BuiltGrade[] = [];
     const readouts: BuiltReadout[] = READOUTS.map((kind) => {
       const whenLabel = {
-        "monday-gap": "Monday gap, Friday adjusted close to the 9:30 AM ET open",
+        "monday-gap": "Monday gap, Friday regular-session close to the 9:30 AM ET open",
         monday: "Monday 12:00 PM ET weekend-noise grade",
         wednesday: "Wednesday 12:00 PM ET update on the same weekend cohort",
         friday: "Friday 12:00 PM ET final grade on the same weekend cohort",

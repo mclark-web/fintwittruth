@@ -20,7 +20,7 @@ That window is one cohort. The calls do not change for the rest of the week.
 
 | Readout | When | What it is |
 | --- | --- | --- |
-| Monday gap | Monday 9:30 AM ET | Friday adjusted close to the regular-session open |
+| Monday gap | Monday 9:30 AM ET | Friday regular-session close to the regular-session open |
 | Weekend-noise grade | Monday 12:00 PM ET | Primary score against the noon print |
 | Mid-week update | Wednesday 12:00 PM ET | Same calls, rescored |
 | Final grade | Friday 12:00 PM ET | Last score on that cohort |
@@ -29,7 +29,7 @@ Wednesday noon is also when the **next** collect window opens. That is a new coh
 
 Each cohort has two inclusion buckets: a named watchlist and a viral doom / hype spike set. Both feed the weekly board. Leaderboards are ranked inside each bucket.
 
-The weekend reference is the **prior Friday adjusted close** for SPY, QQQ, and DIA, plus Friday's VIX close. There is no invented Sunday cash print. Monday's gap uses the regular-session daily open. Monday, Wednesday, and Friday noon grades use the **open** of the 5-minute bar stamped 12:00 PM America/New_York. Intraday bars are not dividend-adjusted. The Friday reference is. A closed session stays blank. Monday, September 7, 2026 was Labor Day, so that gap and noon stay ungraded. A Yahoo VIX daily bar on that holiday is ignored. A date with no print yet stays null. The series is committed in `src/lib/market-history.json` (chart API `query1.finance.yahoo.com`, fetched September 21, 2026). `src/lib/quotes.ts` throws if a required print is missing.
+The weekend reference is the **prior Friday regular-session close** for SPY, QQQ, and DIA, plus Friday's VIX close. Yahoo `adjclose` is stored beside it for audit and is **not** used for gap or noon moves, because the daily open and the 12:00 PM ET five-minute open are not dividend-adjusted. Comparing retrospectively rewritten adjclose to those prints invents a false gap. There is no invented Sunday cash print. Monday's gap uses the regular-session daily open. Monday, Wednesday, and Friday noon grades use the **open** of the 5-minute bar stamped 12:00 PM America/New_York. A closed session stays blank. Monday, September 7, 2026 was Labor Day, so that gap and noon stay ungraded. A Yahoo VIX daily bar on that holiday is ignored. A date with no print yet stays null. The series is committed in `src/lib/market-history.json` (chart API `query1.finance.yahoo.com`). `src/lib/quotes.ts` throws if a required print is missing.
 
 The in-app methodology page states this again. The latest demo week has the Monday gap and Monday noon published, with Wednesday and Friday still scheduled.
 
@@ -37,7 +37,7 @@ The in-app methodology page states this again. The latest demo week has the Mond
 
 Every published grade shows the full **0–100** score, built from:
 
-- **Direction (up to 50)** — equal-weight move of SPY, QQQ, and DIA from Friday's adjusted close. Bearish calls use the inverse.
+- **Direction (up to 50)** — equal-weight move of SPY, QQQ, and DIA from Friday's regular-session close. Bearish calls use the inverse.
 - **Levels (up to 20)** — targets, invalidation, support, and resistance on the call's own symbol. A busted invalidation caps this part at 2. No level keeps a floor of 4.
 - **Specificity (up to 15)** — naming a ticker, a target, an invalidation, and a band.
 - **VIX (15)** — panic and selloff calls want VIX higher. Melt-up calls want VIX lower. The move is Friday's VIX close to the VIX print at the same stamp.
@@ -82,7 +82,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Seed sources:
 
-- `src/lib/market-history.json` — recorded Yahoo Finance adjusted closes, regular-session opens, and 12:00 PM ET prints
+- `src/lib/market-history.json` — recorded Yahoo Finance Friday session closes, adjclose (audit), regular-session opens, and 12:00 PM ET prints
 - `src/lib/quotes.ts` — reads that file and refuses a missing print
 - `src/lib/demo-data.ts` — fictional accounts and posts in a watchlist bucket and a viral bucket. Stated levels are offsets from the real Friday reference, not a made-up spot
 - `src/lib/dataset.ts` — applies the locked calendar and the scorer

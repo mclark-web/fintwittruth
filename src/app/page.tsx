@@ -94,8 +94,9 @@ export default async function HomePage() {
               Open the side-by-side board
             </Link>
           </div>
-          <div className="mt-5">
-            <QuoteTape quotes={latest.quotes} kind="latest" />
+          <div className="mt-5 space-y-4">
+            <QuoteTape quotes={latest.quotes} kind="monday-gap" />
+            <QuoteTape quotes={latest.quotes} kind="monday" />
             <PriceSource />
           </div>
           <div className="mt-4">
