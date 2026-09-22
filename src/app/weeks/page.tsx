@@ -17,8 +17,8 @@ export default async function WeeksPage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-serif text-4xl text-ink">Weekly cohorts</h1>
       <p className="mt-3 max-w-2xl text-muted">
-        Each card is one collect window. The numbers are the average score of that same book at the Monday gap,
-        Monday noon, Wednesday noon, and Friday noon. Pending means the readout is still blank.
+        Each card is one collect window. A number is the average of settled grades at that horizon. A horizon
+        that has not printed stays off the ranking until it settles.
       </p>
       <ul className="mt-8 grid gap-4">
         {cohorts.map((cohort) => (
@@ -43,20 +43,24 @@ export default async function WeeksPage() {
               <ol className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                 {READOUTS.map((kind) => {
                   const avg = cohort.averages[kind];
+                  const settled = cohort.statuses[kind] === "published" && avg != null;
                   return (
                     <li key={kind}>
-                      <Link href={`/weeks/${cohort.slug}/${kind}`} className="block rounded-xl border border-line bg-white px-3 py-3 hover:border-pine">
+                      <Link
+                        href={settled ? `/weeks/${cohort.slug}/${kind}` : `/weeks/${cohort.slug}/pending`}
+                        className="block rounded-xl border border-line bg-white px-3 py-3 hover:border-pine"
+                      >
                         <span className="text-[11px] uppercase tracking-wide text-muted">
                           {READOUT_META[kind].label} · {READOUT_META[kind].role}
                         </span>
                         <span className="mt-1 block font-mono text-2xl text-ink">
-                          {avg == null ? "Pending" : avg.toFixed(0)}
-                          {avg == null ? null : <span className="text-sm text-muted">/100</span>}
+                          {settled ? avg.toFixed(0) : "Not graded yet"}
+                          {settled ? <span className="text-sm text-muted">/100</span> : null}
                         </span>
                         <span className="text-xs text-muted">
-                          {cohort.statuses[kind] === "published"
-                            ? `Published ${READOUT_META[kind].time}`
-                            : `Blank · ${READOUT_META[kind].time}`}
+                          {settled
+                            ? `On the board · ${READOUT_META[kind].time}`
+                            : `Off the board until ${READOUT_META[kind].time}`}
                         </span>
                       </Link>
                     </li>

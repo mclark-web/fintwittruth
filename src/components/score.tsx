@@ -104,10 +104,12 @@ export function Evolution({
   slug: string;
   active?: ReadoutKind;
 }) {
+  const settled = READOUTS.filter((kind) => grades[kind] != null);
   return (
     <ol className="flex flex-wrap gap-2">
-      {READOUTS.map((kind) => {
+      {settled.map((kind) => {
         const grade = grades[kind];
+        if (!grade) return null;
         const current = active === kind;
         return (
           <li key={kind}>
@@ -121,14 +123,8 @@ export function Evolution({
                 {READOUT_META[kind].short}
               </span>
               <span className="font-mono text-sm">
-                {grade ? (
-                  <>
-                    {grade.score}
-                    <span className="opacity-70">/100</span>
-                  </>
-                ) : (
-                  "Pending"
-                )}
+                {grade.score}
+                <span className="opacity-70">/100</span>
               </span>
             </Link>
           </li>

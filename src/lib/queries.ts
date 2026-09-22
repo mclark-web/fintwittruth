@@ -1,11 +1,11 @@
 import { cache } from "react";
+import { handleBoardStats } from "./board";
 import { FEATURED_COHORT_SLUG } from "./demo-data";
 import { prisma } from "./prisma";
 import {
   READOUTS,
   isReadoutKind,
   rankPeers,
-  scoreToBadge,
   type Conviction,
   type Direction,
   type Level,
@@ -119,6 +119,7 @@ export type LeaderRow = {
   badge: number;
   chadRate: number;
   chudRate: number;
+  hitRate: number;
   isChad: boolean;
   isChudTerritory: boolean;
   peerRank: number;
@@ -389,37 +390,28 @@ export const getLeaderboard = cache(async (bucket: Bucket): Promise<LeaderRow[]>
     },
   });
 
-  const drafts = accounts.map((account) => {
-    const calls = account.calls;
-    const mature = calls
-      .map((call) => {
-        const byKind = Object.fromEntries(call.grades.map((grade) => [grade.readout, grade]));
-        return byKind.friday ?? byKind.wednesday ?? byKind.monday ?? byKind["monday-gap"] ?? null;
-      })
-      .filter((grade): grade is NonNullable<typeof grade> => grade != null);
-    const allGrades = calls.flatMap((call) => call.grades);
-    const scores = mature.map((grade) => grade.score);
-    const avgScore = average(scores) ?? 0;
-    return {
-      handle: account.handle,
-      displayName: account.displayName,
-      accent: account.accent,
-      posture: account.posture,
-      bio: account.bio,
-      callCount: calls.length,
-      avgScore,
-      badge: scoreToBadge(Math.round(avgScore)),
-      chadRate: allGrades.length
-        ? allGrades.filter((grade) => grade.isChad).length / allGrades.length
-        : 0,
-      chudRate: allGrades.length
-        ? allGrades.filter((grade) => grade.isChudTerritory).length / allGrades.length
-        : 0,
-      bestScore: scores.length ? Math.max(...scores) : 0,
-      worstScore: scores.length ? Math.min(...scores) : 0,
-      score: avgScore,
-      tieBreak: account.handle,
-    };
+  const drafts = accounts.flatMap((account) => {
+    const stats = handleBoardStats(account.calls);
+    if (!stats.graded) return [];
+    return [
+      {
+        handle: account.handle,
+        displayName: account.displayName,
+        accent: account.accent,
+        posture: account.posture,
+        bio: account.bio,
+        callCount: stats.callCount,
+        avgScore: stats.avgScore,
+        badge: stats.badge,
+        chadRate: stats.chadRate,
+        chudRate: stats.chudRate,
+        hitRate: stats.hitRate,
+        bestScore: stats.bestScore,
+        worstScore: stats.worstScore,
+        score: stats.avgScore,
+        tieBreak: account.handle,
+      },
+    ];
   });
 
   return rankPeers(drafts).map((row) => ({
@@ -433,6 +425,7 @@ export const getLeaderboard = cache(async (bucket: Bucket): Promise<LeaderRow[]>
     badge: row.badge,
     chadRate: row.chadRate,
     chudRate: row.chudRate,
+    hitRate: row.hitRate,
     isChad: row.isChad,
     isChudTerritory: row.isChudTerritory,
     peerRank: row.peerRank,

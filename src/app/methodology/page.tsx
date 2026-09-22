@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarStrip } from "@/components/market";
+import { settledReadoutKinds } from "@/lib/board";
 import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
-import { CH_FACTOR } from "@/lib/labels";
+import { CH_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_ADJUSTMENT, PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { getCohort } from "@/lib/queries";
 import {
@@ -11,7 +12,6 @@ import {
   DIRECTION_BANDS,
   DIRECTION_MAX,
   LEVEL_MAX,
-  READOUTS,
   SPECIFICITY_MAX,
   VIX_BANDS,
   VIX_MAX,
@@ -30,6 +30,7 @@ export default async function MethodologyPage() {
         .map((handle) => featured.calls.find((call) => call.handle === handle))
         .filter((call) => call != null)
     : [];
+  const exampleKinds = featured ? settledReadoutKinds(Object.values(featured.readouts)) : [];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -117,6 +118,19 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Missing print</dt>
             <dd className="mt-1 text-sm text-muted">{PRICE_CLOSED_RULE}</dd>
+          </div>
+          <div className="panel p-4">
+            <dt className="font-medium text-ink">Boards show settled grades only</dt>
+            <dd className="mt-1 text-sm text-muted">
+              The home tape, weekly rankings, leaderboards, and account scorecards list a call only after a
+              readout has settled. Monday&apos;s open, Monday noon, Wednesday, and Friday are those horizons.
+              Hit rate, Chad rate, and Chud rate use settled grades only. While a readout is still scheduled,
+              the calls sit on{" "}
+              <Link href="/pending" className="text-pine underline-offset-4 hover:underline">
+                Pending settle
+              </Link>
+              . That page is not part of the ranking.
+            </dd>
           </div>
         </dl>
       </section>
@@ -255,21 +269,26 @@ export default async function MethodologyPage() {
             Worked example: {featured.title}
           </h2>
           <p className="mt-3 text-ink/80">
-            {featured.summary}{" "}
+            {featured.summary} Monday gap and Monday noon are off this board because the cash session did not
+            settle. They are on{" "}
+            <Link href={`/weeks/${featured.slug}/pending`} className="text-pine underline-offset-4 hover:underline">
+              Pending settle
+            </Link>
+            , not in the ranking.{" "}
             <Link href={`/weeks/${featured.slug}`} className="text-pine underline-offset-4 hover:underline">
-              Open the full cohort
+              Open the graded cohort
             </Link>
             .
           </p>
           <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <caption className="sr-only">Sample grade evolution</caption>
+            <table className="w-full min-w-[480px] text-left text-sm">
+              <caption className="sr-only">Settled grades in the worked example</caption>
               <thead className="text-xs uppercase tracking-wide text-muted">
                 <tr>
                   <th scope="col" className="py-2 font-medium">Call</th>
-                  {READOUTS.map((kind) => (
+                  {exampleKinds.map((kind) => (
                     <th key={kind} scope="col" className="py-2 font-medium">
-                      {kind === "monday-gap" ? "Gap" : kind === "monday" ? "Noon" : kind}
+                      {READOUT_META[kind].short}
                     </th>
                   ))}
                 </tr>
@@ -285,11 +304,11 @@ export default async function MethodologyPage() {
                         {call.sentiment} {call.explicit ? call.primary : "no ticker"}
                       </span>
                     </th>
-                    {READOUTS.map((kind) => {
+                    {exampleKinds.map((kind) => {
                       const grade = call.grades[kind];
                       return (
                         <td key={kind} className="py-3 font-mono">
-                          {grade ? `${grade.score}/100` : "Pending"}
+                          {grade ? `${grade.score}/100` : "Not graded yet"}
                           {grade ? (
                             <span className="mt-1 block text-xs text-muted">
                               Badge {grade.badge}/10

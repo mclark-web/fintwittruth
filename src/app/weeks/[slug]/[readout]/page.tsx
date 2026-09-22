@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { CallCard } from "@/components/call-card";
 import { CohortWindow, Move, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { READOUT_META } from "@/lib/labels";
+import { pendingReadoutKinds } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 import { READOUTS, isReadoutKind, type ReadoutKind } from "@/lib/scoring";
 
@@ -45,12 +47,18 @@ export default async function ReadoutPage({
   if (!cohort) notFound();
   const readout = cohort.readouts[kind];
   const meta = READOUT_META[kind];
-  const calls = [...cohort.calls].sort((a, b) => {
-    const left = a.grades[kind]?.score ?? -1;
-    const right = b.grades[kind]?.score ?? -1;
-    if (right !== left) return right - left;
-    return a.handle.localeCompare(b.handle);
-  });
+  const settled = readout.status === "published";
+  const pendingCount = pendingReadoutKinds(Object.values(cohort.readouts)).length;
+  const calls = settled
+    ? [...cohort.calls]
+        .filter((call) => call.grades[kind] != null)
+        .sort((a, b) => {
+          const left = a.grades[kind]?.score ?? -1;
+          const right = b.grades[kind]?.score ?? -1;
+          if (right !== left) return right - left;
+          return a.handle.localeCompare(b.handle);
+        })
+    : [];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -113,29 +121,44 @@ export default async function ReadoutPage({
         </div>
       </section>
 
-      {kind === "monday-gap" || kind === "monday" ? (
+      {settled && (kind === "monday-gap" || kind === "monday") ? (
         <div className="mt-6">
           <NoiseIndex calls={cohort.calls} quotes={cohort.quotes} />
         </div>
       ) : null}
 
-      <div className="mt-6">
-        <QuoteTape quotes={cohort.quotes} kind={kind} />
-        <PriceSource />
-      </div>
+      {settled ? (
+        <div className="mt-6">
+          <QuoteTape quotes={cohort.quotes} kind={kind} />
+          <PriceSource />
+        </div>
+      ) : null}
 
       <section className="mt-8" aria-labelledby="calls-heading">
-        <h2 id="calls-heading" className="font-serif text-3xl text-ink">
-          {calls.length} calls in this cohort
-        </h2>
-        <p className="mt-2 text-sm text-muted">
-          Chad is Accuracy &amp; Discipline: the top 30% of these calls, ties at the cutoff included, and only when the score is also at least 70. Chud is Uncertainty &amp; Doubt: under 70/100. Watchlist and viral posts share this weekly board.
-        </p>
-        <div className="mt-4 grid gap-4">
-          {calls.map((call) => (
-            <CallCard key={call.id} call={call} readout={kind} />
-          ))}
-        </div>
+        {settled && calls.length > 0 ? (
+          <>
+            <h2 id="calls-heading" className="font-serif text-3xl text-ink">
+              {calls.length} graded calls
+            </h2>
+            <p className="mt-2 text-sm text-muted">
+              Chad is Accuracy &amp; Discipline: the top 30% of these settled calls, ties at the cutoff included, and only when the score is also at least 70. Chud is Uncertainty &amp; Doubt: under 70/100. Watchlist and viral posts share this weekly board.
+            </p>
+            {pendingCount > 0 ? (
+              <div className="mt-3">
+                <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pendingCount} />
+              </div>
+            ) : null}
+            <div className="mt-4 grid gap-4">
+              {calls.map((call) => (
+                <CallCard key={call.id} call={call} readout={kind} />
+              ))}
+            </div>
+          </>
+        ) : (
+          <div id="calls-heading">
+            <NothingGraded href={`/weeks/${cohort.slug}/pending`} horizon={meta.label} />
+          </div>
+        )}
       </section>
     </div>
   );

@@ -53,8 +53,11 @@ export function CallCard({ call, readout }: { call: CallView; readout: ReadoutKi
           />
         ) : (
           <div className="min-w-36 rounded-2xl border border-dashed border-line bg-white px-4 py-3">
-            <p className="font-serif text-xl text-ink">Not graded</p>
-            <p className="mt-1 text-sm text-muted">This readout is still scheduled. The call stays on the book.</p>
+            <p className="font-serif text-xl text-ink">Not graded yet</p>
+            <p className="mt-1 text-sm text-muted">This readout has not settled, so the call is off the board.</p>
+            <Link href={`/weeks/${call.cohortSlug}/pending`} className="mt-2 inline-block text-sm text-pine underline-offset-4 hover:underline">
+              Pending settle
+            </Link>
           </div>
         )}
       </div>

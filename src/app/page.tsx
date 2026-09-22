@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { PendingSettleLink } from "@/components/board-state";
 import { CalendarStrip, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { Avatar, ChudChip, PeerChip } from "@/components/score";
+import { pendingReadoutKinds, settledGradeKinds, settledReadoutKinds } from "@/lib/board";
 import { formatPct, formatScore, formatShortDay } from "@/lib/format";
 import { CH_FACTOR, CHAD_MEANING, CHUD_MEANING, READOUT_META } from "@/lib/labels";
-import { getFeaturedCohort, getLatestCohort, getLeaderboard } from "@/lib/queries";
-import { READOUTS } from "@/lib/scoring";
+import { getFeaturedCohort, getLatestCohort, getLeaderboard, type CallView } from "@/lib/queries";
 
 export default async function HomePage() {
   const [latest, featured, board] = await Promise.all([
@@ -16,7 +17,13 @@ export default async function HomePage() {
   const spotlight = featured
     ? ["permapump", "doomscroll"]
         .map((handle) => featured.calls.find((call) => call.handle === handle))
-        .filter((call) => call != null)
+        .filter((call): call is CallView => call != null && settledGradeKinds(call.grades).length > 0)
+    : [];
+  const featuredReadouts = featured ? Object.values(featured.readouts) : [];
+  const featuredKinds = settledReadoutKinds(featuredReadouts);
+  const featuredWaiting = pendingReadoutKinds(featuredReadouts);
+  const latestTapes = latest
+    ? (["monday-gap", "monday"] as const).filter((kind) => latest.readouts[kind].status === "published")
     : [];
 
   return (
@@ -95,9 +102,17 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="mt-5 space-y-4">
-            <QuoteTape quotes={latest.quotes} kind="monday-gap" />
-            <QuoteTape quotes={latest.quotes} kind="monday" />
+            {latestTapes.length > 0 ? (
+              latestTapes.map((kind) => <QuoteTape key={kind} quotes={latest.quotes} kind={kind} />)
+            ) : (
+              <p className="text-sm text-muted">
+                The Monday tape is off this board until the open and noon prints settle.
+              </p>
+            )}
             <PriceSource />
+            {latestTapes.length < 2 ? (
+              <PendingSettleLink href={`/weeks/${latest.slug}/pending`} />
+            ) : null}
           </div>
           <div className="mt-4">
             <ReadoutCards slug={latest.slug} readouts={latest.readouts} />
@@ -119,7 +134,7 @@ export default async function HomePage() {
               <p className="mt-1 max-w-2xl text-muted">{featured.summary}</p>
             </div>
             <Link href={`/weeks/${featured.slug}`} className="text-sm font-medium text-pine underline-offset-4 hover:underline">
-              See every call in the cohort
+              See the graded board
             </Link>
           </div>
           <ul className="mt-5 grid gap-3 lg:grid-cols-2">
@@ -138,22 +153,21 @@ export default async function HomePage() {
                 </div>
                 <p className="mt-3 text-ink">{call.body}</p>
                 <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {READOUTS.map((kind) => {
+                  {featuredKinds.map((kind) => {
                     const grade = call.grades[kind];
+                    if (!grade) return null;
                     return (
                       <li key={kind}>
                         <Link href={`/weeks/${featured.slug}/${kind}`} className="block rounded-xl bg-white px-3 py-2">
                           <span className="text-[11px] uppercase text-muted">{READOUT_META[kind].short}</span>
                           <span className="mt-1 block font-mono text-2xl">
-                            {grade ? grade.score : "—"}
+                            {grade.score}
                             <span className="text-sm text-muted">/100</span>
                           </span>
-                          {grade ? (
-                            <span className="mt-1 flex flex-wrap gap-1">
-                              {grade.isChad ? <PeerChip isChad /> : null}
-                              {grade.isChudTerritory ? <ChudChip /> : null}
-                            </span>
-                          ) : null}
+                          <span className="mt-1 flex flex-wrap gap-1">
+                            {grade.isChad ? <PeerChip isChad /> : null}
+                            {grade.isChudTerritory ? <ChudChip /> : null}
+                          </span>
                         </Link>
                       </li>
                     );
@@ -162,6 +176,11 @@ export default async function HomePage() {
               </li>
             ))}
           </ul>
+          {featuredWaiting.length > 0 ? (
+            <div className="mt-3">
+              <PendingSettleLink href={`/weeks/${featured.slug}/pending`} waiting={featuredWaiting.length} />
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -175,8 +194,9 @@ export default async function HomePage() {
           </Link>
         </div>
         <p className="mt-2 text-sm text-muted">
-          Watchlist accounts, ranked inside that bucket. Each average uses the furthest grade on every call. Chad
-          is the top 30% of this board and also at least 70.
+          Watchlist accounts with a settled grade, ranked inside that bucket. Each average uses the furthest
+          settled grade. Chad, Chud, and hit rate count settled grades only. Chad is the top 30% of this board
+          and also at least 70.
         </p>
         <ol className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
           {board.slice(0, 5).map((row) => (
@@ -194,11 +214,16 @@ export default async function HomePage() {
                   {formatScore(row.avgScore, 1)}
                   <span className="text-sm text-muted">/100</span>
                 </span>
-                <span className="text-xs text-muted">Badge {row.badge}/10 · Chad rate {formatPct(row.chadRate, 0)}</span>
+                <span className="text-xs text-muted">
+                  Badge {row.badge}/10 · Hit {formatPct(row.hitRate, 0)} · Chad {formatPct(row.chadRate, 0)}
+                </span>
               </span>
             </li>
           ))}
         </ol>
+        <div className="mt-3">
+          <PendingSettleLink href="/pending" />
+        </div>
       </section>
     </div>
   );
