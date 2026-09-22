@@ -26,7 +26,9 @@ test("locked calendar for the latest readout week", () => {
 });
 
 test("finished weeks publish every readout except the Labor Day Monday", () => {
-  const historical = data.cohorts.filter((cohort) => !cohort.isLatest);
+  const historical = data.cohorts.filter(
+    (cohort) => cohort.dataset === "demo" && cohort.slug !== "demo-2026-09-21",
+  );
   assert.equal(historical.length, 4);
   for (const cohort of historical) {
     for (const kind of READOUTS) {
@@ -42,7 +44,11 @@ test("finished weeks publish every readout except the Labor Day Monday", () => {
 test("latest cohort publishes the Monday gap and noon and leaves Wednesday and Friday scheduled", () => {
   const latest = data.cohorts.find((cohort) => cohort.isLatest);
   assert.ok(latest);
+  assert.equal(latest.dataset, "live");
   assert.equal(latest.slug, LATEST_COHORT_SLUG);
+  assert.ok(latest.calls.length > 0);
+  assert.ok(latest.calls.every((call) => call.sourceUrl.startsWith("https://")));
+  assert.equal(latest.calls.some((call) => call.handle === "doomscroll"), false);
   assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "scheduled");
@@ -61,7 +67,9 @@ test("every demo post sits inside the Wednesday-to-Sunday collect window", () =>
 });
 
 test("watchlist and viral posts share the weekly board", () => {
-  for (const cohort of data.cohorts) {
+  const demo = data.cohorts.filter((cohort) => cohort.dataset === "demo");
+  assert.ok(demo.length >= 4);
+  for (const cohort of demo) {
     assert.ok(cohort.calls.some((call) => call.handle === "doomscroll"));
     const viral = cohort.calls.find((call) => call.handle === "doomsiren");
     assert.ok(viral);
@@ -91,7 +99,8 @@ test("Chad requires the top 30% and a score of at least 70", () => {
 
 test("every published quote is the recorded Yahoo print", () => {
   for (const cohort of data.cohorts) {
-    const recorded = quotesForCohort(cohort.slug, SYMBOLS);
+    const historySlug = cohort.slug === "demo-2026-09-21" ? "2026-09-21" : cohort.slug;
+    const recorded = quotesForCohort(historySlug, SYMBOLS);
     assert.equal(cohort.quotes.length, recorded.length);
     for (const quote of cohort.quotes) {
       const expected = recorded.find((item) => item.symbol === quote.symbol);
@@ -244,12 +253,35 @@ test("selloff calls are not Chad on a 1%+ up Monday", () => {
   }
 });
 
+test("the live book is verified posts and the fictional open week stays quarantined", () => {
+  const live = data.cohorts.filter((cohort) => cohort.dataset === "live");
+  const demo = data.cohorts.find((cohort) => cohort.slug === "demo-2026-09-21");
+  assert.equal(live.length, 1);
+  assert.ok(demo);
+  assert.equal(demo.dataset, "demo");
+  assert.equal(demo.isLatest, false);
+  assert.ok(demo.calls.some((call) => call.handle === "doomscroll"));
+  assert.ok(demo.calls.every((call) => call.sourceUrl === ""));
+  const monday = live[0].grades.filter((grade) => grade.readout === "monday");
+  assert.equal(monday.length, live[0].calls.length);
+  for (const grade of monday) {
+    const call = live[0].calls.find((item) => item.id === grade.callId);
+    assert.equal(call?.direction, "bearish");
+    assert.equal(grade.isChad, false);
+    assert.ok(grade.score < CHUD_THRESHOLD);
+  }
+});
+
 test("direction matches the tape on every published readout", () => {
   for (const cohort of data.cohorts) {
     for (const kind of READOUTS) {
       const board = cohort.readouts.find((item) => item.kind === kind);
       if (board?.status !== "published") continue;
       const grades = cohort.grades.filter((grade) => grade.readout === kind);
+      if (cohort.calls.length === 0) {
+        assert.equal(grades.length, 0);
+        continue;
+      }
       assert.ok(grades.length > 0);
       const tape = grades[0].rawMovePct;
       for (const grade of grades) {

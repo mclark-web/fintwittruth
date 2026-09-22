@@ -56,7 +56,8 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
           <Avatar name={account.displayName} accent={account.accent} />
           <div>
             <p className="text-xs uppercase tracking-wide text-muted">
-              Demo {account.bucket === "viral" ? "viral" : "watchlist"} account
+              {account.dataset === "demo" ? "DEMO" : "Verified"}{" "}
+              {account.bucket === "viral" ? "viral" : "watchlist"} account
               {row ? ` · rank ${row.peerRank} of ${row.peerCount} in this bucket` : " · not on the leaderboard yet"}
             </p>
             <h1 className="font-serif text-4xl text-ink">{account.displayName}</h1>

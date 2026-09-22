@@ -20,8 +20,18 @@ export function CallCard({ call, readout }: { call: CallView; readout: ReadoutKi
             </p>
           </div>
           <DirectionChip direction={call.direction} />
+          {call.dataset === "demo" ? (
+            <span className="rounded-full border border-line bg-white px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-ink">
+              Demo
+            </span>
+          ) : (
+            <span className="rounded-full border border-line bg-white px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-pine">
+              Verified
+            </span>
+          )}
           <span className="rounded-full border border-line px-2 py-0.5 text-xs text-muted">
-            {call.sentiment === "panic" ? "Panic" : "Melt-up"} · {call.bucket === "viral" ? "Viral" : "Watchlist"}
+            {call.toneLabel || (call.sentiment === "panic" ? "Panic" : "Melt-up")} ·{" "}
+            {call.bucket === "viral" ? "Viral" : "Watchlist"}
           </span>
           <span className="rounded-full bg-pine/5 px-2 py-0.5 font-mono text-xs text-pine">{call.primary}</span>
           <span className="text-xs uppercase tracking-wide text-muted">{call.conviction} conviction</span>
@@ -35,6 +45,15 @@ export function CallCard({ call, readout }: { call: CallView; readout: ReadoutKi
           <Link href={`/calls/${call.id}`} className="underline-offset-4 hover:underline">
             Call detail
           </Link>
+          {call.sourceUrl ? (
+            <>
+              {" "}
+              ·{" "}
+              <a href={call.sourceUrl} className="underline-offset-4 hover:underline">
+                Source
+              </a>
+            </>
+          ) : null}
         </p>
         {grade ? <p className="mt-3 max-w-3xl text-sm text-muted">{grade.note}</p> : null}
         <div className="mt-4">

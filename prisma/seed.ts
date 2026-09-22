@@ -62,6 +62,8 @@ async function main() {
             tickersJson: JSON.stringify(call.tickers),
             levelsJson: JSON.stringify(call.levels),
             explicit: call.explicit,
+            sourceUrl: call.sourceUrl,
+            toneLabel: call.toneLabel,
           })),
         },
         readouts: {
@@ -91,7 +93,8 @@ async function main() {
 
   const calls = await prisma.call.count();
   const grades = await prisma.grade.count();
-  console.log(`Seeded ${dataset.cohorts.length} demo cohorts, ${calls} calls, ${grades} grades.`);
+  const live = dataset.cohorts.filter((cohort) => cohort.dataset === "live").length;
+  console.log(`Seeded ${dataset.cohorts.length} cohorts (${live} live), ${calls} calls, ${grades} grades.`);
 }
 
 main()

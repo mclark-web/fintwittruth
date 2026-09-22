@@ -6,7 +6,7 @@ Charoof Analysts and Charoof Sports are sibling verticals. They are not this boa
 
 The npm package and the SQLite file stay named `fintwittruth`. That is the technical package name, not the public brand.
 
-This repository ships a labeled **demo**. Handles and posts are fictional. The market prints used to grade them are real historical Yahoo Finance prices for those evaluation dates. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing.
+The live board grades verified public posts. Each one has a source URL and a timestamp inside the Wednesday-noon to Sunday-5pm ET window. Fictional handles and wording are labeled **DEMO** and stay on `/demo`. They are not ranked with the live book. The app does not scrape X, does not need a paid X API, and does not invent a tweet, a handle, or a price. A missing print is left blank.
 
 ## Evaluation calendar
 
@@ -29,7 +29,7 @@ Wednesday noon is also when the **next** collect window opens. That is a new coh
 
 Each cohort has two inclusion buckets: a named watchlist and a viral doom / hype spike set. Both feed the weekly board. Leaderboards are ranked inside each bucket.
 
-The weekend reference is the **prior Friday regular-session close** for SPY, QQQ, and DIA, plus Friday's VIX close. Yahoo `adjclose` is stored beside it for audit and is **not** used for gap or noon moves, because the daily open and the 12:00 PM ET five-minute open are not dividend-adjusted. Comparing retrospectively rewritten adjclose to those prints invents a false gap. There is no invented Sunday cash print. Monday's gap uses the regular-session daily open. Monday, Wednesday, and Friday noon grades use the **open** of the 5-minute bar stamped 12:00 PM America/New_York. A closed session stays blank. Monday, September 7, 2026 was Labor Day, so that gap and noon stay ungraded. A Yahoo VIX daily bar on that holiday is ignored. A date with no print yet stays null. The series is committed in `src/lib/market-history.json` (chart API `query1.finance.yahoo.com`). `src/lib/quotes.ts` throws if a required print is missing.
+The weekend reference is the **prior Friday regular-session close** for SPY, QQQ, and DIA, plus Friday's VIX close. Yahoo `adjclose` is stored beside it for audit and is **not** used for gap or noon moves, because the daily open and the 12:00 PM ET five-minute open are not dividend-adjusted. Comparing retrospectively rewritten adjclose to those prints invents a false gap. There is no invented Sunday cash print. Monday's gap uses the regular-session daily open. Monday, Wednesday, and Friday noon grades use the **open** of the 5-minute bar stamped 12:00 PM America/New_York. A closed session stays blank. Monday, September 7, 2026 was Labor Day, so that gap and noon stay ungraded. A Yahoo VIX daily bar on that holiday is ignored. A date with no print yet stays null. The series is committed in `src/lib/market-history.json` (chart API `query1.finance.yahoo.com`). `src/lib/quotes.ts` throws if a required print is missing. `npm run accuracy` fetches the same Yahoo chart endpoint and fails if a price on the live board disagrees with the print for that session.
 
 The in-app methodology page states this again. The latest demo week has the Monday gap and Monday noon published, with Wednesday and Friday still scheduled.
 
@@ -76,7 +76,9 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Command | What it does |
 | --- | --- |
-| `npm test` | Calendar, scoring, Chad/Chud checks, and the graded-only board filter |
+| `npm test` | Calendar, scoring, the green-Monday crash check, ingest refusals, Yahoo bar parsing, and the graded-only board filter |
+| `npm run ingest -- --cohort=YYYY-MM-DD --file=paste.txt` | Paste a public post into `src/lib/live-calls.json` after the source page is checked |
+| `npm run accuracy` | Compare the live board's Friday close, Monday open, and Monday noon with Yahoo. Exit 1 on a mismatch |
 | `npm run db:seed` | Rebuild the demo rows in place |
 | `npm run db:reset` | Recreate the SQLite file and seed it |
 | `npm run build` | Generate the client, seed SQLite, and build Next.js |
@@ -92,26 +94,60 @@ Seed sources:
 
 - `src/lib/market-history.json` — recorded Yahoo Finance Friday session closes, adjclose (audit), regular-session opens, and 12:00 PM ET prints
 - `src/lib/quotes.ts` — reads that file and refuses a missing print
-- `src/lib/demo-data.ts` — fictional accounts and posts in a watchlist bucket and a viral bucket. Stated levels are offsets from the real Friday reference, not a made-up spot
+- `src/lib/demo-data.ts` — fictional DEMO accounts and posts. Stated levels are offsets from the real Friday reference, not a made-up spot
+- `src/lib/live-calls.json` — verified public posts for the live board. Each row has a source URL, a timestamp, and a verification note
 - `src/lib/dataset.ts` — applies the locked calendar and the scorer
 - `prisma/seed.ts` — writes the result with Prisma
 
-Finished cohorts in the demo (`2026-08-24`, `2026-08-31`, `2026-09-07`, `2026-09-14`) each have Monday, Wednesday, and Friday grades on the same calls. `2026-09-07` is the worked example because Monday was Labor Day: the grade uses Friday's close, and Wednesday and Friday use real noon prints. `2026-09-21` is the latest board: Monday's noon print is in, and Wednesday and Friday are still scheduled because those sessions had not happened at fetch time.
+DEMO cohorts (`2026-08-24`, `2026-08-31`, `2026-09-07`, `2026-09-14`, `demo-2026-09-21`) use fictional posts. `2026-09-07` is the worked example because Monday was Labor Day: the grade uses Friday's close, and Wednesday and Friday use real noon prints. The live board is `2026-09-21`: verified posts, Monday's open and noon in, Wednesday and Friday still scheduled. The fictional copy of that week is `demo-2026-09-21` and is not the live board.
 
 Cohort slugs are the readout Monday (`YYYY-MM-DD`).
 
+## Operator ingest
+
+No paid X API. Paste a public post, check it against the source page, and store it in `src/lib/live-calls.json`. The seed reads that file. A call without a source URL, a timestamp, or a direction is refused. A post outside Wednesday 12:00 PM ET through Sunday 5:00 PM ET is refused. The script also refuses when the pasted sentences are not on the source page.
+
+```text
+source: https://example.com/the-post
+handle: someone
+name: Display Name
+posted: 2026-09-20T04:52:42.466Z
+direction: bearish
+primary: SPY
+tickers: SPX
+---
+The exact sentences from the public post.
+```
+
+A status URL works the same way. The handle is read from `x.com/{handle}/status/...`. The timestamp and the post text still have to be in the paste.
+
+```bash
+npm run ingest -- --cohort=2026-09-21 --file=paste.txt
+npm run db:reset
+npm run accuracy
+```
+
+`--cohort` is the readout Monday (`YYYY-MM-DD`). After a new call lands, rebuild the database before trusting the board. `npm run accuracy` is the check that the cents on the live tape match Yahoo for Friday's close, Monday's open, and the 12:00 PM ET bar. It fails if a print is missing or if the page would show a different number. Wednesday and Friday stay blank until those noon bars exist.
+
+The committed live book for the week of September 21, 2026 is two public posts, not a full FinTwit scrape:
+
+- The Pulse Of The Market, bearish, September 20, 2026: [Weekly Market Review (9/19/2026)](https://smtraderca.substack.com/p/weekly-market-review-9192026)
+- Piggo's Trading Desk, bearish, September 17, 2026: [Tomorrow's Market Picks](https://piggostradingdesk.substack.com/p/tomorrows-market-picks-september-905)
+
+Monday, September 21 was green. Those bearish calls are graded and are not Chad. DEMO fiction for the same week is at `/weeks/demo-2026-09-21`.
+
 ## Replace the seed with a real feed
 
-Keep the calendar and the scorer. Swap the inputs.
+Keep the calendar and the scorer. The paste file is the feed until a licensed source exists.
 
-1. Implement `fetchPosts` in `src/lib/feeds/x-api-feed.ts` using a **licensed** X API or approved firehose. Page only the collect window (Wednesday 12:00 PM ET through Sunday 5:00 PM ET). Do not scrape the website.
-2. Implement `fetchPrints` in `src/lib/feeds/licensed-market-feed.ts` for official reference and noon prices.
-3. Set `FEED_PROVIDER=x-api` and `MARKET_DATA_PROVIDER=licensed-bars`. `src/lib/feeds/index.ts` selects the adapters. The demo adapters stay in place until those variables are set.
+1. Keep adding posts with `npm run ingest`. Do not scrape X.
+2. `src/lib/yahoo.ts` reads the Yahoo chart API for the accuracy guard. Grading still uses the committed series in `src/lib/market-history.json`. Refresh that file only from the chart API, then rerun `npm run accuracy`.
+3. `src/lib/feeds/x-api-feed.ts` stays unimplemented. Do not set `FEED_PROVIDER=x-api` until a licensed adapter exists.
 4. Map posts into the cohort / call / quote tables (see `prisma/schema.prisma` and `buildDataset` in `src/lib/dataset.ts` for the shape). Run grading with `scoreCall` and `rankPeers` from `src/lib/scoring.ts` at each readout: Monday, Wednesday, and Friday at 12:00 PM ET.
-5. Set `NEXT_PUBLIC_DATA_MODE=live` only after demo rows are gone, so the demo banner comes off. Keep the disclaimer. Past scores are still not a forecast.
-6. Postgres, when you outgrow the file: point `DATABASE_URL` at a `postgresql://` URL, change the Prisma datasource provider to `postgresql`, and run `prisma db push`. `src/lib/prisma.ts` already uses a Postgres URL when it sees one, and otherwise opens the SQLite file. Grades still have to be written by your feed job. This demo does not call a market-data vendor.
+5. Leave `NEXT_PUBLIC_DATA_MODE` unset. The live board and the DEMO board are separate in the data, not by that flag. Past scores are still not a forecast.
+6. Postgres, when you outgrow the file: point `DATABASE_URL` at a `postgresql://` URL, change the Prisma datasource provider to `postgresql`, and run `prisma db push`. `src/lib/prisma.ts` already uses a Postgres URL when it sees one, and otherwise opens the SQLite file. Grades still have to be written by your feed job.
 
-`X_BEARER_TOKEN` is unused until the X adapter is implemented.
+`X_BEARER_TOKEN` is unused.
 
 ## Deploy on Vercel
 

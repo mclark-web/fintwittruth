@@ -54,7 +54,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         </Link>
       </p>
       <p className="mt-4 text-xs uppercase tracking-wide text-muted">
-        {cohort.dataset === "demo" ? "Demo cohort" : "Live cohort"}
+        {cohort.dataset === "demo" ? "DEMO cohort · fictional posts" : "Live cohort · verified posts"}
         {cohort.isLatest ? " · latest" : ""}
       </p>
       <h1 className="mt-1 font-serif text-4xl text-ink sm:text-5xl">{cohort.title}</h1>
@@ -119,7 +119,10 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                       <Link href={`/accounts/${call.handle}`} className="hover:underline">
                         {call.displayName}
                       </Link>
-                      <span className="mt-1 block text-xs font-normal text-muted">@{call.handle}</span>
+                      <span className="mt-1 block text-xs font-normal text-muted">
+                        @{call.handle}
+                        {cohort.dataset === "demo" ? " · DEMO" : ""}
+                      </span>
                     </th>
                     <td className="px-4 py-3">
                       <Link href={`/calls/${call.id}`} className="hover:underline">

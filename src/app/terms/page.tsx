@@ -65,8 +65,9 @@ export default function TermsPage() {
 
       <LegalSection id="data" title="Demo posts, real outcomes">
         <p>
-          This deployment is a labeled demo. Handles and wording in the seed are fictional. They are not quotes
-          from real people. Market outcomes are not fictional. A published grade uses the recorded print for
+          The live board stores public posts the operator verified, each with a source URL and a timestamp.
+          DEMO handles and DEMO wording are fictional, labeled DEMO, and kept off that board. Market outcomes
+          are not fictional. A published grade uses the recorded print for
           that evaluation date: the prior Friday regular-session close as the weekend reference, the
           regular-session open for Monday&apos;s gap, and the 12:00 PM ET print on Monday, Wednesday, and Friday
           when the cash market is open. VIX is part of every published grade. A closed session stays blank. A

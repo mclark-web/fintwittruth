@@ -182,6 +182,16 @@ export type ScoreParts = {
 };
 
 export function scoreCall(call: CallDraft, input: ScoreInput): ScoreParts {
+  for (const [label, value] of [
+    ["tapeMove", input.tapeMove],
+    ["primaryRef", input.primaryRef],
+    ["primaryNow", input.primaryNow],
+    ["vixMove", input.vixMove],
+  ] as const) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      throw new Error(`Refusing to grade. Missing ${label}.`);
+    }
+  }
   const signedMovePct = call.direction === "bullish" ? input.tapeMove : -input.tapeMove;
   const direction = directionPoints(signedMovePct);
   const levels = levelPoints(call, input.primaryRef, input.primaryNow);

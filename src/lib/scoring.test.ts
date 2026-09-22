@@ -110,6 +110,53 @@ test("Chad requires the top 30% and a score of at least 70", () => {
   assert.equal(clear?.isChudTerritory, false);
 });
 
+test("a crash call does not score Chad on a green Monday", () => {
+  // Old bug: signing the tape with the raw move (instead of flipping a bearish
+  // call) paid direction points for a rally and could mark a crash call Chad.
+  const crash = scoreCall(
+    {
+      direction: "bearish",
+      sentiment: "panic",
+      primary: "SPY",
+      tickers: ["SPY"],
+      explicit: true,
+      levels: [
+        { symbol: "SPY", price: 740, role: "target" },
+        { symbol: "SPY", price: 780, role: "invalidation" },
+        { symbol: "SPY", price: 750, role: "support" },
+      ],
+    },
+    { tapeMove: 0.012, primaryRef: 761.69, primaryNow: 770.73, vixMove: 0.12 },
+  );
+  assert.equal(crash.directionPoints, 0);
+  assert.ok(crash.signedMovePct < 0);
+  assert.ok(crash.score < CHUD_THRESHOLD);
+  const ranked = rankPeers([
+    { id: "crash", score: crash.score, tieBreak: "crash" },
+    { id: "bystander", score: 10, tieBreak: "bystander" },
+  ]);
+  assert.equal(ranked.find((row) => row.id === "crash")?.isChad, false);
+  assert.equal(ranked.find((row) => row.id === "crash")?.isChudTerritory, true);
+});
+
+test("refuses to grade when a print is missing", () => {
+  assert.throws(
+    () =>
+      scoreCall(
+        {
+          direction: "bearish",
+          sentiment: "panic",
+          primary: "SPY",
+          tickers: ["SPY"],
+          explicit: true,
+          levels: [],
+        },
+        { tapeMove: 0.01, primaryRef: 100, primaryNow: Number.NaN, vixMove: 0 },
+      ),
+    /Refusing to grade/,
+  );
+});
+
 test("a top-30% score under 70 is Chud and not Chad", () => {
   const ranked = rankPeers([
     { id: "a", score: 69, tieBreak: "a" },

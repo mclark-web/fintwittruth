@@ -53,16 +53,16 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Named watchlist</dt>
             <dd className="mt-1 text-sm text-muted">
-              Standing demo accounts. Their posts are in every cohort and are ranked against other watchlist
-              accounts.
+              Verified public posts the operator pastes in, ranked against other verified watchlist posts. Standing
+              DEMO accounts are fictional and stay on the DEMO board.
             </dd>
           </div>
           <div className="panel p-4">
             <dt className="font-medium text-ink">Viral doom and hype</dt>
             <dd className="mt-1 text-sm text-muted">
-              A keyword-and-engagement style bucket for crash, war, sell-the-open, and melt-up spikes. In this
-              demo the posts and engagement counts are fictional. They are ranked on their own leaderboard and
-              still sit on the weekly board with the watchlist.
+              A keyword-and-engagement style bucket. On the DEMO board the posts and engagement counts are
+              fictional and labeled DEMO. They are not mixed into the live leaderboard. A verified viral post
+              would rank here only after it is stored with a source URL.
             </dd>
           </div>
         </dl>

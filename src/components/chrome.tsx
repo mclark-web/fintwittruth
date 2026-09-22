@@ -6,11 +6,15 @@ import { getLatestCohort } from "@/lib/queries";
 import { NavLinks } from "./nav-links";
 
 export function DemoBanner() {
-  if (DATA_MODE !== "demo") return null;
+  if (DATA_MODE === "live") return null;
   return (
-    <div className="bg-pine text-lime">
-      <p className="mx-auto max-w-6xl px-4 py-2 text-center text-sm font-medium tracking-wide">
-        Demo posts — fictional accounts. Market prints are historical Yahoo Finance prices. Not investment advice. Not affiliated with X or Yahoo.
+    <div className="border-b border-line bg-white">
+      <p className="mx-auto max-w-6xl px-4 py-2 text-center text-sm text-ink">
+        The graded board is verified public posts and Yahoo prints. Fictional posts are labeled DEMO and stay on{" "}
+        <Link href="/demo" className="font-medium text-pine underline-offset-4 hover:underline">
+          the demo board
+        </Link>
+        . Not investment advice.
       </p>
     </div>
   );
@@ -58,6 +62,9 @@ export function SiteFooter() {
         <nav aria-label="Footer" className="flex flex-wrap gap-x-4 gap-y-2">
           <Link href="/methodology" className="underline-offset-4 hover:text-ink hover:underline">
             Methodology
+          </Link>
+          <Link href="/demo" className="underline-offset-4 hover:text-ink hover:underline">
+            DEMO
           </Link>
           <Link href="/pending" className="underline-offset-4 hover:text-ink hover:underline">
             Pending settle

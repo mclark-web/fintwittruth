@@ -72,7 +72,7 @@ export default async function ReadoutPage({
         </Link>
       </p>
       <p className="mt-4 text-xs uppercase tracking-wide text-muted">
-        {meta.role} · {cohort.dataset === "demo" ? "demo" : "live"}
+        {meta.role} · {cohort.dataset === "demo" ? "DEMO" : "verified"}
       </p>
       <h1 className="mt-1 font-serif text-4xl text-ink sm:text-5xl">
         {meta.label} board

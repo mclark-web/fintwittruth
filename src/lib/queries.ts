@@ -51,6 +51,9 @@ export type CallView = {
   levels: Level[];
   explicit: boolean;
   postedAt: Date;
+  sourceUrl: string;
+  toneLabel: string;
+  dataset: "live" | "demo";
   cohortSlug: string;
   cohortTitle: string;
   grades: Record<ReadoutKind, GradeView | null>;
@@ -100,6 +103,7 @@ export type CohortCard = {
   slug: string;
   title: string;
   summary: string;
+  dataset: "live" | "demo";
   isLatest: boolean;
   collectStart: Date;
   collectEnd: Date;
@@ -196,6 +200,8 @@ type CallRecord = {
   tickersJson: string;
   levelsJson: string;
   explicit: boolean;
+  sourceUrl: string;
+  toneLabel: string;
   account: {
     handle: string;
     displayName: string;
@@ -204,7 +210,7 @@ type CallRecord = {
     bio: string;
     bucket: string;
   };
-  cohort: { slug: string; title: string };
+  cohort: { slug: string; title: string; dataset: string };
   grades: {
     readout: string;
     score: number;
@@ -264,6 +270,9 @@ function mapCall(call: CallRecord): CallView {
     levels: JSON.parse(call.levelsJson) as Level[],
     explicit: call.explicit,
     postedAt: call.postedAt,
+    sourceUrl: call.sourceUrl,
+    toneLabel: call.toneLabel,
+    dataset: call.cohort.dataset === "live" ? "live" : "demo",
     cohortSlug: call.cohort.slug,
     cohortTitle: call.cohort.title,
     grades,
@@ -272,7 +281,7 @@ function mapCall(call: CallRecord): CallView {
 
 const callInclude = {
   account: true,
-  cohort: { select: { slug: true, title: true } },
+  cohort: { select: { slug: true, title: true, dataset: true } },
   grades: true,
 } as const;
 
@@ -364,6 +373,7 @@ export const getCohortList = cache(async (): Promise<CohortCard[]> => {
       slug: cohort.slug,
       title: cohort.title,
       summary: cohort.summary,
+      dataset: cohort.dataset === "live" ? "live" : "demo",
       isLatest: cohort.isLatest,
       collectStart: cohort.collectStart,
       collectEnd: cohort.collectEnd,
@@ -375,23 +385,24 @@ export const getCohortList = cache(async (): Promise<CohortCard[]> => {
 });
 
 export const getLatestCohort = cache(async () => {
-  const latest = await prisma.cohort.findFirst({ where: { isLatest: true } });
+  const latest = await prisma.cohort.findFirst({ where: { isLatest: true, dataset: "live" } });
   if (!latest) return null;
   return getCohort(latest.slug);
 });
 
 export const getFeaturedCohort = cache(async () => getCohort(FEATURED_COHORT_SLUG));
 
-export const getLeaderboard = cache(async (bucket: Bucket): Promise<LeaderRow[]> => {
+export const getLeaderboard = cache(async (bucket: Bucket, dataset: "live" | "demo" = "live"): Promise<LeaderRow[]> => {
   const accounts = await prisma.account.findMany({
     where: { bucket },
     include: {
-      calls: { include: { grades: true } },
+      calls: { include: { grades: true, cohort: { select: { dataset: true } } } },
     },
   });
 
   const drafts = accounts.flatMap((account) => {
-    const stats = handleBoardStats(account.calls);
+    const calls = account.calls.filter((call) => call.cohort.dataset === dataset);
+    const stats = handleBoardStats(calls);
     if (!stats.graded) return [];
     return [
       {
@@ -447,7 +458,8 @@ export const getAccount = cache(async (handle: string) => {
   });
   if (!account) return null;
   const bucket = asBucket(account.bucket);
-  const board = await getLeaderboard(bucket);
+  const dataset = account.calls.some((call) => call.cohort.dataset === "live") ? "live" : "demo";
+  const board = await getLeaderboard(bucket, dataset);
   const row = board.find((item) => item.handle === handle) ?? null;
   return {
     handle: account.handle,
@@ -456,6 +468,7 @@ export const getAccount = cache(async (handle: string) => {
     posture: account.posture,
     accent: account.accent,
     bucket,
+    dataset,
     row,
     calls: account.calls.map(mapCall),
   };
