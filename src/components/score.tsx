@@ -105,43 +105,32 @@ export function Evolution({
   active?: ReadoutKind;
 }) {
   const settled = READOUTS.filter((kind) => grades[kind] != null);
-  const waiting = READOUTS.length - settled.length;
   return (
-    <div>
-      <ol className="flex flex-wrap gap-2">
-        {settled.map((kind) => {
-          const grade = grades[kind];
-          if (!grade) return null;
-          const current = active === kind;
-          return (
-            <li key={kind}>
-              <Link
-                href={`/weeks/${slug}/${kind}`}
-                className={`block rounded-xl border px-3 py-1.5 text-xs ${
-                  current ? "border-pine bg-pine text-lime" : "border-line bg-white text-ink hover:border-pine"
-                }`}
-              >
-                <span className="block text-[10px] uppercase tracking-wide opacity-80">
-                  {READOUT_META[kind].short}
-                </span>
-                <span className="font-mono text-sm">
-                  {grade.score}
-                  <span className="opacity-70">/100</span>
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ol>
-      {waiting > 0 ? (
-        <p className="mt-2 text-xs text-muted">
-          <Link href={`/weeks/${slug}/pending`} className="underline-offset-4 hover:underline">
-            Pending settle
-          </Link>
-          <span> · later horizons stay off this card until the tape prints.</span>
-        </p>
-      ) : null}
-    </div>
+    <ol className="flex flex-wrap gap-2">
+      {settled.map((kind) => {
+        const grade = grades[kind];
+        if (!grade) return null;
+        const current = active === kind;
+        return (
+          <li key={kind}>
+            <Link
+              href={`/weeks/${slug}/${kind}`}
+              className={`block rounded-xl border px-3 py-1.5 text-xs ${
+                current ? "border-pine bg-pine text-lime" : "border-line bg-white text-ink hover:border-pine"
+              }`}
+            >
+              <span className="block text-[10px] uppercase tracking-wide opacity-80">
+                {READOUT_META[kind].short}
+              </span>
+              <span className="font-mono text-sm">
+                {grade.score}
+                <span className="opacity-70">/100</span>
+              </span>
+            </Link>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 

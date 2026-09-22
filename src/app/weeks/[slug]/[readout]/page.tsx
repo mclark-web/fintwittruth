@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { NothingGraded } from "@/components/board-state";
+import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { CallCard } from "@/components/call-card";
 import { CohortWindow, Move, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { READOUT_META } from "@/lib/labels";
+import { pendingReadoutKinds } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 import { READOUTS, isReadoutKind, type ReadoutKind } from "@/lib/scoring";
 
@@ -47,6 +48,7 @@ export default async function ReadoutPage({
   const readout = cohort.readouts[kind];
   const meta = READOUT_META[kind];
   const settled = readout.status === "published";
+  const pendingCount = pendingReadoutKinds(Object.values(cohort.readouts)).length;
   const calls = settled
     ? [...cohort.calls]
         .filter((call) => call.grades[kind] != null)
@@ -141,6 +143,11 @@ export default async function ReadoutPage({
             <p className="mt-2 text-sm text-muted">
               Chad is Accuracy &amp; Discipline: the top 30% of these settled calls, ties at the cutoff included, and only when the score is also at least 70. Chud is Uncertainty &amp; Doubt: under 70/100. Watchlist and viral posts share this weekly board.
             </p>
+            {pendingCount > 0 ? (
+              <div className="mt-3">
+                <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pendingCount} />
+              </div>
+            ) : null}
             <div className="mt-4 grid gap-4">
               {calls.map((call) => (
                 <CallCard key={call.id} call={call} readout={kind} />
