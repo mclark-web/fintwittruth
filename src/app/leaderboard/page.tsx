@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PendingSettleLink } from "@/components/board-state";
 import { ChudChip, PeerChip } from "@/components/score";
 import { formatPct, formatScore } from "@/lib/format";
 import { getLeaderboard, type LeaderRow } from "@/lib/queries";
@@ -7,7 +8,7 @@ import { getLeaderboard, type LeaderRow } from "@/lib/queries";
 export const metadata: Metadata = {
   title: "Leaderboard",
   description:
-    "Charoof FinTwit account scoreboards. Watchlist and viral handles are ranked separately. Chad requires the top 30% and a score of at least 70.",
+    "Charoof FinTwit account scoreboards. Ranks use settled grades only. Chad requires the top 30% and a score of at least 70.",
 };
 
 function Board({ title, note, rows }: { title: string; note: string; rows: LeaderRow[] }) {
@@ -16,7 +17,7 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
       <h2 className="font-serif text-3xl text-ink">{title}</h2>
       <p className="mt-2 max-w-3xl text-sm text-muted">{note}</p>
       <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
-        <table className="min-w-[860px] w-full text-left text-sm">
+        <table className="min-w-[980px] w-full text-left text-sm">
           <caption className="sr-only">{title}</caption>
           <thead className="bg-white text-xs uppercase tracking-wide text-muted">
             <tr>
@@ -25,13 +26,21 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
               <th scope="col" className="px-4 py-3 font-medium">Avg score</th>
               <th scope="col" className="px-4 py-3 font-medium">Badge</th>
               <th scope="col" className="px-4 py-3 font-medium">Marks</th>
+              <th scope="col" className="px-4 py-3 font-medium">Hit rate</th>
               <th scope="col" className="px-4 py-3 font-medium">Chad rate</th>
               <th scope="col" className="px-4 py-3 font-medium">Chud rate</th>
-              <th scope="col" className="px-4 py-3 font-medium">Calls</th>
+              <th scope="col" className="px-4 py-3 font-medium">Graded calls</th>
               <th scope="col" className="px-4 py-3 font-medium">Best / worst</th>
             </tr>
           </thead>
           <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={10} className="px-4 py-6 text-muted">
+                  No settled grades in this bucket yet. Handles show up here after a readout settles.
+                </td>
+              </tr>
+            ) : null}
             {rows.map((row) => (
               <tr key={row.handle} className="border-t border-line">
                 <td className="px-4 py-3 font-mono">{row.peerRank}</td>
@@ -57,6 +66,7 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                     {row.isChudTerritory ? <ChudChip /> : null}
                   </span>
                 </td>
+                <td className="px-4 py-3 font-mono">{formatPct(row.hitRate, 0)}</td>
                 <td className="px-4 py-3 font-mono">{formatPct(row.chadRate, 0)}</td>
                 <td className="px-4 py-3 font-mono">{formatPct(row.chudRate, 0)}</td>
                 <td className="px-4 py-3 font-mono">{row.callCount}</td>
@@ -81,9 +91,14 @@ export default async function LeaderboardPage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-serif text-4xl text-ink">Leaderboards</h1>
       <p className="mt-3 max-w-3xl text-muted">
-        Two buckets, ranked apart. Both still feed each week&apos;s board. An average uses the furthest grade
-        on every call. Chad is the top 30% of that bucket and also at least 70. Under 70 is Chud territory.
+        Two buckets, ranked apart. Both still feed each week&apos;s graded board. An average uses the furthest
+        settled grade on each call. Hit rate, Chad rate, and Chud rate count settled grades only. A call with
+        no grade yet is not in the rank. Chad is the top 30% of that bucket and also at least 70. Under 70 is
+        Chud territory.
       </p>
+      <div className="mt-3">
+        <PendingSettleLink href="/pending" />
+      </div>
       <Board
         title="Named watchlist"
         note="Accounts on the standing watchlist, ranked against each other."

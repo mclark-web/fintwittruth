@@ -59,6 +59,9 @@ export function SiteFooter() {
           <Link href="/methodology" className="underline-offset-4 hover:text-ink hover:underline">
             Methodology
           </Link>
+          <Link href="/pending" className="underline-offset-4 hover:text-ink hover:underline">
+            Pending settle
+          </Link>
           <Link href="/disclaimer" className="underline-offset-4 hover:text-ink hover:underline">
             Disclaimer
           </Link>

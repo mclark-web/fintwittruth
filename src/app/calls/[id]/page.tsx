@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { NothingGraded } from "@/components/board-state";
 import { PricePath, PriceSource } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ScoreMark } from "@/components/score";
 import { formatPct, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
+import { settledGradeKinds } from "@/lib/board";
 import { getCall, listCallIds } from "@/lib/queries";
 import { DIRECTION_MAX, LEVEL_MAX, READOUTS, SPECIFICITY_MAX, VIX_MAX } from "@/lib/scoring";
 
@@ -74,6 +76,8 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
   if (!result || !result.cohort) notFound();
   const { call, cohort } = result;
   const quote = cohort.quotes.find((item) => item.symbol === call.primary) ?? cohort.quotes[0];
+  const settled = settledGradeKinds(call.grades);
+  const waiting = READOUTS.filter((kind) => call.grades[kind] == null);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -126,57 +130,86 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
 
       <section className="mt-8" aria-labelledby="grades-heading">
         <h2 id="grades-heading" className="font-serif text-3xl text-ink">
-          Grade evolution
+          Settled grades
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          The words do not change. The Monday gap, Monday noon, Wednesday, and Friday each rescore this call
-          against recorded prints measured from Friday&apos;s regular-session close.
+          The words do not change. Each settled horizon rescores this call against recorded prints measured from
+          Friday&apos;s regular-session close.
         </p>
-        <ol className="mt-4 grid gap-4 lg:grid-cols-2">
-          {READOUTS.map((kind) => {
-            const grade = call.grades[kind];
-            const meta = READOUT_META[kind];
-            const readout = cohort.readouts[kind];
-            return (
-              <li key={kind} className="panel p-4">
-                <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
-                <h3 className="font-serif text-2xl text-ink">{meta.label}</h3>
-                <p className="text-xs text-muted">{formatWhen(readout.at)}</p>
-                {grade ? (
-                  <>
-                    <div className="mt-3">
-                      <ScoreMark
-                        score={grade.score}
-                        badge={grade.badge}
-                        isChad={grade.isChad}
-                        isChudTerritory={grade.isChudTerritory}
-                        rank={grade.peerRank}
-                        peerCount={grade.peerCount}
-                      />
-                    </div>
-                    <p className="mt-3 text-sm text-ink/80">{grade.note}</p>
-                    <p className="mt-2 font-mono text-xs text-muted">
-                      Tape {formatPct(grade.rawMovePct)} · signed {formatPct(grade.signedMovePct)} · VIX{" "}
-                      {formatPct(grade.vixMovePct)}
-                    </p>
-                    <Breakdown
-                      directionPoints={grade.directionPoints}
-                      levelPoints={grade.levelPoints}
-                      specificityPoints={grade.specificityPoints}
-                      vixPoints={grade.vixPoints}
+        {settled.length === 0 ? (
+          <div className="mt-4">
+            <NothingGraded href={`/weeks/${cohort.slug}/pending`} />
+          </div>
+        ) : (
+          <ol className="mt-4 grid gap-4 lg:grid-cols-2">
+            {settled.map((kind) => {
+              const grade = call.grades[kind];
+              if (!grade) return null;
+              const meta = READOUT_META[kind];
+              const readout = cohort.readouts[kind];
+              return (
+                <li key={kind} className="panel p-4">
+                  <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
+                  <h3 className="font-serif text-2xl text-ink">{meta.label}</h3>
+                  <p className="text-xs text-muted">{formatWhen(readout.at)}</p>
+                  <div className="mt-3">
+                    <ScoreMark
+                      score={grade.score}
+                      badge={grade.badge}
+                      isChad={grade.isChad}
+                      isChudTerritory={grade.isChudTerritory}
+                      rank={grade.peerRank}
+                      peerCount={grade.peerCount}
                     />
-                    <Link href={`/weeks/${cohort.slug}/${kind}`} className="mt-3 inline-block text-sm text-pine underline-offset-4 hover:underline">
-                      Open the {meta.label} board
-                    </Link>
-                  </>
-                ) : (
-                  <p className="mt-3 text-sm text-muted">{readout.narrative}</p>
-                )}
-              </li>
-            );
-          })}
-        </ol>
+                  </div>
+                  <p className="mt-3 text-sm text-ink/80">{grade.note}</p>
+                  <p className="mt-2 font-mono text-xs text-muted">
+                    Tape {formatPct(grade.rawMovePct)} · signed {formatPct(grade.signedMovePct)} · VIX{" "}
+                    {formatPct(grade.vixMovePct)}
+                  </p>
+                  <Breakdown
+                    directionPoints={grade.directionPoints}
+                    levelPoints={grade.levelPoints}
+                    specificityPoints={grade.specificityPoints}
+                    vixPoints={grade.vixPoints}
+                  />
+                  <Link href={`/weeks/${cohort.slug}/${kind}`} className="mt-3 inline-block text-sm text-pine underline-offset-4 hover:underline">
+                    Open the {meta.label} board
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+        )}
       </section>
+
+      {waiting.length > 0 ? (
+        <details className="mt-8">
+          <summary className="cursor-pointer font-serif text-2xl text-ink">Pending settle</summary>
+          <p className="mt-2 max-w-3xl text-sm text-muted">
+            These horizons are not on the board yet. There is no score until the tape prints.
+          </p>
+          <ul className="mt-4 grid gap-3">
+            {waiting.map((kind) => {
+              const meta = READOUT_META[kind];
+              const readout = cohort.readouts[kind];
+              return (
+                <li key={kind} className="rounded-2xl border border-dashed border-line bg-white px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
+                  <p className="font-serif text-xl text-ink">{meta.label}</p>
+                  <p className="mt-1 text-sm text-muted">Not graded yet · off the board until {meta.time}</p>
+                  <p className="mt-2 text-sm text-ink/80">{readout.narrative}</p>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-3 text-sm">
+            <Link href={`/weeks/${cohort.slug}/pending`} className="text-pine underline-offset-4 hover:underline">
+              Open the waiting list for this cohort
+            </Link>
+          </p>
+        </details>
+      ) : null}
     </div>
   );
 }

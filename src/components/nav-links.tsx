@@ -15,8 +15,10 @@ export function NavLinks({ latestHref }: { latestHref: string }) {
   return (
     <nav aria-label="Primary" className="flex flex-wrap items-center justify-end gap-1">
       {items.map((item) => {
-        const active =
-          item.href === "/weeks"
+        const onPending = pathname === "/pending" || pathname.endsWith("/pending");
+        const active = onPending
+          ? false
+          : item.href === "/weeks"
             ? pathname === "/weeks"
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (

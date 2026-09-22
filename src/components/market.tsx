@@ -73,7 +73,7 @@ export function QuoteTape({
             <li key={quote.symbol} className="rounded-xl border border-line bg-white px-3 py-2">
               <p className="font-mono text-[11px] uppercase tracking-wide text-muted">{quote.symbol}</p>
               <p className="font-mono text-lg text-ink">{now == null ? "—" : formatPrice(now)}</p>
-              <p className="text-xs">{move == null ? <span className="text-muted">Pending</span> : <Move value={move} />}</p>
+              <p className="text-xs">{move == null ? <span className="text-muted">Not graded yet</span> : <Move value={move} />}</p>
             </li>
           );
         })}
@@ -131,7 +131,7 @@ export function PricePath({
         {points.map((point) => (
           <li key={point.label} className="font-mono text-ink">
             <span className="block text-[11px] uppercase text-muted">{point.label}</span>
-            {point.value == null ? "Pending" : formatPrice(point.value)}
+            {point.value == null ? "Not graded yet" : formatPrice(point.value)}
           </li>
         ))}
       </ul>
@@ -248,16 +248,22 @@ export function NoiseIndex({
             Engagement-weighted panic share {Math.round(noise.engagementPanicShare * 100)}%.
           </p>
         </div>
-        <ul className="grid grid-cols-2 gap-2">
-          {stats.map((stat) => (
-            <li key={stat.label} className="rounded-xl border border-line bg-white px-3 py-2">
-              <p className="text-[11px] uppercase tracking-wide text-muted">{stat.label}</p>
-              <p className="font-mono text-lg text-ink">
-                {stat.value == null ? "Pending" : <Move value={stat.value} />}
-              </p>
-            </li>
-          ))}
-        </ul>
+        {stats.some((stat) => stat.value != null) ? (
+          <ul className="grid grid-cols-2 gap-2">
+            {stats
+              .filter((stat): stat is { label: string; value: number } => stat.value != null)
+              .map((stat) => (
+                <li key={stat.label} className="rounded-xl border border-line bg-white px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-wide text-muted">{stat.label}</p>
+                  <p className="font-mono text-lg text-ink">
+                    <Move value={stat.value} />
+                  </p>
+                </li>
+              ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted">The Monday tape is off this board until the session settles.</p>
+        )}
       </div>
     </section>
   );

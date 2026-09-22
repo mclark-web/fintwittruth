@@ -33,6 +33,14 @@ The weekend reference is the **prior Friday regular-session close** for SPY, QQQ
 
 The in-app methodology page states this again. The latest demo week has the Monday gap and Monday noon published, with Wednesday and Friday still scheduled.
 
+## Boards
+
+Founder choice: hide pending until settle. The home tape, weekly rankings, leaderboards, and account scorecards list only calls that already have a settled grade. A readout is settled when its status is `published` (Monday gap, Monday noon, Wednesday noon, or Friday noon). The scorer writes grade rows at that gate and leaves a scheduled horizon empty. The board layer drops those empty horizons from the primary rankings.
+
+Hit rate, Chad rate, and Chud rate are computed from settled grades only. A handle with no settled grade is not ranked. Hit rate is the share of settled grades where the tape moved with the call by at least 0.08%.
+
+Calls still waiting on a tape are listed at `/pending` and `/weeks/[slug]/pending`. Those pages are linked from the boards and the footer. They are not in the primary nav and they are not mixed into the rankings. A cohort with nothing graded yet shows a short empty state instead of a table of blanks.
+
 ## Scoring
 
 Every published grade shows the full **0–100** score, built from:
@@ -68,7 +76,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Command | What it does |
 | --- | --- |
-| `npm test` | Calendar, scoring, and Chad/Chud checks |
+| `npm test` | Calendar, scoring, Chad/Chud checks, and the graded-only board filter |
 | `npm run db:seed` | Rebuild the demo rows in place |
 | `npm run db:reset` | Recreate the SQLite file and seed it |
 | `npm run build` | Generate the client, seed SQLite, and build Next.js |
