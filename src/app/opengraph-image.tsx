@@ -44,7 +44,7 @@ export default function OpenGraphImage() {
             Social calls vs Monday&apos;s tape.
           </div>
           <div style={{ fontSize: 28, color: "#9a9aa3" }}>
-            Grade Calibration in neon. 0% is an empty glass.
+            GC Scale in neon. 0% is an empty glass.
           </div>
         </div>
       </div>

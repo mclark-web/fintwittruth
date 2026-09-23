@@ -11,6 +11,6 @@ export const READOUT_META: Record<
 };
 
 /** User-facing name for the 0–100 fill. The peer cut still lives in scoring.ts. */
-export const GC_FACTOR = "Grade Calibration";
+export const GC_FACTOR = "GC Scale";
 
 export const DATA_MODE = process.env.NEXT_PUBLIC_DATA_MODE === "live" ? "live" : "demo";

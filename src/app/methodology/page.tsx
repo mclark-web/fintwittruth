@@ -216,8 +216,8 @@ export default async function MethodologyPage() {
           {GC_FACTOR}
         </h2>
         <p className="mt-3 text-ink/80">
-          The tube fill is the 0–100 score. The pill is an opinion about that past call. The badge from 1 to 10
-          stays beside the fill.
+          GC means Grade Calibration. The tube fill is the 0–100 score. The pill is an opinion about that past
+          call. The badge from 1 to 10 stays beside the fill.
         </p>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-ink/80">
           <li>
