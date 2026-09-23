@@ -61,7 +61,7 @@ test("handle stats ignore calls that have no settled grade", () => {
   const stats = handleBoardStats([
     {
       grades: [
-        { readout: "monday", score: 90, isChad: true, isChudTerritory: false, signedMovePct: 0.02 },
+        { readout: "monday", score: 90, isStrong: true, isWeak: false, signedMovePct: 0.02 },
       ],
     },
     { grades: [] },
@@ -70,8 +70,8 @@ test("handle stats ignore calls that have no settled grade", () => {
   assert.equal(stats.callCount, 1);
   assert.equal(stats.pendingCount, 1);
   assert.equal(stats.avgScore, 90);
-  assert.equal(stats.chadRate, 1);
-  assert.equal(stats.chudRate, 0);
+  assert.equal(stats.strongRate, 1);
+  assert.equal(stats.weakRate, 0);
   assert.equal(stats.hitRate, 1);
   assert.equal(stats.bestScore, 90);
   assert.equal(stats.worstScore, 90);
@@ -83,24 +83,24 @@ test("an account with only unscored calls is not a graded handle", () => {
   assert.equal(stats.callCount, 0);
   assert.equal(stats.pendingCount, 2);
   assert.equal(stats.avgScore, 0);
-  assert.equal(stats.chadRate, 0);
-  assert.equal(stats.chudRate, 0);
+  assert.equal(stats.strongRate, 0);
+  assert.equal(stats.weakRate, 0);
   assert.equal(stats.hitRate, 0);
 });
 
-test("Chad, Chud, and hit rate use every settled grade and skip the mature-only shortcut", () => {
+test("STRONG, WEAK, and hit rate use every settled grade and skip the mature-only shortcut", () => {
   const stats = handleBoardStats([
     {
       grades: [
-        { readout: "monday", score: 40, isChad: false, isChudTerritory: true, signedMovePct: -0.02 },
-        { readout: "friday", score: 80, isChad: true, isChudTerritory: false, signedMovePct: 0.02 },
+        { readout: "monday", score: 40, isStrong: false, isWeak: true, signedMovePct: -0.02 },
+        { readout: "friday", score: 80, isStrong: true, isWeak: false, signedMovePct: 0.02 },
       ],
     },
   ]);
   assert.equal(stats.avgScore, 80);
   assert.equal(stats.callCount, 1);
-  assert.equal(stats.chadRate, 0.5);
-  assert.equal(stats.chudRate, 0.5);
+  assert.equal(stats.strongRate, 0.5);
+  assert.equal(stats.weakRate, 0.5);
   assert.equal(stats.hitRate, 0.5);
 });
 
@@ -111,7 +111,7 @@ test("a flat tape is not a hit", () => {
   const stats = handleBoardStats([
     {
       grades: [
-        { readout: "monday", score: 55, isChad: false, isChudTerritory: true, signedMovePct: 0.0001 },
+        { readout: "monday", score: 55, isStrong: false, isWeak: true, signedMovePct: 0.0001 },
       ],
     },
   ]);

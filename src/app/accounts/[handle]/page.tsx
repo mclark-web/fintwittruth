@@ -76,11 +76,11 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                 </div>
                 <div>
                   <dt className="text-xs uppercase text-muted">Strong rate</dt>
-                  <dd className="font-mono text-xl">{formatPct(row.chadRate, 0)}</dd>
+                  <dd className="font-mono text-xl">{formatPct(row.strongRate, 0)}</dd>
                 </div>
                 <div>
                   <dt className="text-xs uppercase text-muted">Weak rate</dt>
-                  <dd className="font-mono text-xl">{formatPct(row.chudRate, 0)}</dd>
+                  <dd className="font-mono text-xl">{formatPct(row.weakRate, 0)}</dd>
                 </div>
                 <div>
                   <dt className="text-xs uppercase text-muted">Graded calls</dt>
@@ -99,8 +99,8 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
             score={row.avgScore}
             digits={1}
             badge={row.badge}
-            isChad={row.isChad}
-            isChudTerritory={row.isChudTerritory}
+            isStrong={row.isStrong}
+            isWeak={row.isWeak}
             rank={row.peerRank}
             peerCount={row.peerCount}
           />

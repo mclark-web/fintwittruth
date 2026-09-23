@@ -11,7 +11,7 @@ import {
   sessionClose,
   sessionOpen,
 } from "./quotes";
-import { CHUD_THRESHOLD, EQUITY_TAPE, READOUTS, VIX_MAX, equityTapeMove, scoreToBadge } from "./scoring";
+import { WEAK_LINE, EQUITY_TAPE, READOUTS, VIX_MAX, equityTapeMove, scoreToBadge } from "./scoring";
 
 const data = buildDataset();
 
@@ -72,7 +72,7 @@ test("watchlist and viral posts share the weekly board", () => {
   }
 });
 
-test("Chad requires the top 30% and a score of at least 70", () => {
+test("STRONG requires the top 30% and a score of at least 70", () => {
   for (const cohort of data.cohorts) {
     for (const kind of READOUTS) {
       const grades = cohort.grades.filter((grade) => grade.readout === kind);
@@ -81,9 +81,9 @@ test("Chad requires the top 30% and a score of at least 70", () => {
       const slots = Math.ceil(grades.length * 0.3);
       const cutoff = sorted[slots - 1]?.score ?? Number.POSITIVE_INFINITY;
       for (const grade of grades) {
-        const expected = grade.score >= cutoff && grade.score >= CHUD_THRESHOLD;
-        assert.equal(grade.isChad, expected);
-        if (grade.score < CHUD_THRESHOLD) assert.equal(grade.isChad, false);
+        const expected = grade.score >= cutoff && grade.score >= WEAK_LINE;
+        assert.equal(grade.isStrong, expected);
+        if (grade.score < WEAK_LINE) assert.equal(grade.isStrong, false);
       }
     }
   }
@@ -208,7 +208,7 @@ test("September 21 Monday open and noon are distinct recorded prints", () => {
   assert.notEqual(gapBoard?.benchmarkMovePct, 0);
 });
 
-test("selloff calls are not Chad on a 1%+ up Monday", () => {
+test("selloff calls are not STRONG on a 1%+ up Monday", () => {
   const latest = data.cohorts.find((cohort) => cohort.slug === LATEST_COHORT_SLUG);
   assert.ok(latest);
   const bySymbol = Object.fromEntries(latest.quotes.map((quote) => [quote.symbol, quote]));
@@ -232,12 +232,12 @@ test("selloff calls are not Chad on a 1%+ up Monday", () => {
       const call = latest.calls.find((item) => item.id === grade.callId);
       assert.ok(call);
       if (call.direction === "bearish") {
-        assert.equal(grade.isChad, false, `${call.handle} bearish Chad on ${kind}`);
-        assert.ok(grade.score < CHUD_THRESHOLD, `${call.handle} score ${grade.score} on up ${kind}`);
+        assert.equal(grade.isStrong, false, `${call.handle} bearish call is not STRONG on ${kind}`);
+        assert.ok(grade.score < WEAK_LINE, `${call.handle} score ${grade.score} on up ${kind}`);
         assert.ok(grade.directionPoints <= 3, `${call.handle} direction points ${grade.directionPoints}`);
         assert.ok(grade.signedMovePct < 0);
       }
-      if (call.direction === "bullish" && tape >= 0.01 && grade.score >= CHUD_THRESHOLD) {
+      if (call.direction === "bullish" && tape >= 0.01 && grade.score >= WEAK_LINE) {
         assert.ok(grade.directionPoints >= 34);
       }
     }
@@ -259,12 +259,12 @@ test("direction matches the tape on every published readout", () => {
         const expectedSigned = call.direction === "bullish" ? tape : -tape;
         assert.ok(Math.abs(grade.signedMovePct - expectedSigned) < 1e-12);
         if (tape >= 0.01 && call.direction === "bearish") {
-          assert.equal(grade.isChad, false);
-          assert.ok(grade.score < CHUD_THRESHOLD);
+          assert.equal(grade.isStrong, false);
+          assert.ok(grade.score < WEAK_LINE);
         }
         if (tape <= -0.01 && call.direction === "bullish") {
-          assert.equal(grade.isChad, false);
-          assert.ok(grade.score < CHUD_THRESHOLD);
+          assert.equal(grade.isStrong, false);
+          assert.ok(grade.score < WEAK_LINE);
         }
       }
     }

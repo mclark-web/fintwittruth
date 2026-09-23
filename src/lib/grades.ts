@@ -1,4 +1,4 @@
-import { CHUD_THRESHOLD } from "./scoring";
+import { WEAK_LINE } from "./scoring";
 
 /** User-facing pill. Does not change how a score is computed. */
 export type GcGrade = "strong" | "weak" | "provisional" | "exit";
@@ -18,12 +18,12 @@ export const GC_GRADE_LABEL: Record<GcGrade, string> = {
  */
 export function gcGrade(input: {
   score: number | null | undefined;
-  isChad: boolean;
-  isChudTerritory: boolean;
+  isStrong: boolean;
+  isWeak: boolean;
 }): GcGrade {
   if (input.score == null || input.score <= 0) return "exit";
-  if (input.isChad) return "strong";
-  if (input.isChudTerritory || input.score < CHUD_THRESHOLD) return "weak";
+  if (input.isStrong) return "strong";
+  if (input.isWeak || input.score < WEAK_LINE) return "weak";
   return "provisional";
 }
 
@@ -42,8 +42,8 @@ export function gcBoardGrade(scores: number[]): { fill: number; grade: GcGrade }
     fill,
     grade: gcGrade({
       score: mean,
-      isChad: false,
-      isChudTerritory: mean < CHUD_THRESHOLD,
+      isStrong: false,
+      isWeak: mean < WEAK_LINE,
     }),
   };
 }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  CHUD_THRESHOLD,
+  WEAK_LINE,
   directionPoints,
   rankPeers,
   scoreCall,
@@ -53,7 +53,7 @@ test("a fully specified call can score 100 and a vague call stays under 70", () 
   assert.equal(sharp.score, 100);
   assert.equal(sharp.badge, 10);
   assert.equal(sharp.vixPoints, 15);
-  assert.equal(sharp.isChudTerritory, false);
+  assert.equal(sharp.isWeak, false);
 
   const vague = scoreCall(
     {
@@ -66,8 +66,8 @@ test("a fully specified call can score 100 and a vague call stays under 70", () 
     },
     { tapeMove: 0.03, primaryRef: 100, primaryNow: 103, vixMove: 0 },
   );
-  assert.ok(vague.score < CHUD_THRESHOLD);
-  assert.equal(vague.isChudTerritory, true);
+  assert.ok(vague.score < WEAK_LINE);
+  assert.equal(vague.isWeak, true);
 });
 
 test("busted invalidation caps level points", () => {
@@ -88,7 +88,7 @@ test("busted invalidation caps level points", () => {
   assert.equal(busted.levelPoints, 2);
 });
 
-test("Chad requires the top 30% and a score of at least 70", () => {
+test("STRONG requires the top 30% and a score of at least 70", () => {
   const ranked = rankPeers([
     { id: "a", score: 90, tieBreak: "a" },
     { id: "b", score: 80, tieBreak: "b" },
@@ -101,23 +101,23 @@ test("Chad requires the top 30% and a score of at least 70", () => {
     { id: "i", score: 20, tieBreak: "i" },
     { id: "j", score: 10, tieBreak: "j" },
   ]);
-  const chads = ranked.filter((row) => row.isChad).map((row) => row.id);
-  assert.deepEqual(chads.sort(), ["a", "b", "c"]);
+  const strongIds = ranked.filter((row) => row.isStrong).map((row) => row.id);
+  assert.deepEqual(strongIds.sort(), ["a", "b", "c"]);
   const under = ranked.find((row) => row.id === "j");
-  assert.equal(under?.isChudTerritory, true);
+  assert.equal(under?.isWeak, true);
   const clear = ranked.find((row) => row.id === "d");
-  assert.equal(clear?.isChad, false);
-  assert.equal(clear?.isChudTerritory, false);
+  assert.equal(clear?.isStrong, false);
+  assert.equal(clear?.isWeak, false);
 });
 
-test("a top-30% score under 70 is Chud and not Chad", () => {
+test("a top-30% score under 70 is WEAK and not STRONG", () => {
   const ranked = rankPeers([
     { id: "a", score: 69, tieBreak: "a" },
     { id: "b", score: 68, tieBreak: "b" },
     { id: "c", score: 40, tieBreak: "c" },
     { id: "d", score: 20, tieBreak: "d" },
   ]);
-  assert.equal(ranked.find((row) => row.id === "a")?.isChad, false);
-  assert.equal(ranked.find((row) => row.id === "a")?.isChudTerritory, true);
-  assert.ok(ranked.every((row) => !row.isChad));
+  assert.equal(ranked.find((row) => row.id === "a")?.isStrong, false);
+  assert.equal(ranked.find((row) => row.id === "a")?.isWeak, true);
+  assert.ok(ranked.every((row) => !row.isStrong));
 });

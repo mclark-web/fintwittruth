@@ -88,8 +88,8 @@ model Grade {
   rawMovePct        Float
   signedMovePct     Float
   vixMovePct        Float
-  isChad            Boolean
-  isChudTerritory   Boolean
+  isStrong          Boolean
+  isWeak            Boolean
   peerRank          Int
   peerCount         Int
   note              String
@@ -110,7 +110,7 @@ model Readout {
   realizedDirection  String
   benchmarkSymbol    String
   benchmarkMovePct   Float
-  chadCutoff         Int
+  strongCutoff       Int
   narrative          String
   cohort             Cohort @relation(fields: [cohortId], references: [id], onDelete: Cascade)
 

@@ -65,14 +65,14 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                   <GradePill
                     grade={gcGrade({
                       score: row.avgScore,
-                      isChad: row.isChad,
-                      isChudTerritory: row.isChudTerritory,
+                      isStrong: row.isStrong,
+                      isWeak: row.isWeak,
                     })}
                   />
                 </td>
                 <td className="px-4 py-3 font-mono">{formatPct(row.hitRate, 0)}</td>
-                <td className="px-4 py-3 font-mono">{formatPct(row.chadRate, 0)}</td>
-                <td className="px-4 py-3 font-mono">{formatPct(row.chudRate, 0)}</td>
+                <td className="px-4 py-3 font-mono">{formatPct(row.strongRate, 0)}</td>
+                <td className="px-4 py-3 font-mono">{formatPct(row.weakRate, 0)}</td>
                 <td className="px-4 py-3 font-mono">{row.callCount}</td>
                 <td className="px-4 py-3 font-mono text-xs">
                   {row.bestScore}/100 · {row.worstScore}/100

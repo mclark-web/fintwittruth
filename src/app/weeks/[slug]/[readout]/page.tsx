@@ -105,7 +105,7 @@ export default async function ReadoutPage({
             {readout.status === "published" ? (
               <>
                 {readout.benchmarkSymbol} <Move value={readout.benchmarkMovePct} /> from Friday&apos;s close
-                {readout.chadCutoff > 0 ? ` · STRONG line ${readout.chadCutoff}/100` : ""}
+                {readout.strongCutoff > 0 ? ` · STRONG line ${readout.strongCutoff}/100` : ""}
               </>
             ) : (
               "Prices publish with the grade"

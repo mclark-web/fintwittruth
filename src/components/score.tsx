@@ -17,8 +17,8 @@ export function Avatar({ name }: { name: string; accent?: string }) {
 export function ScoreMark({
   score,
   badge,
-  isChad,
-  isChudTerritory,
+  isStrong,
+  isWeak,
   rank,
   peerCount,
   digits = 0,
@@ -26,14 +26,14 @@ export function ScoreMark({
 }: {
   score: number;
   badge: number;
-  isChad: boolean;
-  isChudTerritory: boolean;
+  isStrong: boolean;
+  isWeak: boolean;
   rank?: number;
   peerCount?: number;
   digits?: number;
   variant?: "stack" | "mini";
 }) {
-  const grade = gcGrade({ score, isChad, isChudTerritory });
+  const grade = gcGrade({ score, isStrong, isWeak });
   if (variant === "mini") {
     return (
       <div className="flex flex-col items-end gap-1.5">

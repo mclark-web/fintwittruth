@@ -17,8 +17,8 @@ export const HIT_BAND = 0.0008;
 export type SettledGrade = {
   readout: string;
   score: number;
-  isChad: boolean;
-  isChudTerritory: boolean;
+  isStrong: boolean;
+  isWeak: boolean;
   signedMovePct: number;
 };
 
@@ -65,8 +65,8 @@ export function handleBoardStats(calls: GradedCallInput[]) {
     pendingCount: calls.length - graded.length,
     avgScore,
     badge: scoreToBadge(Math.round(avgScore)),
-    chadRate: rate((grade) => grade.isChad),
-    chudRate: rate((grade) => grade.isChudTerritory),
+    strongRate: rate((grade) => grade.isStrong),
+    weakRate: rate((grade) => grade.isWeak),
     hitRate: rate((grade) => isDirectionHit(grade.signedMovePct)),
     bestScore: matureScores.length ? Math.max(...matureScores) : 0,
     worstScore: matureScores.length ? Math.min(...matureScores) : 0,

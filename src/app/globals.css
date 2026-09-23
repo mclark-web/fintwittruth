@@ -14,10 +14,8 @@
   --color-line: rgb(255 255 255 / 0.08);
   --color-bull: #7dcea0;
   --color-bear: #e08a7a;
-  --color-chad: #e8c070;
-  --color-chad-wash: rgb(232 192 112 / 0.16);
-  --color-chud: #e08a7a;
-  --color-chud-wash: rgb(224 138 122 / 0.16);
+  --color-draft: #e8c070;
+  --color-draft-wash: rgb(232 192 112 / 0.16);
   --color-muted: #9a9aa3;
   --color-orange-soft: #ee9a44;
 }

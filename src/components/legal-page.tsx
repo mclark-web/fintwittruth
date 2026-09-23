@@ -22,7 +22,7 @@ export function LegalPage({
   return (
     <article className="mx-auto max-w-3xl px-4 py-10">
       <p className="text-xs uppercase tracking-wide text-muted">{kicker}</p>
-      <p className="mt-3 inline-flex rounded-full bg-chad-wash px-3 py-1 text-sm font-semibold text-chad">
+      <p className="mt-3 inline-flex rounded-full bg-draft-wash px-3 py-1 text-sm font-semibold text-draft">
         {LEGAL_DRAFT_LABEL}
       </p>
       <h1 className="mt-4 font-serif text-4xl text-ink sm:text-5xl">{title}</h1>

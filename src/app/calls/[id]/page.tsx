@@ -156,8 +156,8 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                     <ScoreMark
                       score={grade.score}
                       badge={grade.badge}
-                      isChad={grade.isChad}
-                      isChudTerritory={grade.isChudTerritory}
+                      isStrong={grade.isStrong}
+                      isWeak={grade.isWeak}
                       rank={grade.peerRank}
                       peerCount={grade.peerCount}
                     />
