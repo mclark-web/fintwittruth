@@ -6,7 +6,7 @@ GradedCalls Analysts and GradedCalls Sports are sibling verticals. They are not 
 
 The npm package and the SQLite file stay named `fintwittruth`. That is the technical package name, not the public brand.
 
-This repository ships a labeled **demo**. Handles and posts are fictional. The market prints used to grade them are real historical Yahoo Finance prices for those evaluation dates. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing.
+This repository ships a labeled demo book and a small verified book. Demo handles and posts are fictional. The latest board quotes two public posts and links each source. The market prints used to grade both books are real historical Yahoo Finance prices for those evaluation dates. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing.
 
 ## Evaluation calendar
 
@@ -31,7 +31,7 @@ Each cohort has two inclusion buckets: a named watchlist and a viral doom / hype
 
 The weekend reference is the **prior Friday regular-session close** for SPY, QQQ, and DIA, plus Friday's VIX close. Yahoo `adjclose` is stored beside it for audit and is **not** used for gap or noon moves, because the daily open and the 12:00 PM ET five-minute open are not dividend-adjusted. Comparing retrospectively rewritten adjclose to those prints invents a false gap. There is no invented Sunday cash print. Monday's gap uses the regular-session daily open. Monday, Wednesday, and Friday noon grades use the **open** of the 5-minute bar stamped 12:00 PM America/New_York. A closed session stays blank. Monday, September 7, 2026 was Labor Day, so that gap and noon stay ungraded. A Yahoo VIX daily bar on that holiday is ignored. A date with no print yet stays null. The series is committed in `src/lib/market-history.json` (chart API `query1.finance.yahoo.com`). `src/lib/quotes.ts` throws if a required print is missing.
 
-The in-app methodology page states this again. The latest demo week has the Monday gap and Monday noon published, with Wednesday and Friday still scheduled.
+The in-app methodology page states this again. The latest verified week has the Monday gap, Monday noon, and Wednesday noon published. Friday is still scheduled. The fictional open week uses those same prints and is labeled demo.
 
 ## Boards
 
@@ -92,11 +92,12 @@ Seed sources:
 
 - `src/lib/market-history.json` — recorded Yahoo Finance Friday session closes, adjclose (audit), regular-session opens, and 12:00 PM ET prints
 - `src/lib/quotes.ts` — reads that file and refuses a missing print
+- `src/lib/live-calls.json` — verified public posts for the latest readout week, each with a source URL
 - `src/lib/demo-data.ts` — fictional accounts and posts in a watchlist bucket and a viral bucket. Stated levels are offsets from the real Friday reference, not a made-up spot
-- `src/lib/dataset.ts` — applies the locked calendar and the scorer
+- `src/lib/dataset.ts` — applies the locked calendar and the scorer to both books
 - `prisma/seed.ts` — writes the result with Prisma
 
-Finished cohorts in the demo (`2026-08-24`, `2026-08-31`, `2026-09-07`, `2026-09-14`) each have Monday, Wednesday, and Friday grades on the same calls. `2026-09-07` is the worked example because Monday was Labor Day: the grade uses Friday's close, and Wednesday and Friday use real noon prints. `2026-09-21` is the latest board: Monday's noon print is in, and Wednesday and Friday are still scheduled because those sessions had not happened at fetch time.
+Finished demo cohorts (`2026-08-24`, `2026-08-31`, `2026-09-07`, `2026-09-14`) each have Monday, Wednesday, and Friday grades on the same calls. `2026-09-07` is the worked example because Monday was Labor Day: the grade uses Friday's close, and Wednesday and Friday use real noon prints. `demo-2026-09-21` keeps the fictional doom and melt-up posts for the open week, graded on the real Monday prints, off the live board. `2026-09-21` is the verified book: two public posts, with Monday and Wednesday noon prints in. Friday stays scheduled because that session had not printed at fetch time. Conviction weights stay high 3, medium 2, low 1. Every published grade uses the equal-weight SPY, QQQ, and DIA tape plus VIX.
 
 Cohort slugs are the readout Monday (`YYYY-MM-DD`).
 
@@ -145,4 +146,4 @@ Draft pages, labeled “Draft for legal review” until counsel signs off:
 - `/terms` — public posts, the locked calendar, real prints, liability limitation
 - `/donate` — donation-only; a gift is not a signal and is not tax-deductible unless a later notice says so
 
-Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. GradedCalls FinTwit is not affiliated with X, Twitter, or Yahoo Finance. The corrections address on those pages is a placeholder.
+Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. Verified cards quote public posts and link the source. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. GradedCalls FinTwit is not affiliated with X, Twitter, or Yahoo Finance. The corrections address on those pages is a placeholder.

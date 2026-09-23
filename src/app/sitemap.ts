@@ -8,6 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: base },
     { url: `${base}/weeks` },
+    { url: `${base}/demo` },
     { url: `${base}/leaderboard` },
     { url: `${base}/pending` },
     { url: `${base}/methodology` },

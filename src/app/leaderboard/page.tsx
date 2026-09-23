@@ -87,25 +87,31 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
 }
 
 export default async function LeaderboardPage() {
-  const [watchlist, viral] = await Promise.all([
-    getLeaderboard("watchlist"),
-    getLeaderboard("viral"),
+  const [verified, watchlist, viral] = await Promise.all([
+    getLeaderboard("watchlist", "live"),
+    getLeaderboard("watchlist", "demo"),
+    getLeaderboard("viral", "demo"),
   ]);
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-serif text-4xl text-ink">Leaderboards</h1>
       <p className="mt-3 max-w-3xl text-muted">
-        Two buckets, ranked apart. Both still feed each week&apos;s graded board. An average uses the furthest
-        settled grade on each call. Hit rate, STRONG rate, and WEAK rate count settled grades only. A call with
-        no grade yet is not in the rank. STRONG is the top 30% of that bucket and also at least 70. Under 70 is
-        WEAK. A 0% fill is EXIT LIQUIDITY.
+        Verified posts rank apart from the fictional demo. An average uses the furthest settled grade on each
+        call. Hit rate, STRONG rate, and WEAK rate count settled grades only. A call with no grade yet is not
+        in the rank. STRONG is the top 30% of that bucket and also at least 70. Under 70 is WEAK. A 0% fill is
+        EXIT LIQUIDITY.
       </p>
       <div className="mt-3">
         <PendingSettleLink href="/pending" />
       </div>
       <Board
-        title="Named watchlist"
-        note="Accounts on the standing watchlist, ranked against each other."
+        title="Verified watchlist"
+        note="Public posts on the latest board, ranked against each other."
+        rows={verified}
+      />
+      <Board
+        title="Demo watchlist"
+        note="Fictional standing accounts, ranked against each other. They are not the verified book."
         rows={watchlist}
       />
       <Board

@@ -29,7 +29,12 @@ export default async function WeeksPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-muted">
-                    {cohort.isLatest ? "Latest · demo" : "Demo"} · week of {formatShortDay(cohort.mondayAt)}
+                    {cohort.dataset === "live"
+                      ? cohort.isLatest
+                        ? "Latest · verified"
+                        : "Verified"
+                      : "Demo"}{" "}
+                    · week of {formatShortDay(cohort.mondayAt)}
                   </p>
                   <h2 className="mt-1 font-serif text-3xl text-ink">
                     <Link href={`/weeks/${cohort.slug}`} className="hover:underline">

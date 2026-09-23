@@ -10,6 +10,7 @@ import {
   type CallSpec,
   type CohortSpec,
 } from "./demo-data";
+import { assertLiveFile, type LiveCallRecord, type LiveCohortRecord } from "./live-book";
 import { quotesForCohort, sessionFor } from "./quotes";
 import {
   CONVICTION_WEIGHT,
@@ -68,6 +69,8 @@ export type BuiltCall = {
   tickers: string[];
   levels: Level[];
   explicit: boolean;
+  sourceUrl: string;
+  toneLabel: string;
 };
 
 export type BuiltGrade = {
@@ -116,7 +119,8 @@ export type BuiltCohort = {
   wednesdayAt: Date;
   fridayAt: Date;
   isLatest: boolean;
-  dataset: "demo";
+  dataset: "demo" | "live";
+  historySlug: string;
   quotes: BuiltQuote[];
   calls: BuiltCall[];
   grades: BuiltGrade[];
@@ -202,8 +206,54 @@ function buildCalls(
       tickers,
       levels,
       explicit: call.explicit,
+      sourceUrl: "",
+      toneLabel: "",
     };
   });
+}
+
+function liveCalls(spec: LiveCohortRecord, cohortId: string): BuiltCall[] {
+  return spec.calls.map((call) => ({
+    id: call.id,
+    cohortId,
+    accountId: `acct_${call.handle}`,
+    handle: call.handle,
+    postedAt: new Date(call.postedAt),
+    body: call.body,
+    direction: call.direction,
+    conviction: call.conviction,
+    primary: call.primary,
+    sentiment: call.sentiment,
+    engagement: call.engagement,
+    tickers: call.tickers,
+    levels: call.levels,
+    explicit: call.explicit,
+    sourceUrl: call.sourceUrl,
+    toneLabel: call.toneLabel,
+  }));
+}
+
+type CohortRow = {
+  slug: string;
+  historySlug: string;
+  title: string;
+  summary: string;
+  monday: CohortSpec["monday"];
+  isLatest: boolean;
+  dataset: "demo" | "live";
+  makeCalls: (cohortId: string, collectStart: Date, refs: Record<string, number>) => BuiltCall[];
+};
+
+function liveAccount(call: LiveCallRecord): BuiltAccount {
+  return {
+    id: `acct_${call.handle}`,
+    handle: call.handle,
+    displayName: call.displayName,
+    bio: call.bio,
+    posture: call.posture,
+    accent: call.accent,
+    bucket: call.bucket,
+  };
 }
 
 function consensus(calls: CallSpec[] | BuiltCall[]) {
@@ -234,10 +284,54 @@ export function buildDataset(): BuiltDataset {
     bucket: account.bucket ?? "watchlist",
   }));
 
-  const cohorts = COHORTS.map((spec) => {
+  const live = assertLiveFile();
+  const demoHandles = new Set(ACCOUNTS.map((account) => account.handle));
+  for (const cohort of live) {
+    for (const call of cohort.calls) {
+      if (demoHandles.has(call.handle)) {
+        throw new Error(`@${call.handle} is already a demo handle. Refusing to mix it into the live book.`);
+      }
+      if (!accounts.some((account) => account.handle === call.handle)) {
+        accounts.push(liveAccount(call));
+      }
+    }
+  }
+  const newestLive = live.reduce(
+    (best, cohort) => {
+      const key = cohort.monday.year * 10000 + cohort.monday.month * 100 + cohort.monday.day;
+      return key >= best.key ? { key, slug: cohort.slug } : best;
+    },
+    { key: 0, slug: "" },
+  ).slug;
+
+  const rows: CohortRow[] = [
+    ...COHORTS.map((spec) => ({
+      slug: spec.slug,
+      historySlug: spec.historySlug ?? spec.slug,
+      title: spec.title,
+      summary: spec.summary,
+      monday: spec.monday,
+      isLatest: false,
+      dataset: "demo" as const,
+      makeCalls: (cohortId: string, collectStart: Date, refs: Record<string, number>) =>
+        buildCalls(spec, cohortId, collectStart, refs),
+    })),
+    ...live.map((spec) => ({
+      slug: spec.slug,
+      historySlug: spec.historySlug,
+      title: spec.title,
+      summary: spec.summary,
+      monday: spec.monday,
+      isLatest: spec.slug === newestLive,
+      dataset: "live" as const,
+      makeCalls: (cohortId: string) => liveCalls(spec, cohortId),
+    })),
+  ];
+
+  const cohorts = rows.map((spec) => {
     const window = buildCohortWindow(spec.monday);
     const id = `cohort_${spec.slug}`;
-    const quotes: BuiltQuote[] = quotesForCohort(spec.slug, SYMBOLS).map((quote) => ({
+    const quotes: BuiltQuote[] = quotesForCohort(spec.historySlug, SYMBOLS).map((quote) => ({
       id: `${spec.slug}__${quote.symbol}`,
       cohortId: id,
       symbol: quote.symbol,
@@ -253,13 +347,13 @@ export function buildDataset(): BuiltDataset {
       for (const price of [quote.ref, quote.mondayOpen, quote.monday, quote.wednesday, quote.friday]) {
         if (price != null && price < 700) {
           throw new Error(
-            `Refusing SPY ${price} on ${spec.slug}. That is not a 2026 historical print.`,
+            `Refusing SPY ${price} on ${spec.historySlug}. That is not a 2026 historical print.`,
           );
         }
       }
     }
     const refs = Object.fromEntries(quotes.map((quote) => [quote.symbol, quote.ref]));
-    const calls = buildCalls(spec, id, window.collectStart, refs);
+    const calls = spec.makeCalls(id, window.collectStart, refs);
     const lean = consensus(calls);
     const grades: BuiltGrade[] = [];
     const readouts: BuiltReadout[] = READOUTS.map((kind) => {
@@ -276,7 +370,7 @@ export function buildDataset(): BuiltDataset {
       const needed = [...EQUITY_TAPE, "VIX", ...calls.map((call) => call.primary)];
       const published = needed.every((symbol) => priceOf(symbol) != null);
       const sessionKind = kind === "monday-gap" ? "monday" : kind;
-      const session = sessionFor(spec.slug, sessionKind);
+      const session = sessionFor(spec.historySlug, sessionKind);
       const sessionReason = session?.session === "closed" ? session.reason : undefined;
       const noise = weekendNoise(calls.map((call) => call.sentiment));
 
@@ -416,8 +510,9 @@ export function buildDataset(): BuiltDataset {
       title: spec.title,
       summary: spec.summary,
       ...window,
-      isLatest: Boolean(spec.isLatest),
-      dataset: "demo" as const,
+      isLatest: spec.isLatest,
+      dataset: spec.dataset,
+      historySlug: spec.historySlug,
       quotes,
       calls,
       grades,

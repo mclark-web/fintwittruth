@@ -65,7 +65,8 @@ export default function TermsPage() {
 
       <LegalSection id="data" title="Demo posts, real outcomes">
         <p>
-          This deployment is a labeled demo. Handles and wording in the seed are fictional. They are not quotes
+          The latest week grades verified public posts from the live book. Each of those cards links its source.
+          The other cohorts are a labeled demo. Those handles and posts are fictional. They are not quotes
           from real people. Market outcomes are not fictional. A published grade uses the recorded print for
           that evaluation date: the prior Friday regular-session close as the weekend reference, the
           regular-session open for Monday&apos;s gap, and the 12:00 PM ET print on Monday, Wednesday, and Friday

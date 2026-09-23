@@ -91,10 +91,9 @@ export default function DisclaimerPage() {
 
       <LegalSection id="demo" title="The demo is labeled">
         <p>
-          The accounts and posts shipped with this deployment are a demo. They are labeled as demo data. They
-          are not quotes from real people. The market prints underneath a published grade are the recorded
-          prices for that date. If a live feed of public posts replaces the demo later, the demo label has to
-          come off only after that change is real.
+          Fictional accounts and posts are labeled demo and kept on the demo weeks. They are not quotes from real
+          people. The latest board quotes verified public posts and links each source. The market prints
+          underneath a published grade are the recorded prices for that date. A missing print stays blank.
         </p>
       </LegalSection>
 

@@ -22,7 +22,10 @@ export function DemoBanner() {
   return (
     <div className="border-b border-pine/30 bg-pine/10 text-orange-soft">
       <p className="mx-auto max-w-6xl px-4 py-2 text-center text-sm tracking-wide text-ink">
-        Demo posts — fictional accounts. Market prints are historical Yahoo Finance prices. Not investment advice. Not affiliated with X or Yahoo.
+        Demo weeks are fictional accounts. The latest board quotes verified public posts and links each source. Market prints are historical Yahoo Finance prices. Not investment advice. Not affiliated with X or Yahoo.{" "}
+        <Link href="/demo" className="font-medium text-pine underline-offset-4 hover:underline">
+          Fictional doom and melt-up book
+        </Link>
       </p>
     </div>
   );
