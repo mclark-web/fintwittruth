@@ -93,10 +93,10 @@ export default async function HomePage({
         Index only
       </Link>
       <Link href={toggleHref(query, "grade", "strong")} aria-pressed={query.grade === "strong"}>
-        Strong
+        STRONG
       </Link>
       <Link href={toggleHref(query, "grade", "weak")} aria-pressed={query.grade === "weak"}>
-        Weak
+        WEAK
       </Link>
     </div>
   );
@@ -114,7 +114,7 @@ export default async function HomePage({
           readout={tapeKind}
           toolbar={filters}
           pendingHref={waiting.length > 0 ? `/weeks/${latest.slug}/pending` : undefined}
-          exitDetail="0% calibration fill — no graded horizon closed yet"
+          exitDetail="0% GC Scale — no graded horizon closed yet"
         />
       ) : (
         <div className="panel p-5">
@@ -219,7 +219,7 @@ export default async function HomePage({
         </div>
         <p className="mt-2 text-sm text-muted">
           Watchlist accounts with a settled grade, ranked inside that bucket. Each average uses the furthest
-          settled grade. Strong, weak, and hit rate count settled grades only. STRONG is the top 30% of this
+          settled grade. STRONG, WEAK, and hit rate count settled grades only. STRONG is the top 30% of this
           board and also at least 70. WEAK is under 70.
         </p>
         <ol className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
@@ -239,7 +239,7 @@ export default async function HomePage({
                   <span className="text-sm text-muted">%</span>
                 </span>
                 <span className="text-xs text-muted">
-                  Badge {row.badge}/10 · Hit {formatPct(row.hitRate, 0)} · Strong {formatPct(row.strongRate, 0)}
+                  Badge {row.badge}/10 · Hit {formatPct(row.hitRate, 0)} · STRONG {formatPct(row.strongRate, 0)}
                 </span>
               </span>
             </li>

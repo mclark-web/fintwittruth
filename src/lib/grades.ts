@@ -4,10 +4,10 @@ import { WEAK_LINE } from "./scoring";
 export type GcGrade = "strong" | "weak" | "provisional" | "exit";
 
 export const GC_GRADE_LABEL: Record<GcGrade, string> = {
-  strong: "Strong",
-  weak: "Weak",
-  provisional: "Provisional",
-  exit: "Exit liquidity",
+  strong: "STRONG",
+  weak: "WEAK",
+  provisional: "PROVISIONAL",
+  exit: "EXIT LIQUIDITY",
 };
 
 /**

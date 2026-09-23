@@ -60,7 +60,7 @@ export function FinTwitBoard({
 
       <div className="panel mt-4 grid items-center gap-5 p-4 md:grid-cols-[1.2fr_1fr]">
         <p className="text-sm leading-relaxed text-muted">
-          Board {GC_FACTOR} for graded posts on this horizon. The horizontal tube fills left to right. STRONG is
+          {GC_FACTOR} for graded posts on this horizon. The horizontal tube fills left to right. STRONG is
           the peer cut. WEAK is under 70. PROVISIONAL cleared 70 and missed the cut. 0% is an empty glass.
         </p>
         <GcTube score={calibration.fill} grade={calibration.grade} variant="sidebar" compactMeta />
@@ -90,7 +90,7 @@ export function FinTwitBoard({
                 </p>
               ) : (
                 <div className="mt-4 max-w-sm">
-                  <ExitLiquidity detail="0% calibration fill — this horizon is still off the board" />
+                  <ExitLiquidity detail="0% GC Scale — this horizon is still off the board" />
                 </div>
               )}
             </div>
@@ -103,7 +103,7 @@ export function FinTwitBoard({
           <NoiseIndex calls={calls} quotes={quotes} compact />
           <section className="panel p-4">
             <h2 className="text-sm font-semibold text-ink">Top handles</h2>
-            <p className="mt-1 text-xs text-muted">By grade calibration on this horizon</p>
+            <p className="mt-1 text-xs text-muted">By GC Scale on this horizon</p>
             {top.length === 0 ? (
               <p className="mt-3 text-sm text-muted">No settled grades to rank.</p>
             ) : (

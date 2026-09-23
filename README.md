@@ -50,7 +50,7 @@ Every published grade shows the full **0–100** score, built from:
 - **Specificity (up to 15)** — naming a ticker, a target, an invalidation, and a band.
 - **VIX (15)** — panic and selloff calls want VIX higher. Melt-up calls want VIX lower. The move is Friday's VIX close to the VIX print at the same stamp.
 
-**Grade Calibration.** The horizontal tube fill is the 0–100 score. **STRONG** is the top 30% of the peer set **and** a score of at least 70. **WEAK** is any score under 70. **PROVISIONAL** is 70 or more outside that cut. **EXIT LIQUIDITY** is a 0% fill: an empty glass when no graded horizon has closed, or when the score is 0. Under 70 is never STRONG. On a readout, the peer set is every call on that weekly board. On a leaderboard, it is the accounts inside one bucket. Ties at the STRONG cutoff are included.
+**GC Scale.** The horizontal tube fill is the 0–100 score. **STRONG** is the top 30% of the peer set **and** a score of at least 70. **WEAK** is any score under 70. **PROVISIONAL** is 70 or more outside that cut. **EXIT LIQUIDITY** is a 0% fill: an empty glass when no graded horizon has closed, or when the score is 0. Under 70 is never STRONG. On a readout, the peer set is every call on that weekly board. On a leaderboard, it is the accounts inside one bucket. Ties at the STRONG cutoff are included.
 
 Monday noon is the primary weekend-noise grade. The Monday gap is the open. Wednesday and Friday age that same cohort.
 
@@ -76,7 +76,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Command | What it does |
 | --- | --- |
-| `npm test` | Calendar, scoring, Grade Calibration pills, and the graded-only board filter |
+| `npm test` | Calendar, scoring, GC Scale pills, and the graded-only board filter |
 | `npm run db:seed` | Rebuild the demo rows in place |
 | `npm run db:reset` | Recreate the SQLite file and seed it |
 | `npm run build` | Generate the client, seed SQLite, and build Next.js |

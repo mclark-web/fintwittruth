@@ -276,7 +276,7 @@ export function gradeNote(input: {
   const relation = helped ? "with" : hurt ? "against" : "flat versus";
   const territory =
     input.score <= 0
-      ? " Grade calibration is 0%: EXIT LIQUIDITY."
+      ? " GC Scale is 0%: EXIT LIQUIDITY."
       : input.score < WEAK_LINE
         ? " That score is WEAK."
         : "";

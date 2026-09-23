@@ -1,4 +1,5 @@
 import { gcFill, GC_GRADE_LABEL, type GcGrade } from "@/lib/grades";
+import { GC_FACTOR } from "@/lib/labels";
 
 export function GradePill({ grade }: { grade: GcGrade }) {
   return (
@@ -54,7 +55,7 @@ export function GcTube({
   const fill = empty ? 0 : gcFill(score);
   const shown = Math.round(fill);
   const rich = variant !== "mini" && variant !== "inline";
-  const label = `${shown}% Grade Calibration, ${GC_GRADE_LABEL[empty ? "exit" : grade]}`;
+  const label = `${shown}% ${GC_FACTOR}, ${GC_GRADE_LABEL[empty ? "exit" : grade]}`;
 
   return (
     <div
@@ -79,7 +80,7 @@ export function GcTube({
               : undefined
           }
         >
-          <div className="gc-label">GC · Grade Calibration</div>
+          <div className="gc-label">{GC_FACTOR}</div>
           <div className="gc-pct" style={compactMeta ? { fontSize: 18 } : undefined}>
             {shown}%
           </div>
@@ -91,14 +92,14 @@ export function GcTube({
 }
 
 export function ExitLiquidity({
-  detail = "0% calibration fill — no graded horizon closed yet",
+  detail = "0% GC Scale — no graded horizon closed yet",
 }: {
   detail?: string;
 }) {
   return (
     <section className="panel p-4" aria-labelledby="exit-liquidity-heading">
       <h2 id="exit-liquidity-heading" className="text-sm font-semibold text-ink">
-        GC · exit liquidity
+        EXIT LIQUIDITY
       </h2>
       <p className="mt-1 text-xs text-muted">{detail}</p>
       <div className="mt-3">

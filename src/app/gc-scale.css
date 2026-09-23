@@ -1,4 +1,4 @@
-/* GradedCalls — GC horizontal laboratory tube · Grade Calibration */
+/* GradedCalls — GC horizontal laboratory tube · GC Scale */
 
 :root {
   /* Sampled from Michael reference vial liquid (hero upper-right) */
@@ -621,7 +621,7 @@ a.gc-link {
 .gc-label {
   font-size: 11px;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--gc-orange-soft);
   font-weight: 600;
 }

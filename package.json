@@ -15,7 +15,7 @@
     "db:push": "prisma db push --accept-data-loss",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset --accept-data-loss && tsx prisma/seed.ts",
-    "test": "tsx --test src/lib/scoring.test.ts src/lib/grades.test.ts src/lib/dataset.test.ts src/lib/board.test.ts"
+    "test": "tsx --test src/lib/scoring.test.ts src/lib/grades.test.ts src/lib/dataset.test.ts src/lib/board.test.ts src/lib/brand-lock.test.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
