@@ -75,11 +75,11 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                   <dd className="font-mono text-xl">{formatPct(row.hitRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">Strong rate</dt>
+                  <dt className="text-xs uppercase text-muted">STRONG rate</dt>
                   <dd className="font-mono text-xl">{formatPct(row.strongRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">Weak rate</dt>
+                  <dt className="text-xs uppercase text-muted">WEAK rate</dt>
                   <dd className="font-mono text-xl">{formatPct(row.weakRate, 0)}</dd>
                 </div>
                 <div>

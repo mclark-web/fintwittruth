@@ -28,8 +28,8 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
               <th scope="col" className="px-4 py-3 font-medium">Badge</th>
               <th scope="col" className="px-4 py-3 font-medium">Marks</th>
               <th scope="col" className="px-4 py-3 font-medium">Hit rate</th>
-              <th scope="col" className="px-4 py-3 font-medium">Strong rate</th>
-              <th scope="col" className="px-4 py-3 font-medium">Weak rate</th>
+              <th scope="col" className="px-4 py-3 font-medium">STRONG rate</th>
+              <th scope="col" className="px-4 py-3 font-medium">WEAK rate</th>
               <th scope="col" className="px-4 py-3 font-medium">Graded calls</th>
               <th scope="col" className="px-4 py-3 font-medium">Best / worst</th>
             </tr>

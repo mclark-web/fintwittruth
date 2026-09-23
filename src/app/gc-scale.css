@@ -649,7 +649,7 @@ a.gc-link {
 .gc-grade-tag.exit {
   color: #2a220e;
   background: #c9a35a;
-  /* same typeface / weight / letter-spacing / uppercase as Strong·Weak·Provisional */
+  /* same typeface / weight / letter-spacing / uppercase as STRONG, WEAK, and PROVISIONAL */
 }
 
 /* Sidebar: tube + meta stacked */
