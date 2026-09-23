@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded } from "@/components/board-state";
-import { PricePath, PriceSource } from "@/components/market";
+import { CheckpointPrints, PricePath, PriceSource } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ScoreMark } from "@/components/score";
 import { formatPct, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
@@ -176,6 +176,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                     Tape {formatPct(grade.rawMovePct)} · signed {formatPct(grade.signedMovePct)} · VIX{" "}
                     {formatPct(grade.vixMovePct)}
                   </p>
+                  <CheckpointPrints quotes={cohort.quotes} kind={kind} primary={call.primary} tapeOnly={false} />
                   <Breakdown
                     directionPoints={grade.directionPoints}
                     levelPoints={grade.levelPoints}

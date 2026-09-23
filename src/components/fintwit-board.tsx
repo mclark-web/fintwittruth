@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { CallCard } from "@/components/call-card";
 import { ExitLiquidity, GcTube } from "@/components/gc-tube";
-import { NoiseIndex, QuoteTape } from "@/components/market";
+import { CheckpointStrip, NoiseIndex, QuoteTape } from "@/components/market";
 import { gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_FACTOR } from "@/lib/labels";
 import type { CallView, QuoteView } from "@/lib/queries";
@@ -56,6 +56,10 @@ export function FinTwitBoard({
           <p className="mt-2 max-w-[48ch] text-sm leading-relaxed text-muted">{lede}</p>
         </div>
         <QuoteTape quotes={quotes} kind={tapeKind} variant="scoreboard" />
+      </div>
+
+      <div className="panel mt-4 p-4">
+        <CheckpointStrip quotes={quotes} />
       </div>
 
       <div className="panel mt-4 grid items-center gap-5 p-4 md:grid-cols-[1.2fr_1fr]">

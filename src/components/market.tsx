@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatPct, formatPrice, formatShortDay, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
+import { checkpointPrints, checkpointSymbols, priceAt, TAPE_DISPLAY } from "@/lib/prints";
 import { PRICE_SOURCE_SHORT } from "@/lib/quotes";
 import type { QuoteView, ReadoutView } from "@/lib/queries";
 import { EQUITY_TAPE, READOUTS, equityTapeMove, weekendNoise, type ReadoutKind, type Sentiment } from "@/lib/scoring";
@@ -43,8 +44,79 @@ export function CalendarStrip() {
 
 export function printAt(quote: QuoteView, kind: ReadoutKind | "latest"): number | null {
   if (kind === "latest") return quote.friday ?? quote.wednesday ?? quote.monday ?? quote.mondayOpen;
-  if (kind === "monday-gap") return quote.mondayOpen;
-  return quote[kind];
+  return priceAt(quote, kind);
+}
+
+export function CheckpointPrints({
+  quotes,
+  kind,
+  primary,
+  tapeOnly = true,
+  variant = "chips",
+}: {
+  quotes: QuoteView[];
+  kind: ReadoutKind;
+  primary?: string;
+  tapeOnly?: boolean;
+  variant?: "chips" | "line";
+}) {
+  const symbols = tapeOnly ? TAPE_DISPLAY : checkpointSymbols(primary);
+  const prints = checkpointPrints(quotes, kind, symbols);
+  const label = `${READOUT_META[kind].label} prints`;
+  if (prints.length === 0) {
+    return <p className="mt-1 text-xs text-muted">Not graded yet</p>;
+  }
+  if (variant === "line") {
+    return (
+      <p className="mt-1 font-mono text-[11px] leading-relaxed text-ink" aria-label={label}>
+        {prints.map((print, index) => (
+          <span key={print.symbol}>
+            {index > 0 ? <span className="text-muted"> · </span> : null}
+            <span className="text-[color:var(--orange-soft)]">{print.symbol}</span> {formatPrice(print.price)}
+          </span>
+        ))}
+      </p>
+    );
+  }
+  return (
+    <ul className="checkpoint-prints" aria-label={label}>
+      {prints.map((print) => (
+        <li key={print.symbol}>
+          <span className="sym">{print.symbol}</span>
+          <span className="px">{formatPrice(print.price)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function CheckpointStrip({
+  quotes,
+  primary,
+  tapeOnly = true,
+}: {
+  quotes: QuoteView[];
+  primary?: string;
+  tapeOnly?: boolean;
+}) {
+  return (
+    <section aria-label="Prints used at each checkpoint">
+      <h2 className="text-sm font-semibold text-ink">Prints used</h2>
+      <p className="mt-1 max-w-3xl text-xs text-muted">
+        Ticker and price at each checkpoint. Monday&apos;s gap is the regular-session open. Noon grades use the
+        12:00 PM ET print.
+      </p>
+      <ol className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {READOUTS.map((kind) => (
+          <li key={kind} className="rounded-xl border border-line bg-sheet px-3 py-3">
+            <p className="text-[11px] uppercase tracking-wide text-muted">{READOUT_META[kind].short}</p>
+            <p className="text-sm text-ink">{READOUT_META[kind].label}</p>
+            <CheckpointPrints quotes={quotes} kind={kind} primary={primary} tapeOnly={tapeOnly} />
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
 }
 
 export function printLabel(kind: ReadoutKind | "latest"): string {
@@ -55,7 +127,7 @@ export function printLabel(kind: ReadoutKind | "latest"): string {
   return "Friday 12:00 PM ET print";
 }
 
-const TILE_ORDER = ["SPY", "DIA", "QQQ", "VIX"];
+const TILE_ORDER: readonly string[] = TAPE_DISPLAY;
 
 function tileStamp(kind: ReadoutKind | "latest"): string {
   if (kind === "monday-gap") return "Mon open";
@@ -88,6 +160,7 @@ export function QuoteTape({
           return (
             <div key={quote.symbol} className="sb-tile">
               <div className="sym">{quote.symbol}</div>
+              <div className="px">{now == null ? "—" : formatPrice(now)}</div>
               <div className={`chg ${move == null ? "" : move > 0.00005 ? "text-bull" : move < -0.00005 ? "text-bear" : "text-muted"}`}>
                 {move == null ? "—" : formatPct(move)}
               </div>
@@ -166,7 +239,9 @@ export function PricePath({
       <ul className="mt-2 grid grid-cols-2 gap-2 text-sm sm:grid-cols-5">
         {points.map((point) => (
           <li key={point.label} className="font-mono text-ink">
-            <span className="block text-[11px] uppercase text-muted">{point.label}</span>
+            <span className="block text-[11px] uppercase text-muted">
+              {quote.symbol} · {point.label}
+            </span>
             {point.value == null ? "Not graded yet" : formatPrice(point.value)}
           </li>
         ))}
@@ -178,10 +253,12 @@ export function PricePath({
 export function ReadoutCards({
   slug,
   readouts,
+  quotes,
   active,
 }: {
   slug: string;
   readouts: Record<ReadoutKind, ReadoutView>;
+  quotes?: QuoteView[];
   active?: ReadoutKind;
 }) {
   return (
@@ -208,6 +285,9 @@ export function ReadoutCards({
                   <span className="text-muted">Scheduled · same cohort</span>
                 )}
               </p>
+              {quotes ? (
+                <CheckpointPrints quotes={quotes} kind={kind} />
+              ) : null}
               <p className="mt-2 text-xs text-muted">
                 Crowd {readout.consensusDirection} · {Math.round(readout.consensusBullish * 100)}% bullish weight
               </p>

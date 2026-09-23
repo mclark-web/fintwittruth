@@ -2,13 +2,12 @@ import Link from "next/link";
 import { PendingSettleLink } from "@/components/board-state";
 import { FinTwitBoard } from "@/components/fintwit-board";
 import { CalendarStrip } from "@/components/market";
-import { Avatar } from "@/components/score";
+import { Avatar, ReportOutTitle } from "@/components/score";
 import { GradePill } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledGradeKinds, settledReadoutKinds } from "@/lib/board";
 import { DEMO_OPEN_COHORT_SLUG } from "@/lib/demo-data";
 import { formatPct, formatScore, formatShortDay } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
-import { READOUT_META } from "@/lib/labels";
 import { getFeaturedCohort, getLatestCohort, getLeaderboard, type CallView } from "@/lib/queries";
 import { EQUITY_TAPE, type ReadoutKind } from "@/lib/scoring";
 
@@ -189,7 +188,9 @@ export default async function HomePage({
                     return (
                       <li key={kind}>
                         <Link href={`/weeks/${featured.slug}/${kind}`} className="block rounded-xl bg-sheet px-3 py-2">
-                          <span className="text-[11px] uppercase text-muted">{READOUT_META[kind].short}</span>
+                          <span className="block whitespace-nowrap text-[11px] text-muted">
+                            <ReportOutTitle kind={kind} quotes={featured.quotes} primary={call.primary} />
+                          </span>
                           <span className="mt-1 block font-mono text-2xl">
                             {Math.round(grade.score)}
                             <span className="text-sm text-muted">%</span>

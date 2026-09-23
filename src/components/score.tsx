@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { gcGrade } from "@/lib/grades";
 import { initials } from "@/lib/format";
-import type { GradeView } from "@/lib/queries";
+import { callCheckpointLabel } from "@/lib/prints";
+import type { GradeView, QuoteView } from "@/lib/queries";
 import { READOUTS, type ReadoutKind } from "@/lib/scoring";
 import { READOUT_META } from "@/lib/labels";
 import { GcTube, GradePill } from "./gc-tube";
@@ -71,14 +72,37 @@ export function DirectionChip({ direction }: { direction: "bullish" | "bearish" 
   );
 }
 
+export function ReportOutTitle({
+  kind,
+  quotes,
+  primary,
+}: {
+  kind: ReadoutKind;
+  quotes?: QuoteView[];
+  primary?: string;
+}) {
+  const label = READOUT_META[kind].short;
+  const suffix = callCheckpointLabel(label, quotes, primary, kind).slice(label.length);
+  return (
+    <>
+      <span className="uppercase tracking-wide">{label}</span>
+      {suffix ? <span className="font-mono tracking-normal normal-case">{suffix}</span> : null}
+    </>
+  );
+}
+
 export function Evolution({
   grades,
   slug,
   active,
+  quotes,
+  primary,
 }: {
   grades: Record<ReadoutKind, GradeView | null>;
   slug: string;
   active?: ReadoutKind;
+  quotes?: QuoteView[];
+  primary?: string;
 }) {
   const settled = READOUTS.filter((kind) => grades[kind] != null);
   return (
@@ -92,12 +116,12 @@ export function Evolution({
           <li key={kind}>
             <Link
               href={`/weeks/${slug}/${kind}`}
-              className={`block min-w-28 rounded-xl border px-3 py-1.5 text-xs ${
+              className={`block min-w-36 rounded-xl border px-3 py-1.5 text-xs ${
                 current ? "border-pine bg-pine/15 text-ink" : "border-line bg-sheet text-ink hover:border-pine"
               }`}
             >
-              <span className="block text-[10px] uppercase tracking-wide text-muted">
-                {READOUT_META[kind].short}
+              <span className="block whitespace-nowrap text-[11px] text-muted">
+                <ReportOutTitle kind={kind} quotes={quotes} primary={primary} />
               </span>
               <span className="mt-1 flex items-center justify-between gap-2">
                 <span className="font-mono text-sm">{Math.round(grade.score)}%</span>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarStrip } from "@/components/market";
+import { CalendarStrip, CheckpointPrints } from "@/components/market";
 import { settledReadoutKinds } from "@/lib/board";
 import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
 import { GradePill } from "@/components/gc-tube";
@@ -295,6 +295,7 @@ export default async function MethodologyPage() {
                   {exampleKinds.map((kind) => (
                     <th key={kind} scope="col" className="py-2 font-medium">
                       {READOUT_META[kind].short}
+                      {featured ? <CheckpointPrints quotes={featured.quotes} kind={kind} variant="line" /> : null}
                     </th>
                   ))}
                 </tr>

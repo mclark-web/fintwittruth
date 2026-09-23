@@ -3,11 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { GradePill } from "@/components/gc-tube";
-import { Avatar, DirectionChip, ScoreMark } from "@/components/score";
+import { Avatar, DirectionChip, ReportOutTitle, ScoreMark } from "@/components/score";
 import { gcGrade } from "@/lib/grades";
 import { callHasSettledGrade, settledGradeKinds } from "@/lib/board";
 import { formatPct, formatScore } from "@/lib/format";
-import { READOUT_META } from "@/lib/labels";
 import { getAccount, listHandles } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
 
@@ -145,8 +144,8 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                       if (!grade) return null;
                       return (
                         <li key={kind} className="rounded-xl bg-sheet px-3 py-2">
-                          <Link href={`/weeks/${slug}/${kind}`} className="text-[11px] uppercase text-muted hover:underline">
-                            {READOUT_META[kind].short}
+                          <Link href={`/weeks/${slug}/${kind}`} className="block whitespace-nowrap text-[11px] text-muted hover:underline">
+                            <ReportOutTitle kind={kind} quotes={account.quotesBySlug[slug]} primary={call.primary} />
                           </Link>
                           <p className="font-mono text-2xl">
                             {grade.score}

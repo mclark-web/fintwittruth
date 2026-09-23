@@ -169,6 +169,45 @@ a.btn {
   letter-spacing: 0.04em;
 }
 
+.sb-tile .px {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 650;
+  color: #f2f1ee;
+  margin-top: 4px;
+  letter-spacing: -0.02em;
+}
+
+.checkpoint-prints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.checkpoint-prints li {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 0.04);
+  border: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.checkpoint-prints .sym {
+  color: var(--orange-soft);
+  letter-spacing: 0.04em;
+}
+
+.checkpoint-prints .px {
+  color: #f2f1ee;
+}
+
 .sb-tile .chg {
   font-size: 18px;
   font-weight: 680;

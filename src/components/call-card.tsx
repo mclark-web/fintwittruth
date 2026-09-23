@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { formatPct, formatWhen } from "@/lib/format";
+import { formatPct, formatPrice, formatWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
+import { checkpointSymbols } from "@/lib/prints";
 import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
 import { Avatar, DirectionChip, Evolution, LevelList, ScoreMark } from "./score";
 import { printAt } from "./market";
-
-const TAPE = ["SPY", "DIA", "QQQ", "VIX"] as const;
 
 export function CallCard({
   call,
@@ -18,14 +17,15 @@ export function CallCard({
   quotes?: QuoteView[];
 }) {
   const grade = call.grades[readout];
+  const symbols = checkpointSymbols(call.primary);
   const moves = (quotes ?? [])
-    .filter((quote) => (TAPE as readonly string[]).includes(quote.symbol))
+    .filter((quote) => symbols.includes(quote.symbol))
     .map((quote) => {
       const now = printAt(quote, readout);
       const move = now == null ? null : (now - quote.ref) / quote.ref;
-      return { symbol: quote.symbol, move };
+      return { symbol: quote.symbol, move, price: now };
     })
-    .sort((a, b) => TAPE.indexOf(a.symbol as (typeof TAPE)[number]) - TAPE.indexOf(b.symbol as (typeof TAPE)[number]));
+    .sort((a, b) => symbols.indexOf(a.symbol) - symbols.indexOf(b.symbol));
 
   return (
     <article className="panel p-5">
@@ -61,7 +61,8 @@ export function CallCard({
           {moves.map((item) =>
             item.move == null ? null : (
               <span key={item.symbol} className={item.move > 0.00005 ? "text-bull" : item.move < -0.00005 ? "text-bear" : undefined}>
-                {item.symbol} {formatPct(item.move)}
+                {item.symbol} {item.price == null ? "" : `${formatPrice(item.price)} `}
+                {formatPct(item.move)}
               </span>
             ),
           )}
@@ -95,7 +96,13 @@ export function CallCard({
         </p>
       )}
       <div className="mt-4">
-        <Evolution grades={call.grades} slug={call.cohortSlug} active={readout} />
+        <Evolution
+          grades={call.grades}
+          slug={call.cohortSlug}
+          active={readout}
+          quotes={quotes}
+          primary={call.primary}
+        />
       </div>
     </article>
   );

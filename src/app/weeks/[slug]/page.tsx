@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
-import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
+import { CheckpointPrints, CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { GcTube, GradePill } from "@/components/gc-tube";
 import { DirectionChip } from "@/components/score";
 import { gcGrade } from "@/lib/grades";
@@ -39,7 +39,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
   const readouts = Object.values(cohort.readouts);
   const settled = settledReadoutKinds(readouts);
   const pending = pendingReadoutKinds(readouts);
-  const tapeKinds = (["monday-gap", "monday"] as const).filter((kind) => settled.includes(kind));
+  const tapeKinds = settled;
   const rows = cohort.calls
     .filter((call) => callHasSettledGrade(call.grades))
     .sort((a, b) => {
@@ -77,7 +77,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         <PriceSource />
       </div>
       <div className="mt-4">
-        <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} />
+        <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} quotes={cohort.quotes} />
       </div>
       <div className="mt-4">
         <NoiseIndex calls={cohort.calls} quotes={cohort.quotes} />
@@ -110,6 +110,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                   {settled.map((kind) => (
                     <th key={kind} scope="col" className="px-4 py-3 font-medium">
                       {READOUT_META[kind].short}
+                      <CheckpointPrints quotes={cohort.quotes} kind={kind} variant="line" />
                     </th>
                   ))}
                 </tr>

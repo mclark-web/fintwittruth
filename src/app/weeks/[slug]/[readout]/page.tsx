@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PendingSettleLink } from "@/components/board-state";
 import { FinTwitBoard } from "@/components/fintwit-board";
-import { CohortWindow, Move, ReadoutCards } from "@/components/market";
+import { CheckpointPrints, CohortWindow, Move, ReadoutCards } from "@/components/market";
 import { READOUT_META } from "@/lib/labels";
 import { pendingReadoutKinds } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
@@ -80,7 +80,7 @@ export default async function ReadoutPage({
       </div>
 
       <div className="mt-6">
-        <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} active={kind} />
+        <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} quotes={cohort.quotes} active={kind} />
       </div>
 
       <section className="panel mt-6 p-5">
@@ -101,16 +101,19 @@ export default async function ReadoutPage({
               {Math.round(readout.consensusBullish * 100)}% bullish · {Math.round(readout.consensusBearish * 100)}% bearish · crowd {readout.consensusDirection}
             </p>
           </div>
-          <p className="font-mono text-sm text-ink">
+          <div className="font-mono text-sm text-ink">
             {readout.status === "published" ? (
               <>
-                {readout.benchmarkSymbol} <Move value={readout.benchmarkMovePct} /> from Friday&apos;s close
-                {readout.strongCutoff > 0 ? ` · STRONG line ${readout.strongCutoff}/100` : ""}
+                <p>
+                  {readout.benchmarkSymbol} <Move value={readout.benchmarkMovePct} /> from Friday&apos;s close
+                  {readout.strongCutoff > 0 ? ` · STRONG line ${readout.strongCutoff}/100` : ""}
+                </p>
+                <CheckpointPrints quotes={cohort.quotes} kind={kind} />
               </>
             ) : (
-              "Prices publish with the grade"
+              <p>Prices publish with the grade</p>
             )}
-          </p>
+          </div>
         </div>
       </section>
 

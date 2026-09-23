@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
+import { CheckpointPrints } from "@/components/market";
 import { formatShortDay, formatWhen } from "@/lib/format";
 import { gcBoardGrade } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
@@ -67,7 +68,8 @@ export default async function WeeksPage() {
                         <span className="mt-2 block font-mono text-2xl text-ink">
                           {settled ? `${Math.round(calibration.fill)}%` : "EXIT LIQUIDITY"}
                         </span>
-                        <span className="text-xs text-muted">
+                        <CheckpointPrints quotes={cohort.quotes} kind={kind} variant="line" />
+                        <span className="mt-1 block text-xs text-muted">
                           {settled
                             ? `On the board · ${READOUT_META[kind].time}`
                             : `Off the board until ${READOUT_META[kind].time}`}
