@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
-import { Avatar, ChudChip, DirectionChip, PeerChip, ScoreMark } from "@/components/score";
+import { GradePill } from "@/components/gc-tube";
+import { Avatar, DirectionChip, ScoreMark } from "@/components/score";
+import { gcGrade } from "@/lib/grades";
 import { callHasSettledGrade, settledGradeKinds } from "@/lib/board";
 import { formatPct, formatScore } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
@@ -73,11 +75,11 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                   <dd className="font-mono text-xl">{formatPct(row.hitRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">Chad rate</dt>
+                  <dt className="text-xs uppercase text-muted">Strong rate</dt>
                   <dd className="font-mono text-xl">{formatPct(row.chadRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">Chud rate</dt>
+                  <dt className="text-xs uppercase text-muted">Weak rate</dt>
                   <dd className="font-mono text-xl">{formatPct(row.chudRate, 0)}</dd>
                 </div>
                 <div>
@@ -106,7 +108,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       </header>
       <p className="mt-4 max-w-3xl text-sm text-muted">
         {row
-          ? `The card score is the rounded average of the furthest settled grade on each call. Hit rate, Chad rate, and Chud rate use settled grades only. Best settled grade ${row.bestScore}/100. Worst ${row.worstScore}/100.`
+          ? `The card score is the rounded average of the furthest settled grade on each call. Hit rate, STRONG rate, and WEAK rate use settled grades only. Best settled grade ${row.bestScore}/100. Worst ${row.worstScore}/100.`
           : "This handle has no settled grade, so it is not ranked."}
       </p>
       {row && pendingCount > 0 ? (
@@ -141,7 +143,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                       const grade = call.grades[kind];
                       if (!grade) return null;
                       return (
-                        <li key={kind} className="rounded-xl bg-white px-3 py-2">
+                        <li key={kind} className="rounded-xl bg-sheet px-3 py-2">
                           <Link href={`/weeks/${slug}/${kind}`} className="text-[11px] uppercase text-muted hover:underline">
                             {READOUT_META[kind].short}
                           </Link>
@@ -150,9 +152,8 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                             <span className="text-sm text-muted">/100</span>
                           </p>
                           <p className="text-xs text-muted">Badge {grade.badge}/10</p>
-                          <span className="mt-1 flex flex-wrap gap-1">
-                            {grade.isChad ? <PeerChip isChad /> : null}
-                            {grade.isChudTerritory ? <ChudChip /> : null}
+                          <span className="mt-1 inline-flex">
+                            <GradePill grade={gcGrade(grade)} />
                           </span>
                         </li>
                       );

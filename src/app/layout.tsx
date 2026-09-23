@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Newsreader, Outfit } from "next/font/google";
+import { IBM_Plex_Mono, Outfit } from "next/font/google";
 import { DemoBanner, SiteFooter, SiteHeader } from "@/components/chrome";
 import { PRODUCT_NAME } from "@/lib/brand";
 import "./globals.css";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
-const newsreader = Newsreader({ subsets: ["latin"], variable: "--font-newsreader" });
 const plex = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
@@ -33,11 +32,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${outfit.variable} ${newsreader.variable} ${plex.variable}`}>
+    <html lang="en" className={`${outfit.variable} ${plex.variable}`}>
       <body className="font-sans antialiased">
         <a
           href="#content"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-lime focus:px-3 focus:py-2"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-pine focus:px-3 focus:py-2 focus:text-lime"
         >
           Skip to content
         </a>

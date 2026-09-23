@@ -10,9 +10,7 @@ export const READOUT_META: Record<
   friday: { label: "Friday", short: "Fri", role: "Same cohort, final", time: "12:00 PM ET" },
 };
 
-/** Opinion labels. Chad is Accuracy & Discipline. Chud is Uncertainty & Doubt. */
-export const CH_FACTOR = "Charoof CH factor";
-export const CHAD_MEANING = "Accuracy & Discipline";
-export const CHUD_MEANING = "Uncertainty & Doubt";
+/** User-facing name for the 0–100 fill. The peer cut still lives in scoring.ts. */
+export const GC_FACTOR = "Grade Calibration";
 
 export const DATA_MODE = process.env.NEXT_PUBLIC_DATA_MODE === "live" ? "live" : "demo";

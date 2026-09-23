@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { NothingGraded, PendingSettleLink } from "@/components/board-state";
-import { CallCard } from "@/components/call-card";
-import { CohortWindow, Move, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
+import { PendingSettleLink } from "@/components/board-state";
+import { FinTwitBoard } from "@/components/fintwit-board";
+import { CohortWindow, Move, ReadoutCards } from "@/components/market";
 import { READOUT_META } from "@/lib/labels";
 import { pendingReadoutKinds } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
@@ -71,14 +71,7 @@ export default async function ReadoutPage({
           {cohort.title}
         </Link>
       </p>
-      <p className="mt-4 text-xs uppercase tracking-wide text-muted">
-        {meta.role} · {cohort.dataset === "demo" ? "demo" : "live"}
-      </p>
-      <h1 className="mt-1 font-serif text-4xl text-ink sm:text-5xl">
-        {meta.label} board
-      </h1>
-      <p className="mt-2 font-serif text-2xl text-pine">{cohort.title}</p>
-      <div className="mt-3">
+      <div className="mt-4">
         <CohortWindow
           collectStart={cohort.collectStart}
           collectEnd={cohort.collectEnd}
@@ -91,7 +84,7 @@ export default async function ReadoutPage({
       </div>
 
       <section className="panel mt-6 p-5">
-        <h2 className="font-serif text-2xl text-ink">{readout.status === "published" ? "What the tape did" : "Waiting on the clock"}</h2>
+        <p className="text-2xl text-ink">{readout.status === "published" ? "What the tape did" : "Waiting on the clock"}</p>
         <p className="mt-2 max-w-3xl text-ink/80">{readout.narrative}</p>
         <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
           <div>
@@ -112,7 +105,7 @@ export default async function ReadoutPage({
             {readout.status === "published" ? (
               <>
                 {readout.benchmarkSymbol} <Move value={readout.benchmarkMovePct} /> from Friday&apos;s close
-                {readout.chadCutoff > 0 ? ` · Chad line ${readout.chadCutoff}/100` : ""}
+                {readout.chadCutoff > 0 ? ` · STRONG line ${readout.chadCutoff}/100` : ""}
               </>
             ) : (
               "Prices publish with the grade"
@@ -121,44 +114,29 @@ export default async function ReadoutPage({
         </div>
       </section>
 
-      {settled && (kind === "monday-gap" || kind === "monday") ? (
-        <div className="mt-6">
-          <NoiseIndex calls={cohort.calls} quotes={cohort.quotes} />
-        </div>
-      ) : null}
-
-      {settled ? (
-        <div className="mt-6">
-          <QuoteTape quotes={cohort.quotes} kind={kind} />
-          <PriceSource />
-        </div>
-      ) : null}
-
       <section className="mt-8" aria-labelledby="calls-heading">
-        {settled && calls.length > 0 ? (
-          <>
-            <h2 id="calls-heading" className="font-serif text-3xl text-ink">
-              {calls.length} graded calls
-            </h2>
-            <p className="mt-2 text-sm text-muted">
-              Chad is Accuracy &amp; Discipline: the top 30% of these settled calls, ties at the cutoff included, and only when the score is also at least 70. Chud is Uncertainty &amp; Doubt: under 70/100. Watchlist and viral posts share this weekly board.
-            </p>
-            {pendingCount > 0 ? (
-              <div className="mt-3">
-                <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pendingCount} />
-              </div>
-            ) : null}
-            <div className="mt-4 grid gap-4">
-              {calls.map((call) => (
-                <CallCard key={call.id} call={call} readout={kind} />
-              ))}
-            </div>
-          </>
-        ) : (
-          <div id="calls-heading">
-            <NothingGraded href={`/weeks/${cohort.slug}/pending`} horizon={meta.label} />
+        <h2 id="calls-heading" className="sr-only">
+          {settled ? `${calls.length} graded calls` : `${meta.label} waiting`}
+        </h2>
+        <p className="mb-4 max-w-3xl text-sm text-muted">
+          STRONG is the top 30% of these settled calls, ties at the cutoff included, and only when the score is also at least 70. WEAK is under 70. PROVISIONAL cleared 70 and missed the cut. 0% is EXIT LIQUIDITY. Watchlist and viral posts share this weekly board.
+        </p>
+        {pendingCount > 0 ? (
+          <div className="mb-4">
+            <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pendingCount} />
           </div>
-        )}
+        ) : null}
+        <FinTwitBoard
+          kicker={`${meta.role} · ${cohort.dataset === "demo" ? "demo" : "live"}`}
+          title={`${meta.label} board`}
+          lede={cohort.title}
+          quotes={cohort.quotes}
+          tapeKind={kind}
+          calls={cohort.calls}
+          feed={calls}
+          readout={kind}
+          pendingHref={pendingCount > 0 ? `/weeks/${cohort.slug}/pending` : undefined}
+        />
       </section>
     </div>
   );

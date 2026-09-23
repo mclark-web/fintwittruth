@@ -1,65 +1,95 @@
 import Link from "next/link";
-import { formatWhen } from "@/lib/format";
-import type { CallView } from "@/lib/queries";
+import { formatPct, formatWhen } from "@/lib/format";
+import { gcGrade } from "@/lib/grades";
+import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
 import { Avatar, DirectionChip, Evolution, LevelList, ScoreMark } from "./score";
+import { printAt } from "./market";
 
-export function CallCard({ call, readout }: { call: CallView; readout: ReadoutKind }) {
+const TAPE = ["SPY", "DIA", "QQQ", "VIX"] as const;
+
+export function CallCard({
+  call,
+  readout,
+  quotes,
+}: {
+  call: CallView;
+  readout: ReadoutKind;
+  quotes?: QuoteView[];
+}) {
   const grade = call.grades[readout];
+  const moves = (quotes ?? [])
+    .filter((quote) => (TAPE as readonly string[]).includes(quote.symbol))
+    .map((quote) => {
+      const now = printAt(quote, readout);
+      const move = now == null ? null : (now - quote.ref) / quote.ref;
+      return { symbol: quote.symbol, move };
+    })
+    .sort((a, b) => TAPE.indexOf(a.symbol as (typeof TAPE)[number]) - TAPE.indexOf(b.symbol as (typeof TAPE)[number]));
+
   return (
-    <article className="panel grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_auto]">
-      <div>
-        <header className="flex flex-wrap items-center gap-3">
-          <Avatar name={call.displayName} accent={call.accent} />
+    <article className="panel p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Avatar name={call.displayName} />
           <div>
             <Link href={`/accounts/${call.handle}`} className="font-medium text-ink hover:underline">
-              {call.displayName}
+              {call.displayName} <span className="font-normal text-muted">@{call.handle}</span>
             </Link>
-            <p className="text-sm text-muted">
-              @{call.handle} · {call.posture}
+            <p className="mt-0.5 text-xs text-muted">
+              {formatWhen(call.postedAt)}
+              {grade ? ` · rank ${grade.peerRank} of ${grade.peerCount}` : " · not on this board"}
             </p>
           </div>
-          <DirectionChip direction={call.direction} />
-          <span className="rounded-full border border-line px-2 py-0.5 text-xs text-muted">
-            {call.sentiment === "panic" ? "Panic" : "Melt-up"} · {call.bucket === "viral" ? "Viral" : "Watchlist"}
-          </span>
-          <span className="rounded-full bg-pine/5 px-2 py-0.5 font-mono text-xs text-pine">{call.primary}</span>
-          <span className="text-xs uppercase tracking-wide text-muted">{call.conviction} conviction</span>
-        </header>
-        <p className="mt-4 max-w-3xl text-lg leading-snug text-ink">{call.body}</p>
-        <div className="mt-3">
-          <LevelList levels={call.levels} />
         </div>
-        <p className="mt-3 text-xs text-muted">
-          Posted {formatWhen(call.postedAt)} ·{" "}
-          <Link href={`/calls/${call.id}`} className="underline-offset-4 hover:underline">
-            Call detail
-          </Link>
-        </p>
-        {grade ? <p className="mt-3 max-w-3xl text-sm text-muted">{grade.note}</p> : null}
-        <div className="mt-4">
-          <Evolution grades={call.grades} slug={call.cohortSlug} active={readout} />
-        </div>
-      </div>
-      <div className="lg:justify-self-end">
         {grade ? (
           <ScoreMark
+            variant="mini"
             score={grade.score}
             badge={grade.badge}
             isChad={grade.isChad}
             isChudTerritory={grade.isChudTerritory}
-            rank={grade.peerRank}
-            peerCount={grade.peerCount}
           />
         ) : (
-          <div className="min-w-36 rounded-2xl border border-dashed border-line bg-white px-4 py-3">
-            <p className="font-serif text-xl text-ink">Not graded yet</p>
-            <p className="mt-1 text-sm text-muted">This readout has not settled, so the call is off the board.</p>
-            <Link href={`/weeks/${call.cohortSlug}/pending`} className="mt-2 inline-block text-sm text-pine underline-offset-4 hover:underline">
-              Pending settle
-            </Link>
-          </div>
+          <ScoreMark variant="mini" score={0} badge={1} isChad={false} isChudTerritory />
         )}
+      </div>
+      <p className="mt-3 text-[15px] leading-relaxed text-ink">“{call.body}”</p>
+      {moves.some((item) => item.move != null) ? (
+        <div className="vs">
+          {moves.map((item) =>
+            item.move == null ? null : (
+              <span key={item.symbol} className={item.move > 0.00005 ? "text-bull" : item.move < -0.00005 ? "text-bear" : undefined}>
+                {item.symbol} {formatPct(item.move)}
+              </span>
+            ),
+          )}
+        </div>
+      ) : null}
+      <div className="mt-3">
+        <LevelList levels={call.levels} />
+      </div>
+      <div className="post-meta">
+        <span className="tag">
+          <DirectionChip direction={call.direction} /> {call.primary}
+        </span>
+        <span>{call.sentiment === "panic" ? "Panic" : "Melt-up"} · {call.bucket === "viral" ? "Viral" : "Watchlist"}</span>
+        <span className="uppercase tracking-wide">{call.conviction} conviction</span>
+        <Link href={`/calls/${call.id}`} className="underline-offset-4 hover:text-ink hover:underline">
+          Call detail
+        </Link>
+        {grade ? <span>{gcGrade(grade) === "exit" ? "EXIT LIQUIDITY" : `Badge ${grade.badge}/10`}</span> : <span>Off the board</span>}
+      </div>
+      {grade ? <p className="mt-3 max-w-3xl text-sm text-muted">{grade.note}</p> : (
+        <p className="mt-3 text-sm text-muted">
+          This readout has not settled, so calibration stays at 0%.{" "}
+          <Link href={`/weeks/${call.cohortSlug}/pending`} className="text-pine underline-offset-4 hover:underline">
+            Pending settle
+          </Link>
+        </p>
+      )}
+      <div className="mt-4">
+        <Evolution grades={call.grades} slug={call.cohortSlug} active={readout} />
       </div>
     </article>
   );

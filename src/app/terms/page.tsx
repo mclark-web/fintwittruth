@@ -6,7 +6,7 @@ import { CORRECTIONS_EMAIL } from "@/lib/legal";
 export const metadata: Metadata = {
   title: "Terms",
   description:
-    "Draft terms for Charoof FinTwit: free scoreboard, donation-only, public posts, and a limitation of liability.",
+    "Draft terms for GradedCalls FinTwit: free scoreboard, donation-only, public posts, and a limitation of liability.",
 };
 
 export default function TermsPage() {
@@ -14,11 +14,11 @@ export default function TermsPage() {
     <LegalPage
       kicker="Terms of use"
       title="Terms for reading the board."
-      lede="These terms say what Charoof FinTwit is, what a grade means, and what a payment does not buy. They are a draft for legal review."
+      lede="These terms say what GradedCalls FinTwit is, what a grade means, and what a payment does not buy. They are a draft for legal review."
     >
       <LegalSection id="agreement" title="Using the site">
         <p>
-          If you read Charoof FinTwit, you are using it on these terms. If you do not agree with them, do not use
+          If you read GradedCalls FinTwit, you are using it on these terms. If you do not agree with them, do not use
           the site. The{" "}
           <Link href="/disclaimer" className="text-pine underline-offset-4 hover:underline">
             disclaimer
@@ -29,7 +29,7 @@ export default function TermsPage() {
 
       <LegalSection id="service" title="What the service is">
         <p>
-          Charoof FinTwit publishes a weekly scoreboard. It collects one cohort of bullish and bearish calls,
+          GradedCalls FinTwit publishes a weekly scoreboard. It collects one cohort of bullish and bearish calls,
           then grades that same cohort at the Monday open and at Monday, Wednesday, and Friday noon. It is a
           reading of public commentary against recorded market prints. It is not a broker, a signal service, or
           a feed sold by the post.
@@ -51,13 +51,13 @@ export default function TermsPage() {
 
       <LegalSection id="public" title="Public posts only">
         <p>
-          The board is limited to posts that are public. Charoof FinTwit does not seek private messages, direct
+          The board is limited to posts that are public. GradedCalls FinTwit does not seek private messages, direct
           messages, closed groups, or paid rooms. Do not send non-public material to the corrections address
           and expect it to be graded. A live feed, if one is added later, has to stay inside public posts and
           a licensed source. The site does not scrape X or Twitter.
         </p>
         <p>
-          Charoof FinTwit is the FinTwit vertical under Charoof, alongside Charoof Analysts and Charoof Sports.
+          GradedCalls FinTwit is the FinTwit vertical under GradedCalls, alongside GradedCalls Analysts and GradedCalls Sports.
           It is not affiliated with, endorsed by, or a product of X or Twitter. “FinTwit” describes a public
           style of commentary.
         </p>
@@ -76,17 +76,17 @@ export default function TermsPage() {
 
       <LegalSection id="marks" title="Scores and opinion labels">
         <p>
-          Every published grade shows a score from 0 to 100 and a badge from 1 to 10. Under 70 is Chud,
-          Uncertainty &amp; Doubt. Chad, Accuracy &amp; Discipline, is the top 30% of the peer set and also a
-          score of at least 70. Those labels are the Charoof CH factor: opinions about a past call under the
-          published formula. They are not statements of fact about a person’s character, and they are not a
-          recommendation to follow or fade that person.
+          Every published grade shows a score from 0 to 100 and a badge from 1 to 10. The tube fill is that
+          score. STRONG is the top 30% of the peer set and also a score of at least 70. WEAK is under 70.
+          PROVISIONAL is 70 or more outside that cut. EXIT LIQUIDITY is a 0% fill. Those labels are Grade
+          Calibration: opinions about a past call under the published formula. They are not statements of fact
+          about a person’s character, and they are not a recommendation to follow or fade that person.
         </p>
       </LegalSection>
 
       <LegalSection id="advice" title="Not advice and not an adviser">
         <p>
-          Charoof FinTwit does not give investment, financial, trading, or tax advice. It is not a registered
+          GradedCalls FinTwit does not give investment, financial, trading, or tax advice. It is not a registered
           investment adviser, not a broker-dealer, and not a commodity trading advisor. It does not manage
           money. You are responsible for your own decisions. Past grades are not a forecast.
         </p>
@@ -94,7 +94,7 @@ export default function TermsPage() {
 
       <LegalSection id="sale" title="Grades are not for sale">
         <p>
-          Access to the board is free. Charoof FinTwit does not sell grades, score improvements, alerts,
+          Access to the board is free. GradedCalls FinTwit does not sell grades, score improvements, alerts,
           subscriptions, or trading signals. Paying does not change a score, a rank, or what you can read.
         </p>
       </LegalSection>
@@ -102,7 +102,7 @@ export default function TermsPage() {
       <LegalSection id="donations" title="Donations">
         <p>
           Support is donation-only. A donation is a voluntary gift. It is not the price of a signal, a grade,
-          or access. Unless Charoof FinTwit later publishes a clear statement that donations are tax-deductible,
+          or access. Unless GradedCalls FinTwit later publishes a clear statement that donations are tax-deductible,
           they are not tax-deductible. This draft makes no such statement. Details are on the{" "}
           <Link href="/donate" className="text-pine underline-offset-4 hover:underline">
             donate
@@ -125,7 +125,7 @@ export default function TermsPage() {
 
       <LegalSection id="use" title="Acceptable use">
         <p>
-          You may read the board and share links to it. You may not present a grade as Charoof FinTwit’s advice
+          You may read the board and share links to it. You may not present a grade as GradedCalls FinTwit’s advice
           to buy or sell, scrape the site in order to resell the grades, or remove the demo label from demo
           posts. You may not send private or unlawful material and ask for it to be published.
         </p>
@@ -134,20 +134,20 @@ export default function TermsPage() {
       <LegalSection id="warranty" title="No warranty">
         <p>
           The site is provided as-is. Prints, timestamps, and scores can be wrong, late, or revised. The demo
-          can differ from a future live feed. Charoof FinTwit does not warrant that the board is complete,
+          can differ from a future live feed. GradedCalls FinTwit does not warrant that the board is complete,
           uninterrupted, or fit for a trading decision.
         </p>
       </LegalSection>
 
       <LegalSection id="liability" title="Limitation of liability">
         <p>
-          To the fullest extent the law allows, Charoof FinTwit is not liable for trading losses, missed moves,
-          lost profits, or decisions you make from a grade, a badge, a Chad or Chud label, a consensus line, or
+          To the fullest extent the law allows, GradedCalls FinTwit is not liable for trading losses, missed moves,
+          lost profits, or decisions you make from a grade, a badge, a STRONG, WEAK, PROVISIONAL, or EXIT LIQUIDITY label, a consensus line, or
           a print. It is not liable for errors, delays, or interruptions in the board.
         </p>
         <p>
           If a claim about the site is allowed anyway, the total liability is limited to the amount you donated
-          to Charoof FinTwit in the three months before the claim, or zero if you donated nothing. Charoof FinTwit is
+          to GradedCalls FinTwit in the three months before the claim, or zero if you donated nothing. GradedCalls FinTwit is
           not liable for indirect, incidental, special, or consequential damages, to the extent the law allows
           that exclusion.
         </p>

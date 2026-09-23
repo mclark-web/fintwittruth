@@ -22,7 +22,7 @@ function resolveDatabaseUrl(): string {
   // turbopackIgnore: the path is fixed, and next.config traces prisma/fintwittruth.db.
   if (!fs.existsSync(/*turbopackIgnore: true*/ source)) {
     throw new Error(
-      "Charoof FinTwit demo database is missing. Run `npm run build` so prisma/fintwittruth.db is seeded and included in the server bundle.",
+      "GradedCalls FinTwit demo database is missing. Run `npm run build` so prisma/fintwittruth.db is seeded and included in the server bundle.",
     );
   }
 

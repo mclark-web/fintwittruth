@@ -55,23 +55,59 @@ export function printLabel(kind: ReadoutKind | "latest"): string {
   return "Friday 12:00 PM ET print";
 }
 
+const TILE_ORDER = ["SPY", "DIA", "QQQ", "VIX"];
+
+function tileStamp(kind: ReadoutKind | "latest"): string {
+  if (kind === "monday-gap") return "Mon open";
+  if (kind === "monday") return "Mon noon";
+  if (kind === "wednesday") return "Wed noon";
+  if (kind === "friday") return "Fri noon";
+  return "Latest";
+}
+
 export function QuoteTape({
   quotes,
   kind,
+  variant = "grid",
 }: {
   quotes: QuoteView[];
   kind: ReadoutKind | "latest";
+  variant?: "grid" | "scoreboard";
 }) {
-  return (
-    <div>
-      <p className="mb-2 text-xs uppercase tracking-wide text-muted">{printLabel(kind)} vs Friday session close</p>
-      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-5">
-        {quotes.map((quote) => {
+  const ordered = [...quotes].sort((a, b) => {
+    const left = TILE_ORDER.indexOf(a.symbol);
+    const right = TILE_ORDER.indexOf(b.symbol);
+    return (left === -1 ? 99 : left) - (right === -1 ? 99 : right);
+  });
+  if (variant === "scoreboard") {
+    return (
+      <div className="scoreboard" aria-label={`${printLabel(kind)} versus Friday session close`}>
+        {ordered.map((quote) => {
           const now = printAt(quote, kind);
           const move = now == null ? null : (now - quote.ref) / quote.ref;
           return (
-            <li key={quote.symbol} className="rounded-xl border border-line bg-white px-3 py-2">
-              <p className="font-mono text-[11px] uppercase tracking-wide text-muted">{quote.symbol}</p>
+            <div key={quote.symbol} className="sb-tile">
+              <div className="sym">{quote.symbol}</div>
+              <div className={`chg ${move == null ? "" : move > 0.00005 ? "text-bull" : move < -0.00005 ? "text-bear" : "text-muted"}`}>
+                {move == null ? "—" : formatPct(move)}
+              </div>
+              <div className="lbl">{now == null ? "Not graded" : tileStamp(kind)}</div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  return (
+    <div>
+      <p className="mb-2 text-xs uppercase tracking-wide text-muted">{printLabel(kind)} vs Friday session close</p>
+      <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {ordered.map((quote) => {
+          const now = printAt(quote, kind);
+          const move = now == null ? null : (now - quote.ref) / quote.ref;
+          return (
+            <li key={quote.symbol} className="sb-tile text-left">
+              <p className="sym">{quote.symbol}</p>
               <p className="font-mono text-lg text-ink">{now == null ? "—" : formatPrice(now)}</p>
               <p className="text-xs">{move == null ? <span className="text-muted">Not graded yet</span> : <Move value={move} />}</p>
             </li>
@@ -116,12 +152,12 @@ export function PricePath({
         <span className="text-xs text-muted">Friday session close, then the recorded open and noon prints</span>
       </figcaption>
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${quote.symbol} path from Friday's regular-session close`} className="w-full">
-        <rect x="0" y="0" width={width} height={height} rx="16" fill="#ffffff" />
-        <path d={path} fill="none" stroke="#14352b" strokeWidth="3" />
+        <rect x="0" y="0" width={width} height={height} rx="16" fill="#161820" />
+        <path d={path} fill="none" stroke="#eb6505" strokeWidth="3" />
         {coords.map((point) => (
           <g key={point.label}>
-            <circle cx={point.x} cy={point.y} r="5" fill="#dff56a" stroke="#14352b" strokeWidth="2" />
-            <text x={point.x} y={height - 8} textAnchor="middle" fontSize="12" fill="#5c6b62">
+            <circle cx={point.x} cy={point.y} r="5" fill="#fee0a8" stroke="#eb6505" strokeWidth="2" />
+            <text x={point.x} y={height - 8} textAnchor="middle" fontSize="12" fill="#9a9aa3">
               {point.label}
             </text>
           </g>
@@ -158,7 +194,7 @@ export function ReadoutCards({
           <li key={kind}>
             <Link
               href={`/weeks/${slug}/${kind}`}
-              className={`panel block h-full p-4 ${current ? "ring-2 ring-pine" : "hover:border-pine"}`}
+              className={`panel block h-full p-4 ${current ? "ring-2 ring-pine" : "hover:border-pine/60"}`}
             >
               <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
               <p className="mt-1 font-serif text-2xl text-ink">{meta.label}</p>
@@ -204,9 +240,11 @@ function vixMove(quotes: QuoteView[], kind: "monday-gap" | "monday"): number | n
 export function NoiseIndex({
   calls,
   quotes,
+  compact = false,
 }: {
   calls: { sentiment: Sentiment; engagement: number }[];
   quotes: QuoteView[];
+  compact?: boolean;
 }) {
   const noise = weekendNoise(
     calls.map((call) => call.sentiment),
@@ -231,7 +269,7 @@ export function NoiseIndex({
         Share of this cohort tagged panic, crash, or selloff, next to the equal-weight SPY, QQQ, and DIA move
         from Friday&apos;s regular-session close. Descriptive only. Not a signal.
       </p>
-      <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+      <div className={`mt-4 grid gap-4 ${compact ? "" : "md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]"}`}>
         <div>
           <div
             className="flex h-3 overflow-hidden rounded-full bg-line"
@@ -253,7 +291,7 @@ export function NoiseIndex({
             {stats
               .filter((stat): stat is { label: string; value: number } => stat.value != null)
               .map((stat) => (
-                <li key={stat.label} className="rounded-xl border border-line bg-white px-3 py-2">
+                <li key={stat.label} className="rounded-xl border border-line bg-sheet px-3 py-2">
                   <p className="text-[11px] uppercase tracking-wide text-muted">{stat.label}</p>
                   <p className="font-mono text-lg text-ink">
                     <Move value={stat.value} />

@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
-import { DirectionChip, PeerChip, ChudChip } from "@/components/score";
+import { GcTube, GradePill } from "@/components/gc-tube";
+import { DirectionChip } from "@/components/score";
+import { gcGrade } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
@@ -97,7 +99,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
           <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
             <table className="min-w-[720px] w-full text-left text-sm">
               <caption className="sr-only">Settled grades for {cohort.title}</caption>
-              <thead className="bg-white text-xs uppercase tracking-wide text-muted">
+              <thead className="bg-sheet text-xs uppercase tracking-wide text-muted">
                 <tr>
                   <th scope="col" className="px-4 py-3 font-medium">
                     Account
@@ -136,14 +138,12 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                         <td key={kind} className="px-4 py-3">
                           {grade ? (
                             <Link href={`/weeks/${cohort.slug}/${kind}`} className="block hover:underline">
-                              <span className="font-mono text-xl">
-                                {grade.score}
-                                <span className="text-xs text-muted">/100</span>
+                              <span className="mt-1 block max-w-32">
+                                <GcTube score={grade.score} grade={gcGrade(grade)} variant="mini" showMeta={false} />
                               </span>
                               <span className="mt-1 flex flex-col items-start gap-1">
-                                <span className="text-xs text-muted">Badge {grade.badge}/10</span>
-                                {grade.isChad ? <PeerChip isChad /> : null}
-                                {grade.isChudTerritory ? <ChudChip /> : null}
+                                <span className="font-mono text-sm">{Math.round(grade.score)}%</span>
+                                <GradePill grade={gcGrade(grade)} />
                               </span>
                             </Link>
                           ) : (

@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PendingSettleLink } from "@/components/board-state";
-import { ChudChip, PeerChip } from "@/components/score";
+import { GradePill } from "@/components/gc-tube";
 import { formatPct, formatScore } from "@/lib/format";
+import { gcGrade } from "@/lib/grades";
 import { getLeaderboard, type LeaderRow } from "@/lib/queries";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
   description:
-    "Charoof FinTwit account scoreboards. Ranks use settled grades only. Chad requires the top 30% and a score of at least 70.",
+    "GradedCalls FinTwit account scoreboards. Ranks use settled grades only. STRONG requires the top 30% and a score of at least 70.",
 };
 
 function Board({ title, note, rows }: { title: string; note: string; rows: LeaderRow[] }) {
@@ -19,7 +20,7 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
       <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
         <table className="min-w-[980px] w-full text-left text-sm">
           <caption className="sr-only">{title}</caption>
-          <thead className="bg-white text-xs uppercase tracking-wide text-muted">
+          <thead className="bg-sheet text-xs uppercase tracking-wide text-muted">
             <tr>
               <th scope="col" className="px-4 py-3 font-medium">Rank</th>
               <th scope="col" className="px-4 py-3 font-medium">Account</th>
@@ -27,8 +28,8 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
               <th scope="col" className="px-4 py-3 font-medium">Badge</th>
               <th scope="col" className="px-4 py-3 font-medium">Marks</th>
               <th scope="col" className="px-4 py-3 font-medium">Hit rate</th>
-              <th scope="col" className="px-4 py-3 font-medium">Chad rate</th>
-              <th scope="col" className="px-4 py-3 font-medium">Chud rate</th>
+              <th scope="col" className="px-4 py-3 font-medium">Strong rate</th>
+              <th scope="col" className="px-4 py-3 font-medium">Weak rate</th>
               <th scope="col" className="px-4 py-3 font-medium">Graded calls</th>
               <th scope="col" className="px-4 py-3 font-medium">Best / worst</th>
             </tr>
@@ -61,10 +62,13 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                   <span className="text-xs text-muted">/10</span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="flex flex-wrap gap-1">
-                    <PeerChip isChad={row.isChad} />
-                    {row.isChudTerritory ? <ChudChip /> : null}
-                  </span>
+                  <GradePill
+                    grade={gcGrade({
+                      score: row.avgScore,
+                      isChad: row.isChad,
+                      isChudTerritory: row.isChudTerritory,
+                    })}
+                  />
                 </td>
                 <td className="px-4 py-3 font-mono">{formatPct(row.hitRate, 0)}</td>
                 <td className="px-4 py-3 font-mono">{formatPct(row.chadRate, 0)}</td>
@@ -92,9 +96,9 @@ export default async function LeaderboardPage() {
       <h1 className="font-serif text-4xl text-ink">Leaderboards</h1>
       <p className="mt-3 max-w-3xl text-muted">
         Two buckets, ranked apart. Both still feed each week&apos;s graded board. An average uses the furthest
-        settled grade on each call. Hit rate, Chad rate, and Chud rate count settled grades only. A call with
-        no grade yet is not in the rank. Chad is the top 30% of that bucket and also at least 70. Under 70 is
-        Chud territory.
+        settled grade on each call. Hit rate, STRONG rate, and WEAK rate count settled grades only. A call with
+        no grade yet is not in the rank. STRONG is the top 30% of that bucket and also at least 70. Under 70 is
+        WEAK. A 0% fill is EXIT LIQUIDITY.
       </p>
       <div className="mt-3">
         <PendingSettleLink href="/pending" />

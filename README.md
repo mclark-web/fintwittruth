@@ -1,8 +1,8 @@
-# Charoof FinTwit
+# GradedCalls FinTwit
 
-Charoof FinTwit is the FinTwit vertical under Charoof. It is a public scoreboard for FinTwit-style bullish and bearish calls. It grades **one cohort per week**, then watches that same book age against the market.
+GradedCalls FinTwit is the FinTwit vertical under GradedCalls. It is a public scoreboard for FinTwit-style bullish and bearish calls. It grades **one cohort per week**, then watches that same book age against the market.
 
-Charoof Analysts and Charoof Sports are sibling verticals. They are not this board. Grades describe a past post against a recorded print. They are not trade signals, and they are not for sale.
+GradedCalls Analysts and GradedCalls Sports are sibling verticals. They are not this board. Grades describe a past post against a recorded print. They are not trade signals, and they are not for sale.
 
 The npm package and the SQLite file stay named `fintwittruth`. That is the technical package name, not the public brand.
 
@@ -37,7 +37,7 @@ The in-app methodology page states this again. The latest demo week has the Mond
 
 Founder choice: hide pending until settle. The home tape, weekly rankings, leaderboards, and account scorecards list only calls that already have a settled grade. A readout is settled when its status is `published` (Monday gap, Monday noon, Wednesday noon, or Friday noon). The scorer writes grade rows at that gate and leaves a scheduled horizon empty. The board layer drops those empty horizons from the primary rankings.
 
-Hit rate, Chad rate, and Chud rate are computed from settled grades only. A handle with no settled grade is not ranked. Hit rate is the share of settled grades where the tape moved with the call by at least 0.08%.
+Hit rate, STRONG rate, and WEAK rate are computed from settled grades only. A handle with no settled grade is not ranked. Hit rate is the share of settled grades where the tape moved with the call by at least 0.08%.
 
 Calls still waiting on a tape are listed at `/pending` and `/weeks/[slug]/pending`. Those pages are linked from the boards and the footer. They are not in the primary nav and they are not mixed into the rankings. A cohort with nothing graded yet shows a short empty state instead of a table of blanks.
 
@@ -50,13 +50,13 @@ Every published grade shows the full **0–100** score, built from:
 - **Specificity (up to 15)** — naming a ticker, a target, an invalidation, and a band.
 - **VIX (15)** — panic and selloff calls want VIX higher. Melt-up calls want VIX lower. The move is Friday's VIX close to the VIX print at the same stamp.
 
-**Charoof CH factor.** Chad means Accuracy & Discipline: the top 30% of the peer set **and** a score of at least 70. Chud means Uncertainty & Doubt: any score under 70. Under 70 is never Chad. On a readout, the peer set is every call on that weekly board. On a leaderboard, it is the accounts inside one bucket. Ties at the Chad cutoff are included.
+**Grade Calibration.** The horizontal tube fill is the 0–100 score. **STRONG** is the top 30% of the peer set **and** a score of at least 70. **WEAK** is any score under 70. **PROVISIONAL** is 70 or more outside that cut. **EXIT LIQUIDITY** is a 0% fill: an empty glass when no graded horizon has closed, or when the score is 0. Under 70 is never STRONG. On a readout, the peer set is every call on that weekly board. On a leaderboard, it is the accounts inside one bucket. Ties at the STRONG cutoff are included.
 
 Monday noon is the primary weekend-noise grade. The Monday gap is the open. Wednesday and Friday age that same cohort.
 
 The **Weekend Noise Index** is the share of the cohort tagged panic versus melt-up, shown next to the Monday equity return from Friday's close and the VIX change. It is descriptive. It is not a signal.
 
-A **1–10 badge** sits beside the score. 0–9 maps to 1 (Chud end). 90–100 maps to 10 (Chad end).
+A **1–10 badge** sits beside the score. 0–9 maps to 1. 90–100 maps to 10.
 
 Consensus is conviction-weighted (high 3, medium 2, low 1) and compared with the equal-weight equity tape.
 
@@ -76,7 +76,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Command | What it does |
 | --- | --- |
-| `npm test` | Calendar, scoring, Chad/Chud checks, and the graded-only board filter |
+| `npm test` | Calendar, scoring, Grade Calibration pills, and the graded-only board filter |
 | `npm run db:seed` | Rebuild the demo rows in place |
 | `npm run db:reset` | Recreate the SQLite file and seed it |
 | `npm run build` | Generate the client, seed SQLite, and build Next.js |
@@ -145,4 +145,4 @@ Draft pages, labeled “Draft for legal review” until counsel signs off:
 - `/terms` — public posts, the locked calendar, real prints, liability limitation
 - `/donate` — donation-only; a gift is not a signal and is not tax-deductible unless a later notice says so
 
-Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. Charoof FinTwit is not affiliated with X, Twitter, or Yahoo Finance. The corrections address on those pages is a placeholder.
+Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. GradedCalls FinTwit is not affiliated with X, Twitter, or Yahoo Finance. The corrections address on those pages is a placeholder.

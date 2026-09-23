@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GcTube } from "@/components/gc-tube";
 import { formatShortDay, formatWhen } from "@/lib/format";
+import { gcBoardGrade } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohortList } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
@@ -8,7 +10,7 @@ import { READOUTS } from "@/lib/scoring";
 export const metadata: Metadata = {
   title: "Weeks",
   description:
-    "Every Charoof FinTwit cohort, with Monday gap, Monday noon, Wednesday, and Friday grades on the same calls.",
+    "Every GradedCalls FinTwit cohort, with Monday gap, Monday noon, Wednesday, and Friday grades on the same calls.",
 };
 
 export default async function WeeksPage() {
@@ -44,18 +46,21 @@ export default async function WeeksPage() {
                 {READOUTS.map((kind) => {
                   const avg = cohort.averages[kind];
                   const settled = cohort.statuses[kind] === "published" && avg != null;
+                  const calibration = settled && avg != null ? gcBoardGrade([avg]) : { fill: 0, grade: "exit" as const };
                   return (
                     <li key={kind}>
                       <Link
                         href={settled ? `/weeks/${cohort.slug}/${kind}` : `/weeks/${cohort.slug}/pending`}
-                        className="block rounded-xl border border-line bg-white px-3 py-3 hover:border-pine"
+                        className="block rounded-xl border border-line bg-sheet px-3 py-3 hover:border-pine"
                       >
                         <span className="text-[11px] uppercase tracking-wide text-muted">
                           {READOUT_META[kind].label} · {READOUT_META[kind].role}
                         </span>
-                        <span className="mt-1 block font-mono text-2xl text-ink">
-                          {settled ? avg.toFixed(0) : "Not graded yet"}
-                          {settled ? <span className="text-sm text-muted">/100</span> : null}
+                        <span className="mt-2 block">
+                          <GcTube score={calibration.fill} grade={calibration.grade} variant="mini" showMeta={false} />
+                        </span>
+                        <span className="mt-2 block font-mono text-2xl text-ink">
+                          {settled ? `${Math.round(calibration.fill)}%` : "EXIT LIQUIDITY"}
                         </span>
                         <span className="text-xs text-muted">
                           {settled

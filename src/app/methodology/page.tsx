@@ -3,7 +3,9 @@ import Link from "next/link";
 import { CalendarStrip } from "@/components/market";
 import { settledReadoutKinds } from "@/lib/board";
 import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
-import { CH_FACTOR, READOUT_META } from "@/lib/labels";
+import { GradePill } from "@/components/gc-tube";
+import { GC_GRADE_LABEL, gcGrade } from "@/lib/grades";
+import { GC_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_ADJUSTMENT, PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { getCohort } from "@/lib/queries";
 import {
@@ -20,7 +22,7 @@ import {
 export const metadata: Metadata = {
   title: "Methodology",
   description:
-    "Charoof FinTwit v1 grades one Wednesday-to-Sunday cohort on the Monday gap, Monday noon, Wednesday noon, and Friday noon, with a VIX factor.",
+    "GradedCalls FinTwit v1 grades one Wednesday-to-Sunday cohort on the Monday gap, Monday noon, Wednesday noon, and Friday noon, with a VIX factor.",
 };
 
 export default async function MethodologyPage() {
@@ -34,10 +36,10 @@ export default async function MethodologyPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
-      <p className="text-xs uppercase tracking-wide text-muted">Charoof FinTwit v1</p>
+      <p className="text-xs uppercase tracking-wide text-muted">GradedCalls FinTwit v1</p>
       <h1 className="mt-2 font-serif text-4xl text-ink">How a week is graded</h1>
       <p className="mt-4 text-lg text-ink/80">
-        Charoof FinTwit is a scorecard. It watches one weekend of doom, crash, and melt-up calls age against
+        GradedCalls FinTwit is a scorecard. It watches one weekend of doom, crash, and melt-up calls age against
         recorded prints. It does not tell anyone to buy or sell because the noise was loud.
       </p>
 
@@ -124,7 +126,7 @@ export default async function MethodologyPage() {
             <dd className="mt-1 text-sm text-muted">
               The home tape, weekly rankings, leaderboards, and account scorecards list a call only after a
               readout has settled. Monday&apos;s open, Monday noon, Wednesday, and Friday are those horizons.
-              Hit rate, Chad rate, and Chud rate use settled grades only. While a readout is still scheduled,
+              Hit rate, STRONG rate, and WEAK rate use settled grades only. While a readout is still scheduled,
               the calls sit on{" "}
               <Link href="/pending" className="text-pine underline-offset-4 hover:underline">
                 Pending settle
@@ -211,26 +213,29 @@ export default async function MethodologyPage() {
 
       <section className="mt-10" aria-labelledby="marks">
         <h2 id="marks" className="font-serif text-3xl text-ink">
-          {CH_FACTOR}
+          {GC_FACTOR}
         </h2>
         <p className="mt-3 text-ink/80">
-          Chad means Accuracy &amp; Discipline. Chud means Uncertainty &amp; Doubt. Those words are opinions
-          about a past call. The 0–100 score and the 1–10 badge stay visible beside them.
+          The tube fill is the 0–100 score. The pill is an opinion about that past call. The badge from 1 to 10
+          stays beside the fill.
         </p>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-ink/80">
           <li>
-            Under {CHUD_THRESHOLD}/100 is Chud territory. The line is absolute. A score under {CHUD_THRESHOLD}{" "}
-            is never Chad.
+            <GradePill grade="strong" /> is the top {Math.round(CHAD_FRACTION * 100)}% of the peer set and a
+            score of at least {CHUD_THRESHOLD}. On a readout, the peer set is every call on that weekly board,
+            watchlist and viral together. On a leaderboard, the peer set is the accounts inside one bucket.
+            Ties at the cutoff are included. Under {CHUD_THRESHOLD} is never STRONG.
           </li>
           <li>
-            Chad is the top {Math.round(CHAD_FRACTION * 100)}% of the peer set and a score of at least{" "}
-            {CHUD_THRESHOLD}. On a readout, the peer set is every call on that weekly board, watchlist and
-            viral together. On a leaderboard, the peer set is the accounts inside one bucket. Ties at the
-            cutoff are included.
+            <GradePill grade="weak" /> is any score under {CHUD_THRESHOLD}. The line is absolute.
           </li>
           <li>
-            A score of {CHUD_THRESHOLD} or more that sits outside the cut is neither Chad nor Chud. The card
-            still shows the score.
+            <GradePill grade="provisional" /> is a score of {CHUD_THRESHOLD} or more that sits outside the peer
+            cut. The card still shows the fill.
+          </li>
+          <li>
+            <GradePill grade="exit" /> is a 0% fill: the horizon has not closed, or the score is 0. The glass
+            stays empty.
           </li>
           <li>
             The badge runs from 1 to 10. 0–9 is badge 1. 90–100 is badge 10. Each ten-point step lifts the
@@ -311,9 +316,7 @@ export default async function MethodologyPage() {
                           {grade ? `${grade.score}/100` : "Not graded yet"}
                           {grade ? (
                             <span className="mt-1 block text-xs text-muted">
-                              Badge {grade.badge}/10
-                              {grade.isChad ? " · Chad" : ""}
-                              {grade.isChudTerritory ? " · Chud territory" : ""}
+                              Badge {grade.badge}/10 · {GC_GRADE_LABEL[gcGrade(grade)]}
                             </span>
                           ) : null}
                         </td>
@@ -341,12 +344,12 @@ export default async function MethodologyPage() {
           was fetched {PRICE_FETCHED_AT}. VIX is the Yahoo symbol ^VIX. Monday, September 7, 2026 was Labor Day.
           SPY, QQQ, and DIA have no session that day. A Yahoo VIX daily bar exists for that holiday and is not
           used as a Monday open or noon print. Wednesday, September 23 and Friday, September 25 were still ahead
-          of the fetch, so those grades stay empty. Charoof FinTwit does not scrape X and does not draw a price
+          of the fetch, so those grades stay empty. GradedCalls FinTwit does not scrape X and does not draw a price
           when a print is missing.
         </p>
         <p className="mt-4 text-sm text-muted">
           Scores describe how demo posts lined up with those recorded prints. They are not investment advice.
-          Charoof FinTwit is not affiliated with Yahoo Finance.{" "}
+          GradedCalls FinTwit is not affiliated with Yahoo Finance.{" "}
           <Link href="/disclaimer" className="text-pine underline-offset-4 hover:underline">
             Read the disclaimer
           </Link>

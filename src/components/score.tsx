@@ -1,16 +1,14 @@
 import Link from "next/link";
+import { gcGrade } from "@/lib/grades";
 import { initials } from "@/lib/format";
 import type { GradeView } from "@/lib/queries";
 import { READOUTS, type ReadoutKind } from "@/lib/scoring";
-import { CHAD_MEANING, CHUD_MEANING, READOUT_META } from "@/lib/labels";
+import { READOUT_META } from "@/lib/labels";
+import { GcTube, GradePill } from "./gc-tube";
 
-export function Avatar({ name, accent }: { name: string; accent: string }) {
+export function Avatar({ name }: { name: string; accent?: string }) {
   return (
-    <span
-      className="grid h-10 w-10 shrink-0 place-items-center rounded-full font-mono text-xs font-medium text-white"
-      style={{ backgroundColor: accent }}
-      aria-hidden
-    >
+    <span className="av" aria-hidden>
       {initials(name)}
     </span>
   );
@@ -24,6 +22,7 @@ export function ScoreMark({
   rank,
   peerCount,
   digits = 0,
+  variant = "stack",
 }: {
   score: number;
   badge: number;
@@ -32,53 +31,30 @@ export function ScoreMark({
   rank?: number;
   peerCount?: number;
   digits?: number;
+  variant?: "stack" | "mini";
 }) {
-  return (
-    <div className="min-w-36 rounded-2xl border border-line bg-white px-4 py-3">
-      <p className="font-mono text-4xl leading-none tracking-tight text-ink">
-        {score.toFixed(digits)}
-        <span className="text-base text-muted">/100</span>
-      </p>
-      <p className="mt-2 font-mono text-sm text-ink">
-        Badge {badge}
-        <span className="text-muted">/10</span>
-        <span className="ml-1 text-xs text-muted">
-          {badge === 1 ? CHUD_MEANING : badge === 10 ? CHAD_MEANING : ""}
-        </span>
-      </p>
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        <PeerChip isChad={isChad} />
-        {isChudTerritory ? <ChudChip /> : null}
+  const grade = gcGrade({ score, isChad, isChudTerritory });
+  if (variant === "mini") {
+    return (
+      <div className="flex flex-col items-end gap-1.5">
+        <GradePill grade={grade} />
+        <GcTube score={score} grade={grade} variant="mini" showMeta={false} />
       </div>
+    );
+  }
+  return (
+    <div className="min-w-44">
+      <GcTube score={score} grade={grade} variant="sidebar" />
+      <p className="mt-2 font-mono text-xs text-muted">
+        Badge {badge}/10
+        {digits > 0 ? ` · ${score.toFixed(digits)}/100` : ` · ${Math.round(score)}/100`}
+      </p>
       {rank && peerCount ? (
-        <p className="mt-2 text-xs text-muted">
+        <p className="mt-1 text-xs text-muted">
           Rank {rank} of {peerCount}
         </p>
       ) : null}
     </div>
-  );
-}
-
-export function PeerChip({ isChad }: { isChad: boolean }) {
-  if (isChad) {
-    return (
-      <span className="rounded-full bg-chad-wash px-2 py-0.5 text-xs font-semibold text-chad" title={CHAD_MEANING}>
-        Chad
-        <span className="font-normal"> · {CHAD_MEANING}</span>
-      </span>
-    );
-  }
-  return (
-    <span className="rounded-full border border-line px-2 py-0.5 text-xs text-muted">Outside Chad cut</span>
-  );
-}
-
-export function ChudChip() {
-  return (
-    <span className="rounded-full bg-chud-wash px-2 py-0.5 text-xs font-semibold text-chud" title={CHUD_MEANING}>
-      Chud
-      <span className="font-normal"> · {CHUD_MEANING}</span>
-    </span>
   );
 }
 
@@ -87,7 +63,7 @@ export function DirectionChip({ direction }: { direction: "bullish" | "bearish" 
   return (
     <span
       className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${
-        bull ? "bg-emerald-50 text-bull" : "bg-rose-50 text-bear"
+        bull ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
       }`}
     >
       {direction}
@@ -111,20 +87,21 @@ export function Evolution({
         const grade = grades[kind];
         if (!grade) return null;
         const current = active === kind;
+        const pill = gcGrade(grade);
         return (
           <li key={kind}>
             <Link
               href={`/weeks/${slug}/${kind}`}
-              className={`block rounded-xl border px-3 py-1.5 text-xs ${
-                current ? "border-pine bg-pine text-lime" : "border-line bg-white text-ink hover:border-pine"
+              className={`block min-w-28 rounded-xl border px-3 py-1.5 text-xs ${
+                current ? "border-pine bg-pine/15 text-ink" : "border-line bg-sheet text-ink hover:border-pine"
               }`}
             >
-              <span className="block text-[10px] uppercase tracking-wide opacity-80">
+              <span className="block text-[10px] uppercase tracking-wide text-muted">
                 {READOUT_META[kind].short}
               </span>
-              <span className="font-mono text-sm">
-                {grade.score}
-                <span className="opacity-70">/100</span>
+              <span className="mt-1 flex items-center justify-between gap-2">
+                <span className="font-mono text-sm">{Math.round(grade.score)}%</span>
+                <GradePill grade={pill} />
               </span>
             </Link>
           </li>
@@ -147,7 +124,7 @@ export function LevelList({
       {levels.map((level) => (
         <li
           key={`${level.role}-${level.symbol}-${level.price}`}
-          className="rounded-full border border-line bg-white px-2.5 py-1 font-mono text-xs text-ink"
+          className="rounded-full border border-line bg-sheet px-2.5 py-1 font-mono text-xs text-ink"
         >
           {level.symbol} {level.role} {level.price.toFixed(2)}
         </li>

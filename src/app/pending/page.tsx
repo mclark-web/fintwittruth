@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GcTube } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
@@ -7,7 +8,7 @@ import { getCohort, listCohortSlugs } from "@/lib/queries";
 export const metadata: Metadata = {
   title: "Pending settle",
   description:
-    "Calls and horizons that stay off the Charoof FinTwit boards until a readout settles. Rankings use graded calls only.",
+    "Calls and horizons that stay off the GradedCalls FinTwit boards until a readout settles. Rankings use graded calls only.",
 };
 
 export default async function PendingPage() {
@@ -59,10 +60,13 @@ export default async function PendingPage() {
                 <p className="mt-2 max-w-2xl text-sm text-muted">{cohort.summary}</p>
                 <ul className="mt-4 grid gap-2 sm:grid-cols-2">
                   {pending.map((kind) => (
-                    <li key={kind} className="rounded-xl border border-line bg-white px-3 py-3">
+                    <li key={kind} className="rounded-xl border border-line bg-sheet px-3 py-3">
                       <p className="text-[11px] uppercase tracking-wide text-muted">{READOUT_META[kind].role}</p>
                       <p className="mt-1 font-serif text-xl text-ink">{READOUT_META[kind].label}</p>
-                      <p className="text-sm text-muted">Not graded yet · off the board until {READOUT_META[kind].time}</p>
+                      <div className="mt-2 max-w-40">
+                        <GcTube score={0} grade="exit" variant="mini" showMeta={false} />
+                      </div>
+                      <p className="mt-2 text-sm text-muted">0% · EXIT LIQUIDITY · off the board until {READOUT_META[kind].time}</p>
                     </li>
                   ))}
                 </ul>

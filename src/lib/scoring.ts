@@ -274,7 +274,12 @@ export function gradeNote(input: {
     (input.direction === "bullish" && input.rawMovePct <= -0.0008) ||
     (input.direction === "bearish" && input.rawMovePct >= 0.0008);
   const relation = helped ? "with" : hurt ? "against" : "flat versus";
-  const territory = input.score < CHUD_THRESHOLD ? " That score is in Chud territory." : "";
+  const territory =
+    input.score <= 0
+      ? " Grade calibration is 0%: EXIT LIQUIDITY."
+      : input.score < CHUD_THRESHOLD
+        ? " That score is WEAK."
+        : "";
   return `${when}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's regular-session close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;
 }
 

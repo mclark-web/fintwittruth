@@ -194,7 +194,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
               const meta = READOUT_META[kind];
               const readout = cohort.readouts[kind];
               return (
-                <li key={kind} className="rounded-2xl border border-dashed border-line bg-white px-4 py-3">
+                <li key={kind} className="rounded-2xl border border-dashed border-line bg-sheet px-4 py-3">
                   <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
                   <p className="font-serif text-xl text-ink">{meta.label}</p>
                   <p className="mt-1 text-sm text-muted">Not graded yet · off the board until {meta.time}</p>
