@@ -47,11 +47,11 @@ export function CallCard({
             variant="mini"
             score={grade.score}
             badge={grade.badge}
-            isChad={grade.isChad}
-            isChudTerritory={grade.isChudTerritory}
+            isStrong={grade.isStrong}
+            isWeak={grade.isWeak}
           />
         ) : (
-          <ScoreMark variant="mini" score={0} badge={1} isChad={false} isChudTerritory />
+          <ScoreMark variant="mini" score={0} badge={1} isStrong={false} isWeak />
         )}
       </div>
       <p className="mt-3 text-[15px] leading-relaxed text-ink">“{call.body}”</p>

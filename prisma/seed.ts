@@ -75,7 +75,7 @@ async function main() {
             realizedDirection: readout.realizedDirection,
             benchmarkSymbol: readout.benchmarkSymbol,
             benchmarkMovePct: readout.benchmarkMovePct,
-            chadCutoff: readout.chadCutoff,
+            strongCutoff: readout.strongCutoff,
             narrative: readout.narrative,
           })),
         },

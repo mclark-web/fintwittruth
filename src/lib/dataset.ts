@@ -83,8 +83,8 @@ export type BuiltGrade = {
   rawMovePct: number;
   signedMovePct: number;
   vixMovePct: number;
-  isChad: boolean;
-  isChudTerritory: boolean;
+  isStrong: boolean;
+  isWeak: boolean;
   peerRank: number;
   peerCount: number;
   note: string;
@@ -101,7 +101,7 @@ export type BuiltReadout = {
   realizedDirection: "bullish" | "bearish" | "flat" | "pending";
   benchmarkSymbol: string;
   benchmarkMovePct: number;
-  chadCutoff: number;
+  strongCutoff: number;
   narrative: string;
 };
 
@@ -290,7 +290,7 @@ export function buildDataset(): BuiltDataset {
           realizedDirection: "pending" as const,
           benchmarkSymbol: "SPY+QQQ+DIA",
           benchmarkMovePct: 0,
-          chadCutoff: 0,
+          strongCutoff: 0,
           narrative: readoutNarrative({
             kind,
             status: "scheduled",
@@ -354,8 +354,8 @@ export function buildDataset(): BuiltDataset {
           score: row.parts.score,
         })),
       );
-      const chadScores = ranked.filter((row) => row.isChad).map((row) => row.score);
-      const chadCutoff = chadScores.length ? Math.min(...chadScores) : 0;
+      const strongScores = ranked.filter((row) => row.isStrong).map((row) => row.score);
+      const strongCutoff = strongScores.length ? Math.min(...strongScores) : 0;
 
       for (const row of ranked) {
         grades.push({
@@ -371,8 +371,8 @@ export function buildDataset(): BuiltDataset {
           rawMovePct: row.parts.rawMovePct,
           signedMovePct: row.parts.signedMovePct,
           vixMovePct: row.parts.vixMovePct,
-          isChad: row.isChad,
-          isChudTerritory: row.isChudTerritory,
+          isStrong: row.isStrong,
+          isWeak: row.isWeak,
           peerRank: row.peerRank,
           peerCount: row.peerCount,
           note: gradeNote({
@@ -395,7 +395,7 @@ export function buildDataset(): BuiltDataset {
         realizedDirection: realized,
         benchmarkSymbol: "SPY+QQQ+DIA",
         benchmarkMovePct: tapeMove,
-        chadCutoff,
+        strongCutoff,
         narrative: readoutNarrative({
           kind,
           status: "published",

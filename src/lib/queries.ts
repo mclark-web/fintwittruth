@@ -26,8 +26,8 @@ export type GradeView = {
   rawMovePct: number;
   signedMovePct: number;
   vixMovePct: number;
-  isChad: boolean;
-  isChudTerritory: boolean;
+  isStrong: boolean;
+  isWeak: boolean;
   peerRank: number;
   peerCount: number;
   note: string;
@@ -75,7 +75,7 @@ export type ReadoutView = {
   realizedDirection: string;
   benchmarkSymbol: string;
   benchmarkMovePct: number;
-  chadCutoff: number;
+  strongCutoff: number;
   narrative: string;
   at: Date;
 };
@@ -117,11 +117,11 @@ export type LeaderRow = {
   callCount: number;
   avgScore: number;
   badge: number;
-  chadRate: number;
-  chudRate: number;
+  strongRate: number;
+  weakRate: number;
   hitRate: number;
-  isChad: boolean;
-  isChudTerritory: boolean;
+  isStrong: boolean;
+  isWeak: boolean;
   peerRank: number;
   peerCount: number;
   bestScore: number;
@@ -216,8 +216,8 @@ type CallRecord = {
     rawMovePct: number;
     signedMovePct: number;
     vixMovePct: number;
-    isChad: boolean;
-    isChudTerritory: boolean;
+    isStrong: boolean;
+    isWeak: boolean;
     peerRank: number;
     peerCount: number;
     note: string;
@@ -239,8 +239,8 @@ function mapCall(call: CallRecord): CallView {
       rawMovePct: grade.rawMovePct,
       signedMovePct: grade.signedMovePct,
       vixMovePct: grade.vixMovePct,
-      isChad: grade.isChad,
-      isChudTerritory: grade.isChudTerritory,
+      isStrong: grade.isStrong,
+      isWeak: grade.isWeak,
       peerRank: grade.peerRank,
       peerCount: grade.peerCount,
       note: grade.note,
@@ -309,7 +309,7 @@ export const getCohort = cache(async (slug: string): Promise<CohortView | null> 
       realizedDirection: readout.realizedDirection,
       benchmarkSymbol: readout.benchmarkSymbol,
       benchmarkMovePct: readout.benchmarkMovePct,
-      chadCutoff: readout.chadCutoff,
+      strongCutoff: readout.strongCutoff,
       narrative: readout.narrative,
       at,
     };
@@ -403,8 +403,8 @@ export const getLeaderboard = cache(async (bucket: Bucket): Promise<LeaderRow[]>
         callCount: stats.callCount,
         avgScore: stats.avgScore,
         badge: stats.badge,
-        chadRate: stats.chadRate,
-        chudRate: stats.chudRate,
+        strongRate: stats.strongRate,
+        weakRate: stats.weakRate,
         hitRate: stats.hitRate,
         bestScore: stats.bestScore,
         worstScore: stats.worstScore,
@@ -423,11 +423,11 @@ export const getLeaderboard = cache(async (bucket: Bucket): Promise<LeaderRow[]>
     callCount: row.callCount,
     avgScore: row.avgScore,
     badge: row.badge,
-    chadRate: row.chadRate,
-    chudRate: row.chudRate,
+    strongRate: row.strongRate,
+    weakRate: row.weakRate,
     hitRate: row.hitRate,
-    isChad: row.isChad,
-    isChudTerritory: row.isChudTerritory,
+    isStrong: row.isStrong,
+    isWeak: row.isWeak,
     peerRank: row.peerRank,
     peerCount: row.peerCount,
     bestScore: row.bestScore,

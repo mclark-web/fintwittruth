@@ -239,7 +239,7 @@ export default async function HomePage({
                   <span className="text-sm text-muted">%</span>
                 </span>
                 <span className="text-xs text-muted">
-                  Badge {row.badge}/10 · Hit {formatPct(row.hitRate, 0)} · Strong {formatPct(row.chadRate, 0)}
+                  Badge {row.badge}/10 · Hit {formatPct(row.hitRate, 0)} · Strong {formatPct(row.strongRate, 0)}
                 </span>
               </span>
             </li>

@@ -9,8 +9,8 @@ import { GC_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_ADJUSTMENT, PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { getCohort } from "@/lib/queries";
 import {
-  CHAD_FRACTION,
-  CHUD_THRESHOLD,
+  STRONG_FRACTION,
+  WEAK_LINE,
   DIRECTION_BANDS,
   DIRECTION_MAX,
   LEVEL_MAX,
@@ -207,7 +207,7 @@ export default async function MethodologyPage() {
           <li>Named support or resistance: 3</li>
         </ul>
         <p className="mt-2 text-sm text-muted">
-          A mood with no ticker cannot clear {CHUD_THRESHOLD}, even when the tape agrees.
+          A mood with no ticker cannot clear {WEAK_LINE}, even when the tape agrees.
         </p>
       </section>
 
@@ -221,16 +221,16 @@ export default async function MethodologyPage() {
         </p>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-ink/80">
           <li>
-            <GradePill grade="strong" /> is the top {Math.round(CHAD_FRACTION * 100)}% of the peer set and a
-            score of at least {CHUD_THRESHOLD}. On a readout, the peer set is every call on that weekly board,
+            <GradePill grade="strong" /> is the top {Math.round(STRONG_FRACTION * 100)}% of the peer set and a
+            score of at least {WEAK_LINE}. On a readout, the peer set is every call on that weekly board,
             watchlist and viral together. On a leaderboard, the peer set is the accounts inside one bucket.
-            Ties at the cutoff are included. Under {CHUD_THRESHOLD} is never STRONG.
+            Ties at the cutoff are included. Under {WEAK_LINE} is never STRONG.
           </li>
           <li>
-            <GradePill grade="weak" /> is any score under {CHUD_THRESHOLD}. The line is absolute.
+            <GradePill grade="weak" /> is any score under {WEAK_LINE}. The line is absolute.
           </li>
           <li>
-            <GradePill grade="provisional" /> is a score of {CHUD_THRESHOLD} or more that sits outside the peer
+            <GradePill grade="provisional" /> is a score of {WEAK_LINE} or more that sits outside the peer
             cut. The card still shows the fill.
           </li>
           <li>

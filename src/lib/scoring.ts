@@ -1,5 +1,5 @@
-export const CHUD_THRESHOLD = 70;
-export const CHAD_FRACTION = 0.3;
+export const WEAK_LINE = 70;
+export const STRONG_FRACTION = 0.3;
 export const DIRECTION_MAX = 50;
 export const LEVEL_MAX = 20;
 export const SPECIFICITY_MAX = 15;
@@ -62,7 +62,7 @@ export const CONVICTION_WEIGHT: Record<Conviction, number> = {
   low: 1,
 };
 
-/** 0–9 → 1 … 90–100 → 10. One is the Chud end of the badge, ten is the Chad end. */
+/** 0–9 → 1 … 90–100 → 10. One is the low end of the badge, ten is the high end. */
 export function scoreToBadge(score: number): number {
   const clamped = Math.max(0, Math.min(100, score));
   if (clamped >= 90) return 10;
@@ -178,7 +178,7 @@ export type ScoreParts = {
   rawMovePct: number;
   signedMovePct: number;
   vixMovePct: number;
-  isChudTerritory: boolean;
+  isWeak: boolean;
 };
 
 export function scoreCall(call: CallDraft, input: ScoreInput): ScoreParts {
@@ -198,20 +198,20 @@ export function scoreCall(call: CallDraft, input: ScoreInput): ScoreParts {
     rawMovePct: input.tapeMove,
     signedMovePct,
     vixMovePct: input.vixMove,
-    isChudTerritory: score < CHUD_THRESHOLD,
+    isWeak: score < WEAK_LINE,
   };
 }
 
 export type Ranked<T> = T & {
   peerRank: number;
   peerCount: number;
-  isChad: boolean;
-  isChudTerritory: boolean;
+  isStrong: boolean;
+  isWeak: boolean;
 };
 
 /**
- * Chad is the top 30% of the peer set, ties at the cutoff included, and only
- * when the score is also at least 70. Under 70 is Chud either way.
+ * STRONG is the top 30% of the peer set, ties at the cutoff included, and only
+ * when the score is also at least 70. Under 70 is WEAK either way.
  */
 export function rankPeers<T extends { score: number; tieBreak: string }>(
   rows: T[],
@@ -220,7 +220,7 @@ export function rankPeers<T extends { score: number; tieBreak: string }>(
     (a, b) => b.score - a.score || a.tieBreak.localeCompare(b.tieBreak),
   );
   const peerCount = sorted.length;
-  const slots = peerCount === 0 ? 0 : Math.max(1, Math.ceil(peerCount * CHAD_FRACTION));
+  const slots = peerCount === 0 ? 0 : Math.max(1, Math.ceil(peerCount * STRONG_FRACTION));
   const cutoff = slots === 0 ? Number.POSITIVE_INFINITY : sorted[slots - 1].score;
   let lastScore: number | null = null;
   let lastRank = 0;
@@ -233,8 +233,8 @@ export function rankPeers<T extends { score: number; tieBreak: string }>(
       ...row,
       peerRank,
       peerCount,
-      isChad: inCut && row.score >= CHUD_THRESHOLD,
-      isChudTerritory: row.score < CHUD_THRESHOLD,
+      isStrong: inCut && row.score >= WEAK_LINE,
+      isWeak: row.score < WEAK_LINE,
     };
   });
 }
@@ -277,7 +277,7 @@ export function gradeNote(input: {
   const territory =
     input.score <= 0
       ? " Grade calibration is 0%: EXIT LIQUIDITY."
-      : input.score < CHUD_THRESHOLD
+      : input.score < WEAK_LINE
         ? " That score is WEAK."
         : "";
   return `${when}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's regular-session close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;
