@@ -39,8 +39,9 @@ export default async function MethodologyPage() {
       <p className="text-xs uppercase tracking-wide text-muted">GradedCalls FinTwit v1</p>
       <h1 className="mt-2 font-serif text-4xl text-ink">How a week is graded</h1>
       <p className="mt-4 text-lg text-ink/80">
-        GradedCalls FinTwit is a scorecard. It watches one weekend of doom, crash, and melt-up calls age against
-        recorded prints. It does not tell anyone to buy or sell because the noise was loud.
+        GradedCalls FinTwit is a scorecard. The latest board grades verified public posts against recorded prints.
+        Fictional weekend doom, crash, and melt-up calls stay on the demo weeks and age against the same prints.
+        It does not tell anyone to buy or sell because the noise was loud.
       </p>
 
       <section className="mt-8" aria-labelledby="inclusion">

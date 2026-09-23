@@ -5,6 +5,7 @@ import { CalendarStrip } from "@/components/market";
 import { Avatar } from "@/components/score";
 import { GradePill } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledGradeKinds, settledReadoutKinds } from "@/lib/board";
+import { DEMO_OPEN_COHORT_SLUG } from "@/lib/demo-data";
 import { formatPct, formatScore, formatShortDay } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
@@ -129,6 +130,10 @@ export default async function HomePage({
           {latest.title} · readout week of {formatShortDay(latest.mondayAt)}. {latest.summary}{" "}
           <Link href={`/weeks/${latest.slug}`} className="text-pine underline-offset-4 hover:underline">
             Open the side-by-side board
+          </Link>
+          . Fictional weekend doom and melt-up posts for this same Monday tape stay graded on the{" "}
+          <Link href={`/weeks/${DEMO_OPEN_COHORT_SLUG}`} className="text-pine underline-offset-4 hover:underline">
+            demo week
           </Link>
           .
         </p>

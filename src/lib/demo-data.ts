@@ -1,7 +1,9 @@
 import type { Conviction, Direction, Level, LevelRole, Sentiment } from "./scoring";
 
 export const FEATURED_COHORT_SLUG = "2026-09-07";
+/** Readout Monday of the open week. The verified book uses this slug. Fiction for the same week is `demo-2026-09-21`. */
 export const LATEST_COHORT_SLUG = "2026-09-21";
+export const DEMO_OPEN_COHORT_SLUG = "demo-2026-09-21";
 
 export const SYMBOL_NAMES: Record<string, string> = {
   SPY: "S&P 500 ETF",
@@ -189,6 +191,8 @@ export type CallSpec = {
 
 export type CohortSpec = {
   slug: string;
+  /** Market-history key when the public slug is a quarantined demo copy. */
+  historySlug?: string;
   title: string;
   summary: string;
   monday: { year: number; month: number; day: number };
@@ -833,12 +837,12 @@ export const COHORTS: CohortSpec[] = [
     ],
   },
   {
-    slug: "2026-09-21",
-    title: "Open weekend book",
+    slug: "demo-2026-09-21",
+    historySlug: "2026-09-21",
+    title: "DEMO weekend book",
     summary:
-      "This week's fictional doom and melt-up posts. Monday's real open and noon prints are in. Wednesday, September 23 and Friday, September 25 had not printed when this history was fetched, so those grades stay scheduled.",
+      "DEMO. Fictional doom and melt-up posts, quarantined off the live board. Monday's real open and noon prints are in, and Wednesday noon is the recorded 12:00 PM ET bar. Friday, September 25 had not printed when this history was fetched, so that grade stays scheduled.",
     monday: { year: 2026, month: 9, day: 21 },
-    isLatest: true,
     calls: [
       {
         handle: "levellena",

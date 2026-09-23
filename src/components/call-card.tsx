@@ -38,6 +38,7 @@ export function CallCard({
             </Link>
             <p className="mt-0.5 text-xs text-muted">
               {formatWhen(call.postedAt)}
+              {call.dataset === "demo" ? " · DEMO" : " · verified"}
               {grade ? ` · rank ${grade.peerRank} of ${grade.peerCount}` : " · not on this board"}
             </p>
           </div>
@@ -73,8 +74,13 @@ export function CallCard({
         <span className="tag">
           <DirectionChip direction={call.direction} /> {call.primary}
         </span>
-        <span>{call.sentiment === "panic" ? "Panic" : "Melt-up"} · {call.bucket === "viral" ? "Viral" : "Watchlist"}</span>
+        <span>{call.toneLabel || (call.sentiment === "panic" ? "Panic" : "Melt-up")} · {call.bucket === "viral" ? "Viral" : "Watchlist"}</span>
         <span className="uppercase tracking-wide">{call.conviction} conviction</span>
+        {call.sourceUrl ? (
+          <a href={call.sourceUrl} className="underline-offset-4 hover:text-ink hover:underline">
+            Source
+          </a>
+        ) : null}
         <Link href={`/calls/${call.id}`} className="underline-offset-4 hover:text-ink hover:underline">
           Call detail
         </Link>

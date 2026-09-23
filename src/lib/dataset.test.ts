@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { zonedToUtc } from "./calendar";
-import { FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG, SYMBOLS } from "./demo-data";
+import { FEATURED_COHORT_SLUG, DEMO_OPEN_COHORT_SLUG, LATEST_COHORT_SLUG, SYMBOLS } from "./demo-data";
 import { buildDataset } from "./dataset";
 import {
   adjustedClose,
@@ -11,7 +11,7 @@ import {
   sessionClose,
   sessionOpen,
 } from "./quotes";
-import { WEAK_LINE, EQUITY_TAPE, READOUTS, VIX_MAX, equityTapeMove, scoreToBadge } from "./scoring";
+import { WEAK_LINE, CONVICTION_WEIGHT, EQUITY_TAPE, READOUTS, VIX_MAX, equityTapeMove, scoreToBadge } from "./scoring";
 
 const data = buildDataset();
 
@@ -26,7 +26,9 @@ test("locked calendar for the latest readout week", () => {
 });
 
 test("finished weeks publish every readout except the Labor Day Monday", () => {
-  const historical = data.cohorts.filter((cohort) => !cohort.isLatest);
+  const historical = data.cohorts.filter(
+    (cohort) => cohort.dataset === "demo" && cohort.slug !== DEMO_OPEN_COHORT_SLUG,
+  );
   assert.equal(historical.length, 4);
   for (const cohort of historical) {
     for (const kind of READOUTS) {
@@ -39,16 +41,25 @@ test("finished weeks publish every readout except the Labor Day Monday", () => {
   }
 });
 
-test("latest cohort publishes the Monday gap and noon and leaves Wednesday and Friday scheduled", () => {
+test("latest cohort publishes Monday and Wednesday and leaves Friday scheduled", () => {
   const latest = data.cohorts.find((cohort) => cohort.isLatest);
   assert.ok(latest);
+  assert.equal(latest.dataset, "live");
   assert.equal(latest.slug, LATEST_COHORT_SLUG);
+  assert.equal(latest.historySlug, LATEST_COHORT_SLUG);
+  assert.ok(latest.calls.length > 0);
+  assert.ok(latest.calls.every((call) => call.sourceUrl.startsWith("https://")));
+  assert.equal(latest.calls.some((call) => call.handle === "doomscroll"), false);
   assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
-  assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "scheduled");
+  assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "scheduled");
-  assert.equal(latest.grades.length, latest.calls.length * 2);
-  assert.ok(latest.grades.every((grade) => grade.readout === "monday-gap" || grade.readout === "monday"));
+  assert.equal(latest.grades.length, latest.calls.length * 3);
+  assert.ok(
+    latest.grades.every(
+      (grade) => grade.readout === "monday-gap" || grade.readout === "monday" || grade.readout === "wednesday",
+    ),
+  );
 });
 
 test("every demo post sits inside the Wednesday-to-Sunday collect window", () => {
@@ -61,7 +72,9 @@ test("every demo post sits inside the Wednesday-to-Sunday collect window", () =>
 });
 
 test("watchlist and viral posts share the weekly board", () => {
-  for (const cohort of data.cohorts) {
+  const demo = data.cohorts.filter((cohort) => cohort.dataset === "demo");
+  assert.ok(demo.length >= 4);
+  for (const cohort of demo) {
     assert.ok(cohort.calls.some((call) => call.handle === "doomscroll"));
     const viral = cohort.calls.find((call) => call.handle === "doomsiren");
     assert.ok(viral);
@@ -91,7 +104,7 @@ test("STRONG requires the top 30% and a score of at least 70", () => {
 
 test("every published quote is the recorded Yahoo print", () => {
   for (const cohort of data.cohorts) {
-    const recorded = quotesForCohort(cohort.slug, SYMBOLS);
+    const recorded = quotesForCohort(cohort.historySlug, SYMBOLS);
     assert.equal(cohort.quotes.length, recorded.length);
     for (const quote of cohort.quotes) {
       const expected = recorded.find((item) => item.symbol === quote.symbol);
@@ -157,10 +170,10 @@ test("the open week keeps future readouts empty and uses real Monday prints", ()
   for (const quote of latest.quotes) {
     assert.equal(quote.mondayOpen, sessionOpen(quote.symbol, "2026-09-21"));
     assert.equal(quote.monday, noonOpen(quote.symbol, "2026-09-21"));
-    assert.equal(quote.wednesday, null);
+    assert.equal(quote.wednesday, noonOpen(quote.symbol, "2026-09-23"));
     assert.equal(quote.friday, null);
   }
-  assert.throws(() => noonOpen("SPY", "2026-09-23"), /Refusing to invent/);
+  assert.throws(() => noonOpen("SPY", "2026-09-25"), /Refusing to invent/);
   assert.throws(() => sessionOpen("SPY", "2026-09-07"), /Refusing to invent/);
 });
 
@@ -242,6 +255,41 @@ test("selloff calls are not STRONG on a 1%+ up Monday", () => {
       }
     }
   }
+});
+
+test("the verified weekend book and the fictional doom book are both graded", () => {
+  const live = data.cohorts.filter((cohort) => cohort.dataset === "live");
+  const demo = data.cohorts.find((cohort) => cohort.slug === DEMO_OPEN_COHORT_SLUG);
+  assert.equal(live.length, 1);
+  assert.ok(demo);
+  assert.equal(demo.dataset, "demo");
+  assert.equal(demo.isLatest, false);
+  assert.equal(demo.historySlug, LATEST_COHORT_SLUG);
+  assert.ok(demo.calls.some((call) => call.handle === "doomscroll"));
+  assert.ok(demo.calls.every((call) => call.sourceUrl === ""));
+  assert.equal(demo.calls.length, 19);
+  const handles = new Set(data.accounts.map((account) => account.handle));
+  assert.equal(handles.size, 21);
+  assert.ok(handles.has("smtraderca"));
+  assert.ok(handles.has("piggostradingdesk"));
+  assert.ok(handles.has("doomscroll"));
+  assert.deepEqual(CONVICTION_WEIGHT, { high: 3, medium: 2, low: 1 });
+  assert.deepEqual([...EQUITY_TAPE], ["SPY", "QQQ", "DIA"]);
+  const monday = live[0].grades.filter((grade) => grade.readout === "monday");
+  assert.equal(monday.length, live[0].calls.length);
+  for (const grade of monday) {
+    const call = live[0].calls.find((item) => item.id === grade.callId);
+    assert.equal(call?.direction, "bearish");
+    assert.equal(grade.isStrong, false);
+    assert.ok(grade.score < WEAK_LINE);
+    assert.ok(grade.vixPoints >= 0 && grade.vixPoints <= VIX_MAX);
+    assert.match(grade.note, /SPY, QQQ, and DIA/);
+    assert.match(grade.note, /VIX/);
+  }
+  const spy = live[0].quotes.find((quote) => quote.symbol === "SPY");
+  assert.ok(spy);
+  assert.ok(spy.ref > 740);
+  assert.equal(spy.ref, demo.quotes.find((quote) => quote.symbol === "SPY")?.ref);
 });
 
 test("direction matches the tape on every published readout", () => {
