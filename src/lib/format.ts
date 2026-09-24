@@ -48,6 +48,14 @@ export function formatSignedPct(value: number): string {
   return "0.0%";
 }
 
+/** ▲ when the rounded move is up, ▼ when it is down. The hue is decided separately. */
+export function moveArrow(value: number): "▲" | "▼" | "" {
+  const rounded = Math.round(value * 1000) / 10;
+  if (rounded > 0) return "▲";
+  if (rounded < 0) return "▼";
+  return "";
+}
+
 export function formatPrice(value: number): string {
   return value.toLocaleString("en-US", {
     minimumFractionDigits: 2,

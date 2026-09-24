@@ -287,8 +287,8 @@ export default async function MethodologyPage() {
             </Link>
             .
           </p>
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[480px] text-left text-sm">
+          <div className="settled-grades mt-4 overflow-x-auto">
+            <table className="settled-table w-full text-left text-sm sm:min-w-[480px]">
               <caption className="sr-only">Settled grades in the worked example</caption>
               <thead className="text-xs uppercase tracking-wide text-muted">
                 <tr>

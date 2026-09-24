@@ -145,7 +145,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                       if (!grade) return null;
                       return (
                         <li key={kind} className="rounded-xl bg-sheet px-3 py-2">
-                          <Link href={`/weeks/${slug}/${kind}`} className="block text-[11px] text-muted hover:underline">
+                          <Link href={`/weeks/${slug}/${kind}`} className="block text-xs text-muted hover:underline">
                             <ReportOutTitle
                               kind={kind}
                               quotes={account.quotesBySlug[slug]}

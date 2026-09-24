@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { buildDataset } from "./dataset";
 import { DEMO_OPEN_COHORT_SLUG, FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG } from "./demo-data";
-import { formatSignedPct } from "./format";
+import { formatSignedPct, moveArrow } from "./format";
 import { READOUT_META } from "./labels";
 import {
   callCheckpointLabel,
@@ -127,6 +127,8 @@ test("a readout bubble is the predicted ticker, its print, and the move from the
   assert.ok(up);
   assert.equal(up.text, "NVDA ($225.10) +2.4%");
   assert.equal(up.stance, "with");
+  assert.equal(moveArrow(up.move ?? 0), "▲");
+  assert.equal(moveArrow(0), "");
 
   const down = predictedReadout(
     [{ symbol: "SPY", ref: 774.83, mondayOpen: null, monday: null, wednesday: 768.63, friday: null }],
@@ -137,6 +139,7 @@ test("a readout bubble is the predicted ticker, its print, and the move from the
   assert.ok(down);
   assert.equal(down.text, "SPY ($768.63) \u22120.8%");
   assert.equal(down.stance, "against");
+  assert.equal(moveArrow(down.move ?? 0), "▼");
   assert.equal(callStance("bearish", down.move ?? 0), "with");
 
   const missing = predictedReadout(

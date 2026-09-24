@@ -182,14 +182,14 @@ export default async function HomePage({
                 </div>
                 <p className="mt-3 text-ink">{call.body}</p>
                 <ReferenceLine quotes={featured.quotes} primary={call.primary} />
-                <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <ol className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
                   {featuredKinds.map((kind) => {
                     const grade = call.grades[kind];
                     if (!grade) return null;
                     return (
                       <li key={kind}>
                         <Link href={`/weeks/${featured.slug}/${kind}`} className="block rounded-xl bg-sheet px-3 py-2">
-                          <span className="block text-[11px] text-muted">
+                          <span className="block text-xs text-muted">
                             <ReportOutTitle kind={kind} quotes={featured.quotes} primary={call.primary} direction={call.direction} />
                           </span>
                           <span className="mt-1 block font-mono text-2xl">

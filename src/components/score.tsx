@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { gcGrade } from "@/lib/grades";
-import { formatPrice, initials } from "@/lib/format";
+import { formatPrice, formatSignedPct, initials, moveArrow } from "@/lib/format";
 import { predictedReadout, referencePrint } from "@/lib/prints";
 import type { GradeView, QuoteView } from "@/lib/queries";
 import { READOUTS, type Direction, type ReadoutKind } from "@/lib/scoring";
@@ -88,6 +88,23 @@ export function ReferenceLine({ quotes, primary }: { quotes?: QuoteView[]; prima
   );
 }
 
+export function SignedMove({
+  move,
+  stance,
+}: {
+  move: number;
+  stance: "with" | "against" | "flat" | null;
+}) {
+  const arrow = moveArrow(move);
+  const tone = stance === "with" || stance === "against" ? ` readout-move-${stance}` : "";
+  return (
+    <span className={`readout-move${tone}`}>
+      {arrow ? <span aria-hidden="true">{arrow} </span> : null}
+      {formatSignedPct(move)}
+    </span>
+  );
+}
+
 export function ReadoutBubble({
   kind,
   quotes,
@@ -101,15 +118,18 @@ export function ReadoutBubble({
 }) {
   const meta = READOUT_META[kind];
   const print = predictedReadout(quotes, primary, kind, direction);
+  const stance = print?.stance ?? null;
   return (
     <span className="readout-bubble">
       <span className="readout-when" title={meta.time}>
         {meta.short}
       </span>
-      <span className={`readout-print${print?.stance === "with" || print?.stance === "against" ? ` readout-print-${print.stance}` : ""}`}>
-        {print?.text ?? primary}
+      <span className="readout-line">
+        <span className="readout-ticker">{print?.symbol ?? primary}</span>
+        {print?.price != null ? <span className="readout-px">(${formatPrice(print.price)})</span> : null}
+        {print?.move != null ? <SignedMove move={print.move} stance={stance} /> : null}
       </span>
-      {print?.stance ? <span className={`stance stance-${print.stance}`}>{STANCE_LABEL[print.stance]}</span> : null}
+      {stance ? <span className={`stance stance-${stance}`}>{STANCE_LABEL[stance]}</span> : null}
     </span>
   );
 }
@@ -152,14 +172,14 @@ export function Evolution({
         const current = active === kind;
         const pill = gcGrade(grade);
         return (
-          <li key={kind}>
+          <li key={kind} className="w-full sm:w-auto">
             <Link
               href={`/weeks/${slug}/${kind}`}
-              className={`block min-w-52 rounded-xl border px-3 py-1.5 text-xs ${
+              className={`block w-full rounded-xl border px-3 py-1.5 text-xs sm:w-auto sm:min-w-52 ${
                 current ? "border-pine bg-pine/15 text-ink" : "border-line bg-sheet text-ink hover:border-pine"
               }`}
             >
-              <span className="block text-[11px] text-muted">
+              <span className="block text-xs text-muted">
                 <ReportOutTitle kind={kind} quotes={quotes} primary={primary} direction={direction} />
               </span>
               <span className="mt-1 flex items-center justify-between gap-2">

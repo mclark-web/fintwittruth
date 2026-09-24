@@ -1,13 +1,22 @@
 import Link from "next/link";
 import { formatPct, formatPrice, formatShortDay, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
-import { checkpointPrints, checkpointSymbols, priceAt, TAPE_DISPLAY } from "@/lib/prints";
+import { checkpointPrints, checkpointSymbols, priceAt, type CallStance, TAPE_DISPLAY } from "@/lib/prints";
+import { SignedMove } from "@/components/score";
 import { PRICE_SOURCE_SHORT } from "@/lib/quotes";
 import type { QuoteView, ReadoutView } from "@/lib/queries";
-import { EQUITY_TAPE, READOUTS, equityTapeMove, weekendNoise, type ReadoutKind, type Sentiment } from "@/lib/scoring";
+import { EQUITY_TAPE, READOUTS, equityTapeMove, tapeDirection, weekendNoise, type ReadoutKind, type Sentiment } from "@/lib/scoring";
 
 export function PriceSource() {
   return <p className="mt-2 text-xs text-muted">{PRICE_SOURCE_SHORT}</p>;
+}
+
+/** Crowd call versus the tape. Color follows that result, not whether the tape rose. */
+export function crowdTapeStance(consensus: string, move: number): CallStance {
+  const realized = tapeDirection(move);
+  if (consensus !== "bullish" && consensus !== "bearish") return "flat";
+  if (realized === "flat") return "flat";
+  return consensus === realized ? "with" : "against";
 }
 
 export function Move({ value }: { value: number }) {
@@ -32,7 +41,7 @@ export function CalendarStrip() {
     <ol className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
       {steps.map((step, index) => (
         <li key={`${step.title}-${step.kicker}`} className="panel px-4 py-3">
-          <p className="text-[11px] uppercase tracking-wide text-muted">
+          <p className="text-xs uppercase tracking-wide text-muted">
             {index + 1}. {step.kicker}
           </p>
           <p className="mt-1 font-serif text-xl text-ink">{step.title}</p>
@@ -69,7 +78,7 @@ export function CheckpointPrints({
   }
   if (variant === "line") {
     return (
-      <p className="mt-1 font-mono text-[11px] leading-relaxed text-ink" aria-label={label}>
+      <p className="mt-1 font-mono text-xs leading-relaxed text-ink" aria-label={label}>
         {prints.map((print, index) => (
           <span key={print.symbol}>
             {index > 0 ? <span className="text-muted"> · </span> : null}
@@ -110,7 +119,7 @@ export function CheckpointStrip({
       <ol className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {READOUTS.map((kind) => (
           <li key={kind} className="rounded-xl border border-line bg-sheet px-3 py-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted">{READOUT_META[kind].short}</p>
+            <p className="text-xs uppercase tracking-wide text-muted">{READOUT_META[kind].short}</p>
             <p className="text-sm text-ink">{READOUT_META[kind].label}</p>
             <CheckpointPrints quotes={quotes} kind={kind} primary={primary} tapeOnly={tapeOnly} />
           </li>
@@ -234,7 +243,7 @@ export function PricePath({
       <ul className="mt-2 grid grid-cols-2 gap-2 text-sm sm:grid-cols-5">
         {points.map((point) => (
           <li key={point.label} className="font-mono text-ink">
-            <span className="block text-[11px] uppercase text-muted">
+            <span className="block text-xs uppercase text-muted">
               {quote.symbol} · {point.label}
             </span>
             {point.value == null ? "Not graded yet" : formatPrice(point.value)}
@@ -268,13 +277,18 @@ export function ReadoutCards({
               href={`/weeks/${slug}/${kind}`}
               className={`panel block h-full p-4 ${current ? "ring-2 ring-pine" : "hover:border-pine/60"}`}
             >
-              <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
+              <p className="text-xs uppercase tracking-wide text-muted">{meta.role}</p>
               <p className="mt-1 font-serif text-2xl text-ink">{meta.label}</p>
               <p className="font-mono text-sm text-pine">{formatWhen(readout.at)}</p>
               <p className="mt-3 text-sm text-ink">
                 {readout.status === "published" ? (
                   <>
-                    Tape <Move value={readout.benchmarkMovePct} /> · {readout.realizedDirection}
+                    Tape{" "}
+                    <SignedMove
+                      move={readout.benchmarkMovePct}
+                      stance={crowdTapeStance(readout.consensusDirection, readout.benchmarkMovePct)}
+                    />{" "}
+                    · {readout.realizedDirection}
                   </>
                 ) : (
                   <span className="text-muted">Scheduled · same cohort</span>
@@ -367,7 +381,7 @@ export function NoiseIndex({
               .filter((stat): stat is { label: string; value: number } => stat.value != null)
               .map((stat) => (
                 <li key={stat.label} className="rounded-xl border border-line bg-sheet px-3 py-2">
-                  <p className="text-[11px] uppercase tracking-wide text-muted">{stat.label}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted">{stat.label}</p>
                   <p className="font-mono text-lg text-ink">
                     <Move value={stat.value} />
                   </p>

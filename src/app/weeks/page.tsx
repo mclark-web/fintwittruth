@@ -58,7 +58,7 @@ export default async function WeeksPage() {
                         href={settled ? `/weeks/${cohort.slug}/${kind}` : `/weeks/${cohort.slug}/pending`}
                         className="block rounded-xl border border-line bg-sheet px-3 py-3 hover:border-pine"
                       >
-                        <span className="text-[11px] tracking-wide text-muted">
+                        <span className="text-xs tracking-wide text-muted">
                           {READOUT_META[kind].short} · {READOUT_META[kind].time}
                         </span>
                         <span className="mt-2 block">

@@ -61,7 +61,7 @@ export default async function PendingPage() {
                 <ul className="mt-4 grid gap-2 sm:grid-cols-2">
                   {pending.map((kind) => (
                     <li key={kind} className="rounded-xl border border-line bg-sheet px-3 py-3">
-                      <p className="text-[11px] uppercase tracking-wide text-muted">{READOUT_META[kind].role}</p>
+                      <p className="text-xs uppercase tracking-wide text-muted">{READOUT_META[kind].role}</p>
                       <p className="mt-1 font-serif text-xl text-ink">{READOUT_META[kind].label}</p>
                       <div className="mt-2 max-w-40">
                         <GcTube score={0} grade="exit" variant="mini" showMeta={false} />

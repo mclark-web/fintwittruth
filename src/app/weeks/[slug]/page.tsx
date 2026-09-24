@@ -96,8 +96,8 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
             <NothingGraded href={`/weeks/${cohort.slug}/pending`} />
           </div>
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
-            <table className="min-w-[720px] w-full text-left text-sm">
+          <div className="settled-grades mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
+            <table className="settled-table w-full text-left text-sm sm:min-w-[720px]">
               <caption className="sr-only">Settled grades for {cohort.title}</caption>
               <thead className="bg-sheet text-xs uppercase tracking-wide text-muted">
                 <tr>
