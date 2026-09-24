@@ -178,6 +178,33 @@ a.btn {
   font-weight: 680;
   margin-top: 4px;
   letter-spacing: -0.02em;
+  color: #f2f1ee;
+}
+
+.sb-tile .chg-glyph {
+  color: #9a9aa3;
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+.sb-tile .chg-num {
+  color: #f2f1ee;
+}
+
+.market-print-note {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #9a9aa3;
+  text-align: right;
+}
+
+.market-move-glyph {
+  color: #9a9aa3;
+  margin-right: 4px;
+}
+
+.market-move-num {
+  color: #f2f1ee;
 }
 
 .sb-tile .lbl {
@@ -228,7 +255,7 @@ a.btn {
   margin-top: 10px;
 }
 
-.vs span {
+.vs > span:not(.tape-mark) {
   font-family: var(--font-mono);
   font-size: 12px;
   padding: 4px 8px;
@@ -282,6 +309,10 @@ a.btn {
 
   .scoreboard {
     justify-content: flex-start;
+  }
+
+  .market-print-note {
+    text-align: left;
   }
 }
 
@@ -379,7 +410,8 @@ a.btn {
   background: rgba(154, 154, 163, 0.1);
 }
 
-.tape-mark .tape-ticker {
+.tape-mark .tape-ticker,
+.vs .tape-mark .tape-ticker {
   color: #f2f1ee;
   font-weight: 500;
 }
@@ -398,7 +430,10 @@ a.btn {
 
 .tape-mark-with .tape-pct,
 .tape-mark-with .tape-glyph,
-.tape-mark-with .tape-tag {
+.tape-mark-with .tape-tag,
+.vs .tape-mark-with .tape-pct,
+.vs .tape-mark-with .tape-glyph,
+.vs .tape-mark-with .tape-tag {
   color: #4cc38a;
 }
 
@@ -410,7 +445,10 @@ a.btn {
 
 .tape-mark-against .tape-pct,
 .tape-mark-against .tape-glyph,
-.tape-mark-against .tape-tag {
+.tape-mark-against .tape-tag,
+.vs .tape-mark-against .tape-pct,
+.vs .tape-mark-against .tape-glyph,
+.vs .tape-mark-against .tape-tag {
   color: #f26d7d;
 }
 
@@ -422,7 +460,10 @@ a.btn {
 
 .tape-mark-flat .tape-pct,
 .tape-mark-flat .tape-glyph,
-.tape-mark-flat .tape-tag {
+.tape-mark-flat .tape-tag,
+.vs .tape-mark-flat .tape-pct,
+.vs .tape-mark-flat .tape-glyph,
+.vs .tape-mark-flat .tape-tag {
   color: #9a9aa3;
   font-weight: 600;
 }

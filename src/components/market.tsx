@@ -13,7 +13,14 @@ export function Move({ value }: { value: number }) {
   const up = value > 0.00005;
   const down = value < -0.00005;
   return (
-    <span className={up ? "text-bull" : "text-muted"}>{formatPct(value)}</span>
+    <span className="market-move">
+      {up || down ? (
+        <span className="market-move-glyph" aria-hidden="true">
+          {up ? "▲" : "▼"}
+        </span>
+      ) : null}
+      <span className="market-move-num tabular-nums">{formatPct(value)}</span>
+    </span>
   );
 }
 
@@ -120,8 +127,19 @@ export function QuoteTape({
       return (
         <div key={quote.symbol} className="sb-tile">
           <div className="sym">{quote.symbol}</div>
-          <div className={`chg ${move == null ? "" : move > 0.00005 ? "text-bull" : "text-muted"}`}>
-            {move == null ? "—" : formatPct(move)}
+          <div className="chg">
+            {move == null ? (
+              "—"
+            ) : (
+              <>
+                {move > 0.00005 || move < -0.00005 ? (
+                  <span className="chg-glyph" aria-hidden="true">
+                    {move > 0 ? "▲" : "▼"}
+                  </span>
+                ) : null}
+                <span className="chg-num tabular-nums">{formatPct(move)}</span>
+              </>
+            )}
           </div>
           <div className="lbl">{now == null ? "Not graded" : tileStamp(kind)}</div>
         </div>
@@ -129,6 +147,7 @@ export function QuoteTape({
     };
     return (
       <div className="scoreboard-stack" aria-label={`${printLabel(kind)} versus Friday session close`}>
+        <p className="market-print-note">Market print · not a grade</p>
         <div className="scoreboard scoreboard-primary">{primary.map(tile)}</div>
         {rest.length > 0 ? <div className="scoreboard scoreboard-rest">{rest.map(tile)}</div> : null}
       </div>
