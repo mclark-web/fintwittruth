@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { disputeHref } from "@/lib/dispute";
 import { formatPct, formatWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import type { CallView, QuoteView } from "@/lib/queries";
@@ -38,7 +39,7 @@ export function CallCard({
             </Link>
             <p className="mt-0.5 text-xs text-muted">
               {formatWhen(call.postedAt)}
-              {call.dataset === "demo" ? " · DEMO" : " · verified"}
+              {call.dataset === "demo" ? " · DEMO" : " · verified real call"}
               {grade ? ` · rank ${grade.peerRank} of ${grade.peerCount}` : " · not on this board"}
             </p>
           </div>
@@ -78,7 +79,15 @@ export function CallCard({
         <span className="uppercase tracking-wide">{call.conviction} conviction</span>
         {call.sourceUrl ? (
           <a href={call.sourceUrl} className="underline-offset-4 hover:text-ink hover:underline">
-            Source
+            Original post
+          </a>
+        ) : null}
+        {call.dataset !== "demo" && call.sourceUrl && grade ? (
+          <a
+            href={disputeHref({ id: call.id, handle: call.handle, sourceUrl: call.sourceUrl })}
+            className="underline-offset-4 hover:text-ink hover:underline"
+          >
+            Dispute this grade
           </a>
         ) : null}
         <Link href={`/calls/${call.id}`} className="underline-offset-4 hover:text-ink hover:underline">

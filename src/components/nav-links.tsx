@@ -12,6 +12,7 @@ export function NavLinks({ latestHref }: { latestHref: string }) {
       label: "FinTwit",
       match: (path: string) => path === "/weeks" || path.startsWith("/weeks/") || path.startsWith("/calls/") || path.startsWith("/accounts/"),
     },
+    { href: "/watchlist", label: "Watchlist", match: (path: string) => path === "/watchlist" || path.startsWith("/real") },
     { href: "/leaderboard", label: "Leaderboard", match: (path: string) => path === "/leaderboard" || path.startsWith("/leaderboard/") },
     { href: "/methodology", label: "Method", match: (path: string) => path === "/methodology" },
   ];

@@ -9,7 +9,7 @@ import { getLeaderboard, type LeaderRow } from "@/lib/queries";
 export const metadata: Metadata = {
   title: "Leaderboard",
   description:
-    "GradedCalls FinTwit account scoreboards. Ranks use settled grades only. STRONG requires the top 30% and a score of at least 70.",
+    "GradedCalls FinTwit account scoreboards. Ranks use settled grades only. STRONG is 70 or more. WEAK is under 40.",
 };
 
 function Board({ title, note, rows }: { title: string; note: string; rows: LeaderRow[] }) {
@@ -98,7 +98,7 @@ export default async function LeaderboardPage() {
       <p className="mt-3 max-w-3xl text-muted">
         Verified posts rank apart from the fictional demo. An average uses the furthest settled grade on each
         call. Hit rate, STRONG rate, and WEAK rate count settled grades only. A call with no grade yet is not
-        in the rank. STRONG is the top 30% of that bucket and also at least 70. Under 70 is WEAK. A 0% fill is
+        in the rank. STRONG is 70 or more. WEAK is under 40. PROVISIONAL is 40 up to 70. A 0% fill is
         EXIT LIQUIDITY.
       </p>
       <div className="mt-3">

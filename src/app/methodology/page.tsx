@@ -9,7 +9,6 @@ import { GC_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_ADJUSTMENT, PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { getCohort } from "@/lib/queries";
 import {
-  STRONG_FRACTION,
   WEAK_LINE,
   DIRECTION_BANDS,
   DIRECTION_MAX,
@@ -119,6 +118,14 @@ export default async function MethodologyPage() {
             </dd>
           </div>
           <div className="panel p-4">
+            <dt className="font-medium text-ink">Verified real calls</dt>
+            <dd className="mt-1 text-sm text-muted">
+              Paste-intake calls use Monday as the open of the 12:00 PM ET bar, and Wednesday and Friday as the
+              4:00 PM ET regular-session close. They skip the Monday gap. The demo book keeps the noon stamps
+              above.
+            </dd>
+          </div>
+          <div className="panel p-4">
             <dt className="font-medium text-ink">Missing print</dt>
             <dd className="mt-1 text-sm text-muted">{PRICE_CLOSED_RULE}</dd>
           </div>
@@ -222,17 +229,14 @@ export default async function MethodologyPage() {
         </p>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-ink/80">
           <li>
-            <GradePill grade="strong" /> is the top {Math.round(STRONG_FRACTION * 100)}% of the peer set and a
-            score of at least {WEAK_LINE}. On a readout, the peer set is every call on that weekly board,
-            watchlist and viral together. On a leaderboard, the peer set is the accounts inside one bucket.
-            Ties at the cutoff are included. Under {WEAK_LINE} is never STRONG.
+            <GradePill grade="strong" /> is a score of 70 or more.
           </li>
           <li>
-            <GradePill grade="weak" /> is any score under {WEAK_LINE}. The line is absolute.
+            <GradePill grade="weak" /> is a score under 40.
           </li>
           <li>
-            <GradePill grade="provisional" /> is a score of {WEAK_LINE} or more that sits outside the peer
-            cut. The card still shows the fill.
+            <GradePill grade="provisional" /> is a score from 40 up to, but not including, 70. The card still
+            shows the fill.
           </li>
           <li>
             <GradePill grade="exit" /> is a 0% fill: the horizon has not closed, or the score is 0. The glass

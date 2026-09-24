@@ -1,3 +1,5 @@
+import { STRONG_LINE, WEAK_CUTOFF } from "./grades";
+
 export const WEAK_LINE = 70;
 export const STRONG_FRACTION = 0.3;
 export const DIRECTION_MAX = 50;
@@ -277,9 +279,11 @@ export function gradeNote(input: {
   const territory =
     input.score <= 0
       ? " GC Scale is 0%: EXIT LIQUIDITY."
-      : input.score < WEAK_LINE
-        ? " That score is WEAK."
-        : "";
+      : input.score >= STRONG_LINE
+        ? " That score is STRONG."
+        : input.score < WEAK_CUTOFF
+          ? " That score is WEAK."
+          : " That score is PROVISIONAL.";
   return `${when}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's regular-session close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;
 }
 
