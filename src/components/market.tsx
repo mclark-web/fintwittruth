@@ -22,10 +22,11 @@ export function CalendarStrip() {
   const steps = [
     { kicker: "Collect opens", title: "Wednesday", detail: "12:00 PM ET" },
     { kicker: "Collect closes", title: "Sunday", detail: "5:00 PM ET" },
-    { kicker: "Monday gap", title: "Monday", detail: "9:30 AM ET" },
-    { kicker: "Weekend-noise grade", title: "Monday noon", detail: "12:00 PM ET" },
-    { kicker: "Same cohort", title: "Wednesday", detail: "12:00 PM ET" },
-    { kicker: "Same cohort, final", title: "Friday", detail: "12:00 PM ET" },
+    ...READOUTS.map((kind) => ({
+      kicker: READOUT_META[kind].role,
+      title: READOUT_META[kind].short,
+      detail: READOUT_META[kind].time,
+    })),
   ];
   return (
     <ol className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -103,8 +104,8 @@ export function CheckpointStrip({
     <section aria-label="Prints used at each checkpoint">
       <h2 className="text-sm font-semibold text-ink">Prints used</h2>
       <p className="mt-1 max-w-3xl text-xs text-muted">
-        Ticker and price at each checkpoint. Monday&apos;s gap is the regular-session open. Noon grades use the
-        12:00 PM ET print.
+        Recorded print at each checkpoint. {READOUT_META.monday.short} is {READOUT_META.monday.time}.{" "}
+        {READOUT_META.wednesday.short} and {READOUT_META.friday.short} are {READOUT_META.wednesday.time}.
       </p>
       <ol className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {READOUTS.map((kind) => (
@@ -121,20 +122,14 @@ export function CheckpointStrip({
 
 export function printLabel(kind: ReadoutKind | "latest"): string {
   if (kind === "latest") return "Latest recorded print";
-  if (kind === "monday-gap") return "Monday regular-session open";
-  if (kind === "monday") return "Monday 12:00 PM ET print";
-  if (kind === "wednesday") return "Wednesday 12:00 PM ET print";
-  return "Friday 12:00 PM ET print";
+  return `${READOUT_META[kind].label} · ${READOUT_META[kind].time}`;
 }
 
 const TILE_ORDER: readonly string[] = TAPE_DISPLAY;
 
 function tileStamp(kind: ReadoutKind | "latest"): string {
-  if (kind === "monday-gap") return "Mon open";
-  if (kind === "monday") return "Mon noon";
-  if (kind === "wednesday") return "Wed noon";
-  if (kind === "friday") return "Fri noon";
-  return "Latest";
+  if (kind === "latest") return "Latest";
+  return READOUT_META[kind].short;
 }
 
 export function QuoteTape({
@@ -198,10 +193,10 @@ export function PricePath({
 }) {
   const points = [
     { label: "Fri ref", value: quote.ref },
-    { label: "Mon open", value: quote.mondayOpen },
-    { label: "Mon noon", value: quote.monday },
-    { label: "Wed noon", value: quote.wednesday },
-    { label: "Fri noon", value: quote.friday },
+    { label: READOUT_META["monday-gap"].short, value: quote.mondayOpen },
+    { label: READOUT_META.monday.short, value: quote.monday },
+    { label: READOUT_META.wednesday.short, value: quote.wednesday },
+    { label: READOUT_META.friday.short, value: quote.friday },
   ];
   const present = points.filter((point): point is { label: string; value: number } => point.value != null);
   const min = Math.min(...present.map((point) => point.value));
@@ -222,7 +217,7 @@ export function PricePath({
         <span className="font-medium text-ink">
           {quote.symbol} <span className="font-normal text-muted">{quote.name}</span>
         </span>
-        <span className="text-xs text-muted">Friday session close, then the recorded open and noon prints</span>
+        <span className="text-xs text-muted">Friday session close, then each checkpoint print</span>
       </figcaption>
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${quote.symbol} path from Friday's regular-session close`} className="w-full">
         <rect x="0" y="0" width={width} height={height} rx="16" fill="#161820" />

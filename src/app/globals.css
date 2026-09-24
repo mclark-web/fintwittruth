@@ -256,6 +256,57 @@ a.btn {
   color: var(--orange-soft);
 }
 
+.readout-bubble {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.readout-when {
+  color: #9a9aa3;
+  letter-spacing: 0.02em;
+}
+
+.readout-print {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0;
+  color: #f2f1ee;
+}
+
+.stance {
+  font-size: 10px;
+  line-height: 1.2;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.stance-with {
+  color: #eb6505;
+  border: 1px solid rgb(235 101 5 / 0.72);
+  background: rgb(235 101 5 / 0.14);
+}
+
+.stance-against {
+  color: #d5d2cb;
+  border: 1px solid rgb(242 241 238 / 0.28);
+  background: #121418;
+}
+
+.stance-flat {
+  color: #9a9aa3;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  background: transparent;
+}
+
+.call-ref {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #c8c4bc;
+}
+
 .vs {
   display: flex;
   gap: 8px;

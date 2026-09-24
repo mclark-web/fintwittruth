@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
-import { CheckpointPrints, CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
+import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { GcTube, GradePill } from "@/components/gc-tube";
-import { DirectionChip } from "@/components/score";
+import { DirectionChip, ReadoutBubble, ReferenceLine } from "@/components/score";
 import { gcGrade } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { READOUT_META } from "@/lib/labels";
@@ -108,9 +108,8 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                     Call
                   </th>
                   {settled.map((kind) => (
-                    <th key={kind} scope="col" className="px-4 py-3 font-medium">
+                    <th key={kind} scope="col" className="px-4 py-3 font-medium normal-case tracking-normal">
                       {READOUT_META[kind].short}
-                      <CheckpointPrints quotes={cohort.quotes} kind={kind} variant="line" />
                     </th>
                   ))}
                 </tr>
@@ -132,6 +131,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                         <DirectionChip direction={call.direction} />
                         <span className="font-mono text-xs text-pine">{call.primary}</span>
                       </span>
+                      <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
                     </td>
                     {settled.map((kind) => {
                       const grade = call.grades[kind];
@@ -139,6 +139,12 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                         <td key={kind} className="px-4 py-3">
                           {grade ? (
                             <Link href={`/weeks/${cohort.slug}/${kind}`} className="block hover:underline">
+                              <ReadoutBubble
+                                kind={kind}
+                                quotes={cohort.quotes}
+                                primary={call.primary}
+                                direction={call.direction}
+                              />
                               <span className="mt-1 block max-w-32">
                                 <GcTube score={grade.score} grade={gcGrade(grade)} variant="mini" showMeta={false} />
                               </span>

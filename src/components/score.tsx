@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { gcGrade } from "@/lib/grades";
-import { initials } from "@/lib/format";
-import { callCheckpointLabel } from "@/lib/prints";
+import { formatPrice, initials } from "@/lib/format";
+import { predictedReadout, referencePrint } from "@/lib/prints";
 import type { GradeView, QuoteView } from "@/lib/queries";
-import { READOUTS, type ReadoutKind } from "@/lib/scoring";
+import { READOUTS, type Direction, type ReadoutKind } from "@/lib/scoring";
 import { READOUT_META } from "@/lib/labels";
 import { GcTube, GradePill } from "./gc-tube";
 
@@ -72,23 +72,58 @@ export function DirectionChip({ direction }: { direction: "bullish" | "bearish" 
   );
 }
 
-export function ReportOutTitle({
+const STANCE_LABEL = {
+  with: "with call",
+  against: "against call",
+  flat: "flat",
+} as const;
+
+export function ReferenceLine({ quotes, primary }: { quotes?: QuoteView[]; primary?: string }) {
+  const ref = referencePrint(quotes, primary);
+  if (!ref) return null;
+  return (
+    <p className="call-ref">
+      Reference {ref.symbol} (${formatPrice(ref.price)})
+    </p>
+  );
+}
+
+export function ReadoutBubble({
   kind,
   quotes,
   primary,
+  direction,
 }: {
   kind: ReadoutKind;
   quotes?: QuoteView[];
   primary?: string;
+  direction?: Direction;
 }) {
-  const label = READOUT_META[kind].short;
-  const suffix = callCheckpointLabel(label, quotes, primary, kind).slice(label.length);
+  const meta = READOUT_META[kind];
+  const print = predictedReadout(quotes, primary, kind, direction);
   return (
-    <>
-      <span className="uppercase tracking-wide">{label}</span>
-      {suffix ? <span className="font-mono tracking-normal normal-case">{suffix}</span> : null}
-    </>
+    <span className="readout-bubble">
+      <span className="readout-when" title={meta.time}>
+        {meta.short}
+      </span>
+      <span className="readout-print">{print?.text ?? primary}</span>
+      {print?.stance ? <span className={`stance stance-${print.stance}`}>{STANCE_LABEL[print.stance]}</span> : null}
+    </span>
   );
+}
+
+export function ReportOutTitle({
+  kind,
+  quotes,
+  primary,
+  direction,
+}: {
+  kind: ReadoutKind;
+  quotes?: QuoteView[];
+  primary?: string;
+  direction?: Direction;
+}) {
+  return <ReadoutBubble kind={kind} quotes={quotes} primary={primary} direction={direction} />;
 }
 
 export function Evolution({
@@ -97,12 +132,14 @@ export function Evolution({
   active,
   quotes,
   primary,
+  direction,
 }: {
   grades: Record<ReadoutKind, GradeView | null>;
   slug: string;
   active?: ReadoutKind;
   quotes?: QuoteView[];
   primary?: string;
+  direction?: Direction;
 }) {
   const settled = READOUTS.filter((kind) => grades[kind] != null);
   return (
@@ -116,12 +153,12 @@ export function Evolution({
           <li key={kind}>
             <Link
               href={`/weeks/${slug}/${kind}`}
-              className={`block min-w-36 rounded-xl border px-3 py-1.5 text-xs ${
+              className={`block min-w-52 rounded-xl border px-3 py-1.5 text-xs ${
                 current ? "border-pine bg-pine/15 text-ink" : "border-line bg-sheet text-ink hover:border-pine"
               }`}
             >
-              <span className="block whitespace-nowrap text-[11px] text-muted">
-                <ReportOutTitle kind={kind} quotes={quotes} primary={primary} />
+              <span className="block text-[11px] text-muted">
+                <ReportOutTitle kind={kind} quotes={quotes} primary={primary} direction={direction} />
               </span>
               <span className="mt-1 flex items-center justify-between gap-2">
                 <span className="font-mono text-sm">{Math.round(grade.score)}%</span>

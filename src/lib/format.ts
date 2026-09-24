@@ -39,6 +39,15 @@ export function formatPct(value: number, digits = 2): string {
   return `${sign}${pct.toFixed(digits)}%`;
 }
 
+/** One decimal from the call-time reference. Positive uses `+`; negative uses a minus sign. */
+export function formatSignedPct(value: number): string {
+  const rounded = Math.round(value * 1000) / 10;
+  const body = Math.abs(rounded).toFixed(1);
+  if (rounded > 0) return `+${body}%`;
+  if (rounded < 0) return `\u2212${body}%`;
+  return "0.0%";
+}
+
 export function formatPrice(value: number): string {
   return value.toLocaleString("en-US", {
     minimumFractionDigits: 2,

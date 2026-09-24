@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarStrip, CheckpointPrints } from "@/components/market";
+import { CalendarStrip } from "@/components/market";
+import { ReadoutBubble, ReferenceLine } from "@/components/score";
 import { settledReadoutKinds } from "@/lib/board";
 import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
 import { GradePill } from "@/components/gc-tube";
@@ -293,9 +294,8 @@ export default async function MethodologyPage() {
                 <tr>
                   <th scope="col" className="py-2 font-medium">Call</th>
                   {exampleKinds.map((kind) => (
-                    <th key={kind} scope="col" className="py-2 font-medium">
+                    <th key={kind} scope="col" className="py-2 font-medium normal-case tracking-normal">
                       {READOUT_META[kind].short}
-                      {featured ? <CheckpointPrints quotes={featured.quotes} kind={kind} variant="line" /> : null}
                     </th>
                   ))}
                 </tr>
@@ -310,11 +310,20 @@ export default async function MethodologyPage() {
                       <span className="mt-0.5 block text-xs font-normal text-muted">
                         {call.sentiment} {call.explicit ? call.primary : "no ticker"}
                       </span>
+                      <ReferenceLine quotes={featured.quotes} primary={call.primary} />
                     </th>
                     {exampleKinds.map((kind) => {
                       const grade = call.grades[kind];
                       return (
                         <td key={kind} className="py-3 font-mono">
+                          {grade ? (
+                            <ReadoutBubble
+                              kind={kind}
+                              quotes={featured.quotes}
+                              primary={call.primary}
+                              direction={call.direction}
+                            />
+                          ) : null}
                           {grade ? `${grade.score}/100` : "Not graded yet"}
                           {grade ? (
                             <span className="mt-1 block text-xs text-muted">

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded } from "@/components/board-state";
-import { CheckpointPrints, PricePath, PriceSource } from "@/components/market";
-import { Avatar, DirectionChip, LevelList, ScoreMark } from "@/components/score";
+import { PricePath, PriceSource } from "@/components/market";
+import { Avatar, DirectionChip, LevelList, ReadoutBubble, ReferenceLine, ScoreMark } from "@/components/score";
 import { formatPct, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
 import { settledGradeKinds } from "@/lib/board";
@@ -109,6 +109,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
             <span className="font-mono text-xs text-pine">{call.primary}</span>
             <span className="text-xs uppercase tracking-wide text-muted">{call.conviction} conviction</span>
           </div>
+          <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
           <p className="mt-4 text-xl leading-snug text-ink">{call.body}</p>
           <div className="mt-4">
             <LevelList levels={call.levels} />
@@ -160,7 +161,15 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                 <li key={kind} className="panel p-4">
                   <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
                   <h3 className="font-serif text-2xl text-ink">{meta.label}</h3>
-                  <p className="text-xs text-muted">{formatWhen(readout.at)}</p>
+                  <p className="text-xs text-muted">{meta.time}</p>
+                  <div className="mt-2">
+                    <ReadoutBubble
+                      kind={kind}
+                      quotes={cohort.quotes}
+                      primary={call.primary}
+                      direction={call.direction}
+                    />
+                  </div>
                   <div className="mt-3">
                     <ScoreMark
                       score={grade.score}
@@ -176,7 +185,6 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                     Tape {formatPct(grade.rawMovePct)} · signed {formatPct(grade.signedMovePct)} · VIX{" "}
                     {formatPct(grade.vixMovePct)}
                   </p>
-                  <CheckpointPrints quotes={cohort.quotes} kind={kind} primary={call.primary} tapeOnly={false} />
                   <Breakdown
                     directionPoints={grade.directionPoints}
                     levelPoints={grade.levelPoints}

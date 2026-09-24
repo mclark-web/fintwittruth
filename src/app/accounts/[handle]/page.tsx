@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { GradePill } from "@/components/gc-tube";
-import { Avatar, DirectionChip, ReportOutTitle, ScoreMark } from "@/components/score";
+import { Avatar, DirectionChip, ReferenceLine, ReportOutTitle, ScoreMark } from "@/components/score";
 import { gcGrade } from "@/lib/grades";
 import { callHasSettledGrade, settledGradeKinds } from "@/lib/board";
 import { formatPct, formatScore } from "@/lib/format";
@@ -138,14 +138,20 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                       {call.body}
                     </Link>
                   </p>
+                  <ReferenceLine quotes={account.quotesBySlug[slug]} primary={call.primary} />
                   <ol className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                     {settledGradeKinds(call.grades).map((kind) => {
                       const grade = call.grades[kind];
                       if (!grade) return null;
                       return (
                         <li key={kind} className="rounded-xl bg-sheet px-3 py-2">
-                          <Link href={`/weeks/${slug}/${kind}`} className="block whitespace-nowrap text-[11px] text-muted hover:underline">
-                            <ReportOutTitle kind={kind} quotes={account.quotesBySlug[slug]} primary={call.primary} />
+                          <Link href={`/weeks/${slug}/${kind}`} className="block text-[11px] text-muted hover:underline">
+                            <ReportOutTitle
+                              kind={kind}
+                              quotes={account.quotesBySlug[slug]}
+                              primary={call.primary}
+                              direction={call.direction}
+                            />
                           </Link>
                           <p className="font-mono text-2xl">
                             {grade.score}
