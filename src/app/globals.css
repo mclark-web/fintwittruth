@@ -385,22 +385,28 @@ a.tag,
 .footer-nav a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   box-sizing: border-box;
   min-height: 44px;
+  min-width: 44px;
   max-width: 100%;
+  text-align: center;
 }
 
 /* Breadcrumbs, lists, and cards: the border box is the target, so wrapped rows do not overlap. */
 :is(a.font-medium, a.text-pine, a.underline-offset-4, .footer-nav a, .rank-list a, ol a, ul a, table a, .panel a, article a, p.text-sm a, p.font-medium a):not(.sr-only) {
   box-sizing: border-box;
   min-height: 44px;
+  min-width: 44px;
   max-width: 100%;
 }
 
 :is(a.font-medium, a.text-pine, a.underline-offset-4, .rank-list a, ol a, ul a, table a, .panel a, article a, p.text-sm a, p.font-medium a):not(.flex):not(.block):not(.inline-flex):not(.sr-only):not(.hit-44):not(.tag):not(.btn) {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
+  text-align: center;
 }
 
 .chip {
