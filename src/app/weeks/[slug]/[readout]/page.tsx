@@ -119,9 +119,9 @@ export default async function ReadoutPage({
                 sessionYmd: etYmd(cohort.mondayAt),
                 time: meta.time,
               }) === LABOR_DAY_UNGRADED_LINE ? (
-              <p>{LABOR_DAY_UNGRADED_LINE}</p>
+              <p className="text-[#9a9aa3]">{LABOR_DAY_UNGRADED_LINE}</p>
             ) : (
-              <p>Prices publish with the grade</p>
+              <p className="text-[#9a9aa3]">Prices publish with the grade</p>
             )}
           </div>
         </div>
