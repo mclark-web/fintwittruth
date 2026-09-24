@@ -81,7 +81,9 @@ a.gc-link {
 }
 .gc-scale.is-mini {
   gap: 6px;
-  max-width: 180px;
+  width: min(128px, 100%) !important;
+  max-width: 100%;
+  min-width: 0;
 }
 .gc-scale.is-mini .gc-meta { gap: 2px; }
 .gc-scale.is-mini .gc-label { font-size: 12px; letter-spacing: 0.08em; }
@@ -653,11 +655,16 @@ a.gc-link {
   background: rgba(154, 154, 163, 0.12);
   border: 1px solid rgba(154, 154, 163, 0.35);
 }
-.gc-grade-tag.provisional { color: #121820; background: #8aa0c8; }
+.gc-grade-tag.provisional {
+  color: #c9c9cf;
+  background: rgba(154, 154, 163, 0.12);
+  border: 1px dashed rgba(154, 154, 163, 0.35);
+}
 .gc-grade-tag.exit {
-  color: #2a220e;
-  background: #c9a35a;
-  /* same typeface / weight / letter-spacing / uppercase as Strong·Weak·Provisional */
+  color: #9a9aa3;
+  background: transparent;
+  border: 1px solid rgba(154, 154, 163, 0.35);
+  /* same typeface / weight / letter-spacing / uppercase as the other grades */
 }
 
 /* Sidebar: tube + meta stacked */

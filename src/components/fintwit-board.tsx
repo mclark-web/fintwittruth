@@ -51,7 +51,7 @@ export function FinTwitBoard({
     <div>
       <div className="ft-hero">
         <div>
-          <div className="chip">{kicker}</div>
+          <div className="chip hit-44">{kicker}</div>
           <h1>{title}</h1>
           <p className="mt-2 max-w-[48ch] text-sm leading-relaxed text-muted">{lede}</p>
         </div>

@@ -146,6 +146,19 @@ a.btn {
   align-items: start;
 }
 
+.ft-hero > *,
+.ft-layout > *,
+.panel,
+.panel .flex,
+.panel .flex > *,
+.vs {
+  min-width: 0;
+}
+
+.panel {
+  max-width: 100%;
+}
+
 .scoreboard {
   display: flex;
   gap: 10px;
@@ -304,7 +317,7 @@ a.btn {
 @media (max-width: 960px) {
   .ft-hero,
   .ft-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .scoreboard {
