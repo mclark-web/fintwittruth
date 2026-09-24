@@ -6,8 +6,8 @@ export const READOUT_META: Record<
 > = {
   "monday-gap": { label: "Monday gap", short: "Gap", role: "Friday close to the open", time: "9:30 AM ET" },
   monday: { label: "Monday noon", short: "Noon", role: "Weekend-noise grade", time: "12:00 PM ET" },
-  wednesday: { label: "Wednesday", short: "Wed", role: "Same cohort, noon", time: "12:00 PM ET" },
-  friday: { label: "Friday", short: "Fri", role: "Same cohort, final", time: "12:00 PM ET" },
+  wednesday: { label: "Wed close", short: "Wed close", role: "Same cohort, at the close", time: "4:00 PM ET" },
+  friday: { label: "Fri close", short: "Fri close", role: "Same cohort, final close", time: "4:00 PM ET" },
 };
 
 /** User-facing name for the 0–100 fill. The peer cut still lives in scoring.ts. */

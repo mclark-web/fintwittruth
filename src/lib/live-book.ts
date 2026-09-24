@@ -111,7 +111,7 @@ export function assertLiveCall(
   }
   if (postedAt < window.collectStart || postedAt > window.collectEnd) {
     throw new Error(
-      `Call ${call.id} at ${call.postedAt} is outside the Wednesday noon to Sunday 5pm ET window.`,
+      `Call ${call.id} at ${call.postedAt} is outside the Wednesday 12:00 PM ET to Sunday 5:00 PM ET collect window.`,
     );
   }
   if (!call.verification.trim()) {

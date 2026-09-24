@@ -51,7 +51,7 @@ export function FinTwitBoard({
     <div>
       <div className="ft-hero">
         <div>
-          <div className="chip">{kicker}</div>
+          <div className="chip hit-44">{kicker}</div>
           <h1>{title}</h1>
           <p className="mt-2 max-w-[48ch] text-sm leading-relaxed text-muted">{lede}</p>
         </div>
@@ -120,7 +120,17 @@ export function FinTwitBoard({
                           {call.displayName}
                         </Link>
                       </span>
-                      <span className={pill === "weak" || pill === "exit" ? "text-bear" : pill === "strong" ? "text-bull" : "text-muted"}>
+                      <span
+                        className={
+                          pill === "strong"
+                            ? "text-[#eb6505]"
+                            : pill === "exit"
+                              ? "text-[#c9a35a]"
+                              : pill === "weak"
+                                ? "text-[#c9c9cf]"
+                                : "text-muted"
+                        }
+                      >
                         {Math.round(grade.score)}%
                       </span>
                     </li>
@@ -132,12 +142,12 @@ export function FinTwitBoard({
           <section className="panel p-4">
             <h2 className="text-sm font-semibold text-ink">Methodology</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Posts lock with the weekend book. Grades use the Monday open and the noon prints against Friday&apos;s
-              regular-session close for SPY, QQQ, DIA, and VIX.
+              Posts lock with the weekend book. Grades use the Monday open, Monday noon, and the Wednesday and
+              Friday official closes against Friday&apos;s regular-session close for SPY, QQQ, DIA, and VIX.
             </p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {["Monday open", "Public sources", "Sample size", "No edits after lock"].map((chip) => (
-                <span key={chip} className="rounded-full border border-line px-2 py-1 text-[11px] text-muted">
+                <span key={chip} className="rounded-full border border-line px-2 py-1 text-xs text-[#9a9aa3]">
                   {chip}
                 </span>
               ))}

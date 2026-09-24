@@ -5,7 +5,7 @@
       "slug": "2026-09-21",
       "historySlug": "2026-09-21",
       "title": "Verified weekend book",
-      "summary": "Public posts from Wednesday, September 16, 2026 at noon ET through Sunday, September 20 at 5pm ET. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Fictional demo posts are on the demo board. Monday and Wednesday noon prints are recorded. Friday, September 25 had not printed at fetch time.",
+      "summary": "Public posts from Wednesday, September 16, 2026 at noon ET through Sunday, September 20 at 5pm ET. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Fictional demo posts are on the demo board. Monday noon is recorded, and Wednesday is the official September 23 close. Friday, September 25 had not reached the post-close buffer at fetch time.",
       "monday": { "year": 2026, "month": 9, "day": 21 },
       "calls": [
         {
@@ -28,7 +28,7 @@
           "explicit": true,
           "levels": [],
           "body": "I hope you have picked up the cautionary messages as you were read through this weekly review. It appears the market is preparing for additional pullback. The market internals are flashing signs of weakness. All the major indexes other than SPX and NDX are in a near term downtrend pattern.",
-          "verification": "Fetched 2026-09-22 from the canonical Substack URL. Publication post_date 2026-09-20T04:52:42.466Z (Sunday 12:52 AM ET), inside the Wed noon–Sun 5pm ET window. Excerpt is contiguous public text. Graded on the SPY/QQQ/DIA tape because the post names SPX and the major indexes. No price level was stated, so none is stored."
+          "verification": "Fetched 2026-09-22 from the canonical Substack URL. Publication post_date 2026-09-20T04:52:42.466Z (Sunday 12:52 AM ET), inside the Wednesday 12:00 PM ET through Sunday 5:00 PM ET collect window. Excerpt is contiguous public text. Graded on the SPY/QQQ/DIA tape because the post names SPX and the major indexes. No price level was stated, so none is stored."
         },
         {
           "id": "2026-09-21__piggostradingdesk",

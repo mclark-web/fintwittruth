@@ -37,7 +37,7 @@ async function main() {
       historySlug: cohort,
       title: "Verified weekend book",
       summary:
-        "Public posts from the Wednesday noon to Sunday 5pm ET window. Each card links its source. Fictional demo posts are not in this book.",
+        "Public posts from the Wednesday 12:00 PM ET collect open through Sunday 5:00 PM ET. Each card links its source. Fictional demo posts are not in this book.",
       monday: { year, month, day },
     },
     toLiveCall(parsed, id),

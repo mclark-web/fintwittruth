@@ -145,7 +145,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                       if (!grade) return null;
                       return (
                         <li key={kind} className="rounded-xl bg-sheet px-3 py-2">
-                          <Link href={`/weeks/${slug}/${kind}`} className="text-[11px] uppercase text-muted hover:underline">
+                          <Link href={`/weeks/${slug}/${kind}`} className="text-xs uppercase text-[#9a9aa3] hover:underline">
                             {READOUT_META[kind].short}
                           </Link>
                           <p className="font-mono text-2xl">

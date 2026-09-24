@@ -141,12 +141,12 @@ export default async function HomePage({
 
       <section className="mt-12" aria-labelledby="calendar-heading">
         <h2 id="calendar-heading" className="text-3xl text-ink">
-          One cohort. Gap, noon, then the week.
+          One cohort. Gap, noon, then the closes.
         </h2>
         <p className="mt-2 max-w-3xl text-muted">
           Monday&apos;s open and Monday noon are the primary reads on the weekend book. Wednesday and Friday keep
-          grading that same cohort. A new collect window opens Wednesday at noon, and it does not replace the
-          book already being graded.
+          grading that same cohort at the official close. A new collect window opens Wednesday at noon, and it
+          does not replace the book already being graded.
         </p>
         <div className="mt-5">
           <CalendarStrip />
@@ -189,7 +189,7 @@ export default async function HomePage({
                     return (
                       <li key={kind}>
                         <Link href={`/weeks/${featured.slug}/${kind}`} className="block rounded-xl bg-sheet px-3 py-2">
-                          <span className="text-[11px] uppercase text-muted">{READOUT_META[kind].short}</span>
+                          <span className="text-xs uppercase text-[#9a9aa3]">{READOUT_META[kind].short}</span>
                           <span className="mt-1 block font-mono text-2xl">
                             {Math.round(grade.score)}
                             <span className="text-sm text-muted">%</span>

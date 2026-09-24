@@ -17,9 +17,9 @@ type CohortHistory = {
 };
 
 type SymbolHistory = {
-  /** Prior Friday regular-session close. Used as the weekend reference for gap and noon moves. */
+  /** Yahoo regular-session close. Weekend reference, and the Wednesday and Friday checkpoint. */
   close: Record<string, number>;
-  /** Yahoo adjclose for the same dates. Stored for audit. Not used for gap or noon moves. */
+  /** Yahoo adjclose for the same dates. Stored for audit. Not used for gap, noon, or close grades. */
   adjClose: Record<string, number>;
   dailyOpen: Record<string, number>;
   noonOpen: Record<string, number>;
@@ -47,7 +47,7 @@ export const PRICE_CLOSED_RULE = file.closedMarketRule;
 export const VIX_VENDOR_SYMBOL = file.vixSymbol;
 
 export const PRICE_SOURCE_SHORT =
-  "Weekend reference is the prior Friday Yahoo Finance regular-session close for SPY, QQQ, DIA, and VIX. Monday's gap uses the regular-session open. Noon grades use the open of the 12:00 PM ET 5-minute bar. A closed or future session is left blank.";
+  "Weekend reference is the prior Friday Yahoo Finance regular-session close for SPY, QQQ, DIA, and VIX. Monday's gap uses the regular-session open. Monday noon is the open of the 12:00 PM ET 5-minute bar. Wednesday and Friday use the official daily close (4:00 PM ET, or 1:00 PM ET on an early close). A closed session or a close that is not due yet is left blank.";
 
 function finite(value: number | undefined, label: string): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -76,7 +76,7 @@ export function sessionClose(symbol: string, date: string): number {
   return value;
 }
 
-/** Yahoo adjclose for audit. Do not use this against unadjusted opens or noon bars. */
+/** Yahoo adjclose for audit. Do not use this against unadjusted opens, noon bars, or official closes. */
 export function adjustedClose(symbol: string, date: string): number {
   const value = finite(
     seriesFor(symbol).adjClose[date],
@@ -133,11 +133,13 @@ export type CohortQuotePrint = {
 function sessionPrice(
   symbol: string,
   spec: ReadoutPrint | null,
-  field: "dailyOpen" | "noonOpen",
+  field: "dailyOpen" | "noonOpen" | "close",
 ): number | null {
   if (spec == null) return null;
   if (spec.session === "closed") return null;
-  return field === "dailyOpen" ? sessionOpen(symbol, spec.date) : noonOpen(symbol, spec.date);
+  if (field === "dailyOpen") return sessionOpen(symbol, spec.date);
+  if (field === "noonOpen") return noonOpen(symbol, spec.date);
+  return sessionClose(symbol, spec.date);
 }
 
 /** Quotes for one cohort. Every number comes from market-history.json. */
@@ -152,8 +154,8 @@ export function quotesForCohort(slug: string, symbols: readonly string[]): Cohor
     refDate: cohort.referenceDate,
     mondayOpen: sessionPrice(symbol, cohort.monday, "dailyOpen"),
     monday: sessionPrice(symbol, cohort.monday, "noonOpen"),
-    wednesday: sessionPrice(symbol, cohort.wednesday, "noonOpen"),
-    friday: sessionPrice(symbol, cohort.friday, "noonOpen"),
+    wednesday: sessionPrice(symbol, cohort.wednesday, "close"),
+    friday: sessionPrice(symbol, cohort.friday, "close"),
   }));
 }
 

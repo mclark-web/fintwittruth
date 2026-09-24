@@ -59,16 +59,7 @@ export function ScoreMark({
 }
 
 export function DirectionChip({ direction }: { direction: "bullish" | "bearish" }) {
-  const bull = direction === "bullish";
-  return (
-    <span
-      className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${
-        bull ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
-      }`}
-    >
-      {direction}
-    </span>
-  );
+  return <span className="direction-tag">{direction}</span>;
 }
 
 export function Evolution({
@@ -96,7 +87,7 @@ export function Evolution({
                 current ? "border-pine bg-pine/15 text-ink" : "border-line bg-sheet text-ink hover:border-pine"
               }`}
             >
-              <span className="block text-[10px] uppercase tracking-wide text-muted">
+              <span className="block text-xs uppercase tracking-wide text-[#9a9aa3]">
                 {READOUT_META[kind].short}
               </span>
               <span className="mt-1 flex items-center justify-between gap-2">

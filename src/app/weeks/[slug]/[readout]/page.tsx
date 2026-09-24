@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PendingSettleLink } from "@/components/board-state";
 import { FinTwitBoard } from "@/components/fintwit-board";
-import { CohortWindow, Move, ReadoutCards } from "@/components/market";
+import { CohortWindow, ReadoutCards, TapeMark } from "@/components/market";
 import { READOUT_META } from "@/lib/labels";
 import { pendingReadoutKinds } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
@@ -94,8 +94,8 @@ export default async function ReadoutPage({
               role="img"
               aria-label={`${Math.round(readout.consensusBullish * 100)} percent bullish and ${Math.round(readout.consensusBearish * 100)} percent bearish`}
             >
-              <div className="bg-bull" style={{ width: `${readout.consensusBullish * 100}%` }} />
-              <div className="bg-bear" style={{ width: `${readout.consensusBearish * 100}%` }} />
+              <div className="bg-[#c9c9cf]" style={{ width: `${readout.consensusBullish * 100}%` }} />
+              <div className="bg-[#9a9aa3]" style={{ width: `${readout.consensusBearish * 100}%` }} />
             </div>
             <p className="mt-2 text-sm text-muted">
               {Math.round(readout.consensusBullish * 100)}% bullish · {Math.round(readout.consensusBearish * 100)}% bearish · crowd {readout.consensusDirection}
@@ -104,7 +104,12 @@ export default async function ReadoutPage({
           <p className="font-mono text-sm text-ink">
             {readout.status === "published" ? (
               <>
-                {readout.benchmarkSymbol} <Move value={readout.benchmarkMovePct} /> from Friday&apos;s close
+                <TapeMark
+                  direction={readout.consensusDirection}
+                  move={readout.benchmarkMovePct}
+                  label={readout.benchmarkSymbol}
+                />{" "}
+                from Friday&apos;s close
                 {readout.strongCutoff > 0 ? ` · STRONG line ${readout.strongCutoff}/100` : ""}
               </>
             ) : (

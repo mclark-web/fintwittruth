@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { formatPct, formatWhen } from "@/lib/format";
+import { formatWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
 import { Avatar, DirectionChip, Evolution, LevelList, ScoreMark } from "./score";
-import { printAt } from "./market";
+import { printAt, TapeMark } from "./market";
 
 const TAPE = ["SPY", "DIA", "QQQ", "VIX"] as const;
 
@@ -36,7 +36,7 @@ export function CallCard({
             <Link href={`/accounts/${call.handle}`} className="font-medium text-ink hover:underline">
               {call.displayName} <span className="font-normal text-muted">@{call.handle}</span>
             </Link>
-            <p className="mt-0.5 text-xs text-muted">
+            <p className="mt-0.5 font-mono text-xs text-[#c9c9cf]">
               {formatWhen(call.postedAt)}
               {call.dataset === "demo" ? " · DEMO" : " · verified"}
               {grade ? ` · rank ${grade.peerRank} of ${grade.peerCount}` : " · not on this board"}
@@ -60,9 +60,7 @@ export function CallCard({
         <div className="vs">
           {moves.map((item) =>
             item.move == null ? null : (
-              <span key={item.symbol} className={item.move > 0.00005 ? "text-bull" : item.move < -0.00005 ? "text-bear" : undefined}>
-                {item.symbol} {formatPct(item.move)}
-              </span>
+              <TapeMark key={item.symbol} direction={call.direction} move={item.move} label={item.symbol} />
             ),
           )}
         </div>
@@ -77,7 +75,7 @@ export function CallCard({
         <span>{call.toneLabel || (call.sentiment === "panic" ? "Panic" : "Melt-up")} · {call.bucket === "viral" ? "Viral" : "Watchlist"}</span>
         <span className="uppercase tracking-wide">{call.conviction} conviction</span>
         {call.sourceUrl ? (
-          <a href={call.sourceUrl} className="underline-offset-4 hover:text-ink hover:underline">
+          <a href={call.sourceUrl} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
             Source
           </a>
         ) : null}
