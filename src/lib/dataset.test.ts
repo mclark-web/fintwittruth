@@ -11,7 +11,7 @@ import {
   sessionClose,
   sessionOpen,
 } from "./quotes";
-import { WEAK_LINE, CONVICTION_WEIGHT, EQUITY_TAPE, READOUTS, VIX_MAX, equityTapeMove, scoreToBadge } from "./scoring";
+import { STRONG_LINE, WEAK_LINE, CONVICTION_WEIGHT, EQUITY_TAPE, READOUTS, VIX_MAX, equityTapeMove, scoreToBadge } from "./scoring";
 
 const data = buildDataset();
 
@@ -85,18 +85,20 @@ test("watchlist and viral posts share the weekly board", () => {
   }
 });
 
-test("STRONG requires the top 30% and a score of at least 70", () => {
+test("STRONG is 70 or more and WEAK is under 40 on every board", () => {
   for (const cohort of data.cohorts) {
     for (const kind of READOUTS) {
       const grades = cohort.grades.filter((grade) => grade.readout === kind);
       if (grades.length === 0) continue;
-      const sorted = [...grades].sort((a, b) => b.score - a.score);
-      const slots = Math.ceil(grades.length * 0.3);
-      const cutoff = sorted[slots - 1]?.score ?? Number.POSITIVE_INFINITY;
+      const board = cohort.readouts.find((item) => item.kind === kind);
+      if (board?.status === "published") assert.equal(board.strongCutoff, STRONG_LINE);
       for (const grade of grades) {
-        const expected = grade.score >= cutoff && grade.score >= WEAK_LINE;
-        assert.equal(grade.isStrong, expected);
-        if (grade.score < WEAK_LINE) assert.equal(grade.isStrong, false);
+        assert.equal(grade.isStrong, grade.score >= STRONG_LINE);
+        assert.equal(grade.isWeak, grade.score > 0 && grade.score < WEAK_LINE);
+        if (grade.score >= WEAK_LINE && grade.score < STRONG_LINE) {
+          assert.equal(grade.isStrong, false);
+          assert.equal(grade.isWeak, false);
+        }
       }
     }
   }
@@ -273,11 +275,11 @@ test("selloff calls are not STRONG on a 1%+ up Monday", () => {
       assert.ok(call);
       if (call.direction === "bearish") {
         assert.equal(grade.isStrong, false, `${call.handle} bearish call is not STRONG on ${kind}`);
-        assert.ok(grade.score < WEAK_LINE, `${call.handle} score ${grade.score} on up ${kind}`);
+        assert.ok(grade.score < STRONG_LINE, `${call.handle} score ${grade.score} on up ${kind}`);
         assert.ok(grade.directionPoints <= 3, `${call.handle} direction points ${grade.directionPoints}`);
         assert.ok(grade.signedMovePct < 0);
       }
-      if (call.direction === "bullish" && tape >= 0.01 && grade.score >= WEAK_LINE) {
+      if (call.direction === "bullish" && tape >= 0.01 && grade.score >= STRONG_LINE) {
         assert.ok(grade.directionPoints >= 34);
       }
     }
@@ -308,7 +310,7 @@ test("the verified weekend book and the fictional doom book are both graded", ()
     const call = live[0].calls.find((item) => item.id === grade.callId);
     assert.equal(call?.direction, "bearish");
     assert.equal(grade.isStrong, false);
-    assert.ok(grade.score < WEAK_LINE);
+    assert.ok(grade.score < STRONG_LINE);
     assert.ok(grade.vixPoints >= 0 && grade.vixPoints <= VIX_MAX);
     assert.match(grade.note, /SPY, QQQ, and DIA/);
     assert.match(grade.note, /VIX/);
@@ -335,11 +337,11 @@ test("direction matches the tape on every published readout", () => {
         assert.ok(Math.abs(grade.signedMovePct - expectedSigned) < 1e-12);
         if (tape >= 0.01 && call.direction === "bearish") {
           assert.equal(grade.isStrong, false);
-          assert.ok(grade.score < WEAK_LINE);
+          assert.ok(grade.score < STRONG_LINE);
         }
         if (tape <= -0.01 && call.direction === "bullish") {
           assert.equal(grade.isStrong, false);
-          assert.ok(grade.score < WEAK_LINE);
+          assert.ok(grade.score < STRONG_LINE);
         }
       }
     }

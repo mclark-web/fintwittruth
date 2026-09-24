@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  STRONG_LINE,
   WEAK_LINE,
   directionPoints,
   rankPeers,
@@ -66,8 +67,9 @@ test("a fully specified call can score 100 and a vague call stays under 70", () 
     },
     { tapeMove: 0.03, primaryRef: 100, primaryNow: 103, vixMove: 0 },
   );
-  assert.ok(vague.score < WEAK_LINE);
-  assert.equal(vague.isWeak, true);
+  assert.ok(vague.score < STRONG_LINE);
+  assert.ok(vague.score >= WEAK_LINE);
+  assert.equal(vague.isWeak, false);
 });
 
 test("busted invalidation caps level points", () => {
@@ -88,7 +90,7 @@ test("busted invalidation caps level points", () => {
   assert.equal(busted.levelPoints, 2);
 });
 
-test("STRONG requires the top 30% and a score of at least 70", () => {
+test("STRONG is 70 or more and WEAK is under 40, with no peer cut", () => {
   const ranked = rankPeers([
     { id: "a", score: 90, tieBreak: "a" },
     { id: "b", score: 80, tieBreak: "b" },
@@ -100,17 +102,26 @@ test("STRONG requires the top 30% and a score of at least 70", () => {
     { id: "h", score: 30, tieBreak: "h" },
     { id: "i", score: 20, tieBreak: "i" },
     { id: "j", score: 10, tieBreak: "j" },
+    { id: "k", score: 0, tieBreak: "k" },
   ]);
   const strongIds = ranked.filter((row) => row.isStrong).map((row) => row.id);
-  assert.deepEqual(strongIds.sort(), ["a", "b", "c"]);
-  const under = ranked.find((row) => row.id === "j");
-  assert.equal(under?.isWeak, true);
-  const clear = ranked.find((row) => row.id === "d");
-  assert.equal(clear?.isStrong, false);
-  assert.equal(clear?.isWeak, false);
+  assert.deepEqual(strongIds.sort(), ["a", "b", "c", "d"]);
+  const weakIds = ranked.filter((row) => row.isWeak).map((row) => row.id);
+  assert.deepEqual(weakIds.sort(), ["h", "i", "j"]);
+  const mid = ranked.find((row) => row.id === "e");
+  assert.equal(mid?.isStrong, false);
+  assert.equal(mid?.isWeak, false);
+  const line = ranked.find((row) => row.id === "g");
+  assert.equal(line?.isStrong, false);
+  assert.equal(line?.isWeak, false);
+  const zero = ranked.find((row) => row.id === "k");
+  assert.equal(zero?.isStrong, false);
+  assert.equal(zero?.isWeak, false);
+  assert.equal(ranked[0]?.peerRank, 1);
+  assert.equal(ranked.find((row) => row.id === "c")?.peerRank, 2);
 });
 
-test("a top-30% score under 70 is WEAK and not STRONG", () => {
+test("a leading score under 70 is PROVISIONAL, not STRONG", () => {
   const ranked = rankPeers([
     { id: "a", score: 69, tieBreak: "a" },
     { id: "b", score: 68, tieBreak: "b" },
@@ -118,6 +129,7 @@ test("a top-30% score under 70 is WEAK and not STRONG", () => {
     { id: "d", score: 20, tieBreak: "d" },
   ]);
   assert.equal(ranked.find((row) => row.id === "a")?.isStrong, false);
-  assert.equal(ranked.find((row) => row.id === "a")?.isWeak, true);
+  assert.equal(ranked.find((row) => row.id === "a")?.isWeak, false);
+  assert.equal(ranked.find((row) => row.id === "d")?.isWeak, true);
   assert.ok(ranked.every((row) => !row.isStrong));
 });

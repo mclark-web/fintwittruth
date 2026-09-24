@@ -224,8 +224,8 @@ export default async function HomePage({
         </div>
         <p className="mt-2 text-sm text-muted">
           Watchlist accounts with a settled grade, ranked inside that bucket. Each average uses the furthest
-          settled grade. STRONG, WEAK, and hit rate count settled grades only. STRONG is the top 30% of this
-          board and also at least 70. WEAK is under 70.
+          settled grade. STRONG, WEAK, and hit rate count settled grades only. STRONG is 70 or more. WEAK is
+          under 40. PROVISIONAL is 40 or more and under 70.
         </p>
         <ol className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
           {board.slice(0, 5).map((row) => (
