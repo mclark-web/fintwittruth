@@ -342,9 +342,14 @@ a.btn {
 }
 
 .site-header {
-  height: 56px;
-  max-height: 56px;
   overflow: visible;
+}
+
+@media (min-width: 1024px) {
+  .site-header {
+    height: 56px;
+    max-height: 56px;
+  }
 }
 
 .nav-probe {
@@ -369,33 +374,33 @@ a.btn {
   background: transparent;
 }
 
-.hit-44,
-a.font-medium.text-ink,
-a.underline-offset-4,
-a.tag,
-a.text-pine {
-  position: relative;
+/* Closed disclosures must not keep a layout box. The UA hides them with
+   content-visibility, which still reports a box and can cover the footer. */
+details:not([open]) > :not(summary) {
+  display: none;
 }
 
-.hit-44 {
+.hit-44,
+a.tag,
+.footer-nav a {
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  max-width: 100%;
 }
 
-.hit-44::before,
-.chip::after,
-a.font-medium.text-ink::before,
-a.underline-offset-4::before,
-a.tag::before,
-a.text-pine::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 44px;
-  min-width: 44px;
-  transform: translateY(-50%);
+/* Breadcrumbs, lists, and cards: the border box is the target, so wrapped rows do not overlap. */
+:is(a.font-medium, a.text-pine, a.underline-offset-4, .footer-nav a, .rank-list a, ol a, ul a, table a, .panel a, article a, p.text-sm a, p.font-medium a):not(.sr-only) {
+  box-sizing: border-box;
+  min-height: 44px;
+  max-width: 100%;
+}
+
+:is(a.font-medium, a.text-pine, a.underline-offset-4, .rank-list a, ol a, ul a, table a, .panel a, article a, p.text-sm a, p.font-medium a):not(.flex):not(.block):not(.inline-flex):not(.sr-only):not(.hit-44):not(.tag):not(.btn) {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .chip {

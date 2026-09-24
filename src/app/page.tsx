@@ -151,7 +151,7 @@ export default async function HomePage({
         <p className="mt-2 max-w-3xl text-muted">
           Fifteen public accounts. {TRACKING_EMPTY} until a status URL is confirmed. Demo posts stay on the demo board.
         </p>
-        <ul className="mt-4 flex flex-wrap gap-2">
+        <ul className="mt-4 flex flex-wrap gap-x-2 gap-y-3">
           {WATCHLIST.map((account) => (
             <li key={account.handle}>
               <Link href={`/accounts/${account.handle}`} className="tag hover:text-ink">

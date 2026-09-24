@@ -52,23 +52,22 @@ export async function SiteHeader() {
     </>
   );
   return (
-    <>
-      <header className="site-header sticky top-0 z-20 border-b border-line bg-[#0b0c0e]/95 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-h-14 items-center gap-3 px-4 sm:px-7 max-w-6xl">
-          <Link href="/" className="hit-44 flex min-h-11 shrink-0 items-center gap-2.5 whitespace-nowrap" aria-label={PRODUCT_NAME}>
-            <BrandMark />
-            <span className="hidden text-[17px] font-semibold tracking-tight text-ink min-[480px]:inline">
-              Graded<span className="text-[#eb6505]">Calls</span>
-            </span>
-          </Link>
+    <header className="site-header sticky top-0 z-20 border-b border-line bg-[#0b0c0e]/95 backdrop-blur-md">
+      <div className="header-bar mx-auto grid max-w-6xl grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 px-4 sm:px-7 lg:h-14 lg:max-h-14 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+        <Link href="/" className="hit-44 flex h-14 min-h-11 shrink-0 items-center gap-2.5 whitespace-nowrap" aria-label={PRODUCT_NAME}>
+          <BrandMark />
+          <span className="hidden text-[17px] font-semibold tracking-tight text-ink min-[480px]:inline">
+            Graded<span className="text-[#eb6505]">Calls</span>
+          </span>
+        </Link>
+        <div className="flex h-14 min-w-0 items-center">
           <Suspense fallback={<span className="block h-11 min-w-0 flex-1" aria-hidden />}>
             <NavLinks latestHref={latestHref} />
           </Suspense>
-          <div className="hidden shrink-0 items-center gap-2 lg:flex">{tools}</div>
         </div>
-      </header>
-      <div className="header-tools flex gap-2 px-4 py-2 lg:hidden">{tools}</div>
-    </>
+        <div className="header-tools col-span-2 flex gap-2 pb-2 lg:col-span-1 lg:h-14 lg:items-center lg:pb-0">{tools}</div>
+      </div>
+    </header>
   );
 }
 
@@ -85,7 +84,7 @@ export function SiteFooter() {
             A {UMBRELLA_NAME} vertical, with {SIBLING_NAMES[0]} and {SIBLING_NAMES[1]}. {NAV_NAME} is this board.
           </p>
         </div>
-        <nav aria-label="Footer" className="footer-nav flex flex-wrap gap-x-4 gap-y-2">
+        <nav aria-label="Footer" className="footer-nav flex flex-wrap gap-x-4 gap-y-3">
           <Link href="/" className="hit-44 hover:text-[#ee9a44]">
             Hub
           </Link>
