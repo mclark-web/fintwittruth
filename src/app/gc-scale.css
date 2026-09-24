@@ -72,6 +72,7 @@ a.gc-link {
   align-items: stretch;
   gap: 12px;
   position: relative;
+  isolation: isolate;
   width: 100%;
   max-width: 320px;
 }
@@ -148,11 +149,26 @@ a.gc-link {
 .gc-scale.is-sidebar .gc-vial {
   --tube-h: 36px;
 }
+.gc-scale.is-inline .gc-tube-slot {
+  flex: 1;
+  min-width: 100px;
+}
 .gc-scale.is-inline .gc-tube,
 .gc-scale.is-inline .gc-vial {
   --tube-h: 24px;
-  flex: 1;
-  min-width: 100px;
+  width: 100%;
+  min-width: 0;
+  flex: none;
+}
+
+/* The bloom is clipped to the glass so it cannot sit behind the label row or pill. */
+.gc-tube-slot {
+  position: relative;
+  width: 100%;
+  overflow: clip;
+  contain: paint;
+  border-radius: 999px;
+  z-index: 1;
 }
 
 /* Inner glass rim + subtle refraction ring */
@@ -194,11 +210,12 @@ a.gc-link {
   opacity: 0.9;
 }
 
-/* Soft bloom behind tube (follows fill width) — outer halo from reference */
+/* Soft bloom behind tube (follows fill width) — outer halo from reference.
+   Stays inside the glass. The label row and pill sit on charcoal, not this glow. */
 .gc-bloom {
   position: absolute;
-  top: -48%;
-  bottom: -48%;
+  top: 0;
+  bottom: 0;
   left: -8%;
   width: calc(var(--gc-fill) + 16%);
   z-index: 0;
@@ -613,6 +630,11 @@ a.gc-link {
   gap: 4px;
   position: relative;
   z-index: 2;
+  align-self: flex-start;
+  max-width: 100%;
+  background-color: #14171e;
+  border-radius: 10px;
+  padding: 2px 4px;
 }
 .gc-scale.is-centered .gc-meta,
 .gc-scale.is-hero .gc-meta {
@@ -647,17 +669,23 @@ a.gc-link {
 }
 .gc-grade-tag.strong {
   color: #eb6505;
-  background: rgba(235, 101, 5, 0.12);
+  background:
+    linear-gradient(rgba(235, 101, 5, 0.12), rgba(235, 101, 5, 0.12)),
+    #14171e;
   border: 1px solid rgba(235, 101, 5, 0.35);
 }
 .gc-grade-tag.weak {
   color: #c9c9cf;
-  background: rgba(154, 154, 163, 0.12);
+  background:
+    linear-gradient(rgba(154, 154, 163, 0.12), rgba(154, 154, 163, 0.12)),
+    #14171e;
   border: 1px solid rgba(154, 154, 163, 0.35);
 }
 .gc-grade-tag.provisional {
   color: #c9c9cf;
-  background: rgba(154, 154, 163, 0.12);
+  background:
+    linear-gradient(rgba(154, 154, 163, 0.12), rgba(154, 154, 163, 0.12)),
+    #14171e;
   border: 1px dashed rgba(154, 154, 163, 0.35);
 }
 .gc-grade-tag.exit {
@@ -900,13 +928,18 @@ a.gc-link {
 }
 
 /* Bloom follows fill HEIGHT from bottom */
+.gc-scale.is-vertical .gc-tube-slot {
+  width: fit-content;
+  margin: 0 auto;
+}
 .gc-scale.is-vertical .gc-bloom {
   top: auto;
-  bottom: -12%;
-  left: -60%;
-  right: -60%;
+  bottom: 0;
+  left: 0;
+  right: 0;
   width: auto;
-  height: calc(var(--gc-fill) + 18%);
+  height: calc(var(--gc-fill) + 12%);
+  max-height: 100%;
   background:
     radial-gradient(ellipse 50% 55% at 50% 14%, rgba(254, 224, 168, 0.7), transparent 58%),
     radial-gradient(ellipse 55% 70% at 50% 35%, rgba(235, 101, 5, 0.72), transparent 64%),

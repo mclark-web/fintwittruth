@@ -67,9 +67,11 @@ export function GcTube({
       role="img"
       aria-label={label}
     >
-      {rich ? <div className="gc-bloom" aria-hidden /> : null}
-      <div className="gc-tube" aria-hidden>
-        <Liquid rich={rich} />
+      <div className="gc-tube-slot" aria-hidden>
+        {rich ? <div className="gc-bloom" /> : null}
+        <div className="gc-tube">
+          <Liquid rich={rich} />
+        </div>
       </div>
       {showMeta ? (
         <div
