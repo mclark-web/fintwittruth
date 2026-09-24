@@ -115,7 +115,6 @@ export default async function HomePage({
           readout={tapeKind}
           toolbar={filters}
           pendingHref={waiting.length > 0 ? `/weeks/${latest.slug}/pending` : undefined}
-          exitDetail="0% GC Scale — no graded horizon closed yet"
         />
       ) : (
         <div className="panel p-5">
@@ -126,17 +125,24 @@ export default async function HomePage({
       )}
 
       {latest ? (
-        <p className="mt-4 text-sm text-muted">
-          {latest.title} · readout week of {formatShortDay(latest.mondayAt)}. {latest.summary}{" "}
-          <Link href={`/weeks/${latest.slug}`} className="text-pine underline-offset-4 hover:underline">
-            Open the side-by-side board
-          </Link>
-          . Fictional weekend doom and melt-up posts for this same Monday tape stay graded on the{" "}
-          <Link href={`/weeks/${DEMO_OPEN_COHORT_SLUG}`} className="text-pine underline-offset-4 hover:underline">
-            demo week
-          </Link>
-          .
-        </p>
+        <>
+          <p className="mt-4 text-sm text-muted">
+            {latest.title} · readout week of {formatShortDay(latest.mondayAt)}. {latest.summary}
+          </p>
+          <p className="text-sm text-muted">
+            <Link href={`/weeks/${latest.slug}`} className="text-pine underline-offset-4 hover:underline">
+              Open the side-by-side board
+            </Link>
+            .
+          </p>
+          <p className="text-sm text-muted">
+            Fictional weekend doom and melt-up posts for this same Monday tape stay graded on the{" "}
+            <Link href={`/weeks/${DEMO_OPEN_COHORT_SLUG}`} className="text-pine underline-offset-4 hover:underline">
+              demo week
+            </Link>
+            .
+          </p>
+        </>
       ) : null}
 
       <section className="mt-12" aria-labelledby="watchlist-heading">

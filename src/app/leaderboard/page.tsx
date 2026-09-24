@@ -17,8 +17,66 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
     <section className="mt-8">
       <h2 className="font-serif text-3xl text-ink">{title}</h2>
       <p className="mt-2 max-w-3xl text-sm text-muted">{note}</p>
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
-        <table className="min-w-[980px] w-full text-left text-sm">
+      <ul className="mt-4 grid gap-3 min-[820px]:hidden">
+        {rows.length === 0 ? (
+          <li className="panel p-4 text-sm text-muted">
+            No settled grades in this bucket yet. Handles show up here after a readout settles.
+          </li>
+        ) : (
+          rows.map((row) => (
+            <li key={row.handle} className="panel p-4">
+              <p className="text-xs text-[#9a9aa3]">Rank {row.peerRank}</p>
+              <p className="mt-1 font-medium">
+                <Link href={`/accounts/${row.handle}`} className="hover:underline">
+                  {row.displayName}
+                </Link>
+              </p>
+              <p className="text-xs text-muted">
+                @{row.handle} · {row.posture}
+              </p>
+              <p className="mt-2 font-mono text-2xl text-ink">
+                {formatScore(row.avgScore, 1)}
+                <span className="text-sm text-muted">/100</span>
+              </p>
+              <p className="mt-1 text-sm text-muted">
+                Badge {row.badge}/10
+              </p>
+              <div className="mt-2">
+                <GradePill
+                  grade={gcGrade({
+                    score: row.avgScore,
+                    isStrong: row.isStrong,
+                    isWeak: row.isWeak,
+                  })}
+                />
+              </div>
+              <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <dt className="text-xs text-[#9a9aa3]">Hit rate</dt>
+                  <dd className="font-mono">{formatPct(row.hitRate, 0)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-[#9a9aa3]">STRONG rate</dt>
+                  <dd className="font-mono">{formatPct(row.strongRate, 0)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-[#9a9aa3]">WEAK rate</dt>
+                  <dd className="font-mono">{formatPct(row.weakRate, 0)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-[#9a9aa3]">Graded calls</dt>
+                  <dd className="font-mono">{row.callCount}</dd>
+                </div>
+              </dl>
+              <p className="mt-2 font-mono text-xs text-muted">
+                Best {row.bestScore}/100 · worst {row.worstScore}/100
+              </p>
+            </li>
+          ))
+        )}
+      </ul>
+      <div className="mt-4 hidden overflow-x-clip rounded-2xl border border-line bg-card min-[820px]:block">
+        <table className="w-full table-fixed text-left text-sm">
           <caption className="sr-only">{title}</caption>
           <thead className="bg-sheet text-xs uppercase tracking-wide text-muted">
             <tr>

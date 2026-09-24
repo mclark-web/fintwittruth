@@ -272,7 +272,7 @@ export function PricePath({
         <path d={path} fill="none" stroke="#eb6505" strokeWidth="3" />
         {coords.map((point) => (
           <g key={point.label}>
-            <circle cx={point.x} cy={point.y} r="5" fill="#fee0a8" stroke="#eb6505" strokeWidth="2" />
+            <circle cx={point.x} cy={point.y} r="5" fill="#eb6505" stroke="#1a1005" strokeWidth="2" />
             <text x={point.x} y={height - 8} textAnchor="middle" fontSize="12" fill="#9a9aa3">
               {point.label}
             </text>
@@ -390,8 +390,8 @@ export function NoiseIndex({
             role="img"
             aria-label={`${Math.round(noise.panicShare * 100)} percent panic and ${Math.round(noise.meltupShare * 100)} percent melt-up`}
           >
-            <div className="bg-[#9a9aa3]" style={{ width: `${noise.panicShare * 100}%` }} />
-            <div className="bg-[#c9c9cf]" style={{ width: `${noise.meltupShare * 100}%` }} />
+            <div className="bg-[#3a342c]" style={{ width: `${noise.panicShare * 100}%` }} />
+            <div className="bg-[#252a34]" style={{ width: `${noise.meltupShare * 100}%` }} />
           </div>
           <p className="mt-2 text-sm text-ink">
             {Math.round(noise.panicShare * 100)}% panic · {Math.round(noise.meltupShare * 100)}% melt-up

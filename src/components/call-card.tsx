@@ -93,7 +93,7 @@ export function CallCard({
       </div>
       {grade ? <p className="mt-3 max-w-3xl text-sm text-muted">{grade.note}</p> : (
         <p className="mt-3 text-sm text-muted">
-          This readout has not settled, so the GC Scale stays at 0%.{" "}
+          This readout has not been graded yet.{" "}
           <Link href={`/weeks/${call.cohortSlug}/pending`} className="text-pine underline-offset-4 hover:underline">
             Pending settle
           </Link>

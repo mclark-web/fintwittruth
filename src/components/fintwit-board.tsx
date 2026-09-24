@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CallCard } from "@/components/call-card";
-import { ExitLiquidity, GcTube } from "@/components/gc-tube";
+import { GcTube } from "@/components/gc-tube";
 import { CheckpointStrip, NoiseIndex, QuoteTape } from "@/components/market";
 import { gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_FACTOR } from "@/lib/labels";
@@ -19,7 +19,6 @@ export function FinTwitBoard({
   readout,
   toolbar,
   pendingHref,
-  exitDetail,
 }: {
   kicker?: string;
   title: string;
@@ -31,7 +30,6 @@ export function FinTwitBoard({
   readout: ReadoutKind;
   toolbar?: ReactNode;
   pendingHref?: string;
-  exitDetail?: string;
 }) {
   const graded = (feed ?? calls).filter((call) => call.grades[readout] != null);
   const calibration = gcBoardGrade(
@@ -94,7 +92,7 @@ export function FinTwitBoard({
                 </p>
               ) : (
                 <div className="mt-4 max-w-sm">
-                  <ExitLiquidity detail="0% GC Scale — this horizon is still off the board" />
+                  <GcTube score={0} grade="exit" variant="sidebar" compactMeta ungraded />
                 </div>
               )}
             </div>
@@ -160,7 +158,15 @@ export function FinTwitBoard({
               How the week is graded
             </Link>
           </section>
-          {pendingHref ? <ExitLiquidity detail={exitDetail} /> : null}
+          {pendingHref ? (
+            <section className="panel p-4">
+              <h2 className="text-sm font-semibold text-ink">Not graded yet</h2>
+              <p className="mt-1 text-xs text-[#9a9aa3]">A horizon on this week is still off the board.</p>
+              <div className="mt-3">
+                <GcTube score={0} grade="exit" variant="sidebar" compactMeta ungraded />
+              </div>
+            </section>
+          ) : null}
         </aside>
       </div>
     </div>

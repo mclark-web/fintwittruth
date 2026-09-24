@@ -12,7 +12,6 @@
   --color-card: #161820;
   --color-sheet: #1c1f28;
   --color-line: rgb(255 255 255 / 0.08);
-  --color-bull: #7dcea0;
   --color-bear: #9a9aa3;
   --color-draft: #e8c070;
   --color-draft-wash: rgb(232 192 112 / 0.16);
@@ -104,10 +103,10 @@ a.btn {
   gap: 6px;
   font-size: 12px;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
   color: #c9c9cf;
   background: transparent;
-  border: 1px solid rgba(201, 201, 207, 0.35);
+  border: 1px solid rgba(154, 154, 163, 0.35);
   padding: 5px 10px;
   border-radius: 999px;
 }
@@ -117,7 +116,7 @@ a.btn {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #9a9aa3;
+  background: #2a2a2a;
   box-shadow: 0 0 8px var(--orange-glow);
 }
 
@@ -376,7 +375,7 @@ a.btn {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  border: 1px solid #c9c9cf;
+  border: 1px solid rgba(154, 154, 163, 0.35);
   padding: 2px 8px;
   font-size: 12px;
   font-weight: 600;
@@ -425,6 +424,44 @@ a.tag,
   justify-content: center;
   flex-wrap: wrap;
   text-align: center;
+}
+
+/* Inline body links keep the paragraph line box. The 44px target is the pseudo-element. */
+p a:not(.hit-44):not(.btn):not(.tag):not(.block):not(.flex) {
+  display: inline;
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  line-height: inherit;
+  text-align: start;
+  justify-content: initial;
+  vertical-align: baseline;
+}
+p a:not(.hit-44):not(.btn):not(.tag):not(.block):not(.flex)::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+/* Heading links are controls, so the border box is the 44px target. */
+:is(h1, h2, h3, h4) a:not(.sr-only) {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  min-width: 44px;
+  max-width: 100%;
+}
+
+/* Stacked link paragraphs stay on the paragraph line-height. The gap keeps the 44px ::before boxes apart. */
+p:has(a) + p:has(a),
+:is(h1, h2, h3, h4):has(a) + p:has(a) {
+  margin-top: 28px;
 }
 
 .chip {

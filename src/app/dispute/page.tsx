@@ -53,7 +53,7 @@ export default async function DisputePage({
           Reason
           <textarea className={fieldClass} name="reason" rows={6} required maxLength={2000} />
         </label>
-        <div className="absolute -left-[9999px] h-px overflow-hidden" aria-hidden="true">
+        <div className="sr-only" aria-hidden="true">
           <label>
             Company
             <input name="company" tabIndex={-1} autoComplete="off" />

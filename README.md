@@ -1,5 +1,7 @@
 # GradedCalls FinTwit
 
+Brand rules: read BRAND.md before any UI change; deviations are an automatic MUST-FIX.
+
 GradedCalls FinTwit is the FinTwit vertical under GradedCalls. It is a public scoreboard for FinTwit-style bullish and bearish calls. It grades **one cohort per week**, then watches that same book age against the market.
 
 GradedCalls Analysts and GradedCalls Sports are sibling verticals. They are not this board. Grades describe a past post against a recorded print. They are not trade signals, and they are not for sale.
@@ -50,7 +52,7 @@ Every published grade shows the full **0–100** score, built from:
 - **Specificity (up to 15)** — naming a ticker, a target, an invalidation, and a band.
 - **VIX (15)** — panic and selloff calls want VIX higher. Melt-up calls want VIX lower. The move is Friday's VIX close to the VIX print at the same stamp.
 
-**GC Scale.** The horizontal tube fill is the 0–100 score. **STRONG** is 70 or more. **WEAK** is under 40. **PROVISIONAL** is 40 or more and under 70. **EXIT LIQUIDITY** is a 0% fill: an empty glass when no graded horizon has closed, or when the score is 0. The same lines apply on every board. Rank orders the board. It does not decide the pill.
+**GC Scale.** The horizontal tube fill is the 0–100 score. **STRONG** is 70 or more. **WEAK** is under 40. **PROVISIONAL** is 40 or more and under 70. **EXIT LIQUIDITY** is a graded 0% fill: an empty glass when the score is 0. A horizon that has not been graded reads "Not graded yet". The same lines apply on every board. Rank orders the board. It does not decide the pill.
 
 Monday noon is the primary weekend-noise grade. The Monday gap is the open. Wednesday and Friday age that same cohort.
 

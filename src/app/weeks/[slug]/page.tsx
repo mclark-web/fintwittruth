@@ -147,8 +147,8 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
               </li>
             ))}
           </ul>
-          <div className="mt-4 hidden overflow-x-auto rounded-2xl border border-line bg-card min-[820px]:block">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 hidden overflow-x-clip rounded-2xl border border-line bg-card min-[820px]:block">
+            <table className="w-full table-fixed text-left text-sm">
               <caption className="sr-only">Settled grades for {cohort.title}</caption>
               <thead className="bg-sheet text-xs uppercase tracking-wide text-muted">
                 <tr>

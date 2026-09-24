@@ -246,8 +246,8 @@ export default async function MethodologyPage() {
             card still shows the fill.
           </li>
           <li>
-            <GradePill grade="exit" /> is a 0% fill: the horizon has not closed, or the score is 0. The glass
-            stays empty.
+            <GradePill grade="exit" /> is a graded score of 0. The glass stays empty. A horizon that has
+            not been graded reads Not graded yet.
           </li>
           <li>
             The badge runs from 1 to 10. 0–9 is badge 1. 90–100 is badge 10. Each ten-point step lifts the
@@ -291,14 +291,55 @@ export default async function MethodologyPage() {
             <Link href={`/weeks/${featured.slug}/pending`} className="text-pine underline-offset-4 hover:underline">
               Pending settle
             </Link>
-            , not in the ranking.{" "}
+            , not in the ranking.
+          </p>
+          <p className="text-ink/80">
             <Link href={`/weeks/${featured.slug}`} className="text-pine underline-offset-4 hover:underline">
               Open the graded cohort
             </Link>
             .
           </p>
-          <div className="settled-grades mt-4 overflow-x-auto">
-            <table className="settled-table w-full text-left text-sm sm:min-w-[480px]">
+          <ul className="mt-4 grid gap-3 min-[820px]:hidden">
+            {examples.map((call) => (
+              <li key={call.id} className="panel p-4">
+                <p className="font-medium">
+                  <Link href={`/calls/${call.id}`} className="hover:underline">
+                    {call.displayName}
+                  </Link>
+                </p>
+                <p className="text-xs text-muted">
+                  {call.sentiment} {call.explicit ? call.primary : "no ticker"}
+                </p>
+                <ReferenceLine quotes={featured.quotes} primary={call.primary} />
+                <div className="mt-3 grid gap-2">
+                  {exampleKinds.map((kind) => {
+                    const grade = call.grades[kind];
+                    return (
+                      <div key={kind}>
+                        <p className="text-xs text-[#9a9aa3]">{READOUT_META[kind].short}</p>
+                        {grade ? (
+                          <ReadoutBubble
+                            kind={kind}
+                            quotes={featured.quotes}
+                            primary={call.primary}
+                            direction={call.direction}
+                          />
+                        ) : null}
+                        <p className="font-mono text-sm">{grade ? `${grade.score}/100` : "Not graded yet"}</p>
+                        {grade ? (
+                          <p className="text-xs text-muted">
+                            Badge {grade.badge}/10 · {GC_GRADE_LABEL[gcGrade(grade)]}
+                          </p>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="settled-grades mt-4 hidden min-[820px]:block">
+            <table className="settled-table w-full table-fixed text-left text-sm">
               <caption className="sr-only">Settled grades in the worked example</caption>
               <thead className="text-xs uppercase tracking-wide text-muted">
                 <tr>

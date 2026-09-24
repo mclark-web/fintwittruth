@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 const fieldClass =
-  "mt-1 w-full rounded-lg border border-line bg-sheet px-3 py-2 text-sm text-ink outline-none focus:border-pine";
+  "mt-1 min-h-11 w-full rounded-lg border border-line bg-sheet px-3 py-2 text-sm text-ink outline-none focus:border-pine";
 
 function ReviewForm({ post }: { post: IntakePost }) {
   const seed = post.suggestion ?? post.extraction;
@@ -77,10 +77,10 @@ function ReviewForm({ post }: { post: IntakePost }) {
         <input className={fieldClass} name="note" />
       </label>
       <div className="flex flex-wrap gap-2">
-        <button className="rounded-lg bg-pine px-3 py-2 text-sm font-semibold text-lime" name="action" value="confirm" type="submit">
+        <button className="inline-flex min-h-11 items-center rounded-lg bg-pine px-3 py-2 text-sm font-semibold text-lime" name="action" value="confirm" type="submit">
           Confirm
         </button>
-        <button className="rounded-lg border border-line px-3 py-2 text-sm text-ink" name="action" value="reject" type="submit">
+        <button className="inline-flex min-h-11 items-center rounded-lg border border-line px-3 py-2 text-sm text-ink" name="action" value="reject" type="submit">
           Reject
         </button>
       </div>
@@ -136,7 +136,7 @@ export default async function AdminPage({
             ADMIN_TOKEN
             <input className={fieldClass} name="token" type="password" autoComplete="current-password" required />
           </label>
-          <button className="w-fit rounded-lg bg-pine px-3 py-2 text-sm font-semibold text-lime" type="submit">
+          <button className="w-fit inline-flex min-h-11 items-center rounded-lg bg-pine px-3 py-2 text-sm font-semibold text-lime" type="submit">
             Unlock intake
           </button>
         </form>
@@ -145,7 +145,7 @@ export default async function AdminPage({
       {signedIn ? (
         <div className="mt-6 grid gap-4">
           <form action={logoutAction}>
-            <button className="text-sm text-muted underline-offset-4 hover:underline" type="submit">
+            <button className="inline-flex min-h-11 items-center text-sm text-muted underline-offset-4 hover:underline" type="submit">
               Lock intake
             </button>
           </form>
@@ -162,7 +162,7 @@ export default async function AdminPage({
                 Status URL
                 <input className={fieldClass} name="url" type="url" placeholder="https://x.com/handle/status/123" required />
               </label>
-              <button className="w-fit rounded-lg bg-pine px-3 py-2 text-sm font-semibold text-lime" type="submit">
+              <button className="w-fit inline-flex min-h-11 items-center rounded-lg bg-pine px-3 py-2 text-sm font-semibold text-lime" type="submit">
                 Fetch with oEmbed
               </button>
             </form>
@@ -190,7 +190,7 @@ export default async function AdminPage({
                 Author name (optional)
                 <input className={fieldClass} name="authorName" />
               </label>
-              <button className="w-fit rounded-lg border border-line px-3 py-2 text-sm text-ink" type="submit">
+              <button className="w-fit inline-flex min-h-11 items-center rounded-lg border border-line px-3 py-2 text-sm text-ink" type="submit">
                 Store pasted text
               </button>
             </form>
@@ -245,7 +245,7 @@ export default async function AdminPage({
                   <form action={disputeStatusAction} className="mt-3">
                     <input type="hidden" name="id" value={dispute.id} />
                     <button
-                      className="rounded-lg border border-line px-3 py-2 text-sm text-ink"
+                      className="inline-flex min-h-11 items-center rounded-lg border border-line px-3 py-2 text-sm text-ink"
                       name="status"
                       type="submit"
                       value={dispute.status === "open" ? "resolved" : "open"}
