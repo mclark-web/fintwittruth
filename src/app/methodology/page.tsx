@@ -9,7 +9,7 @@ import { GC_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_ADJUSTMENT, PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { getCohort } from "@/lib/queries";
 import {
-  STRONG_FRACTION,
+  STRONG_LINE,
   WEAK_LINE,
   DIRECTION_BANDS,
   DIRECTION_MAX,
@@ -208,7 +208,7 @@ export default async function MethodologyPage() {
           <li>Named support or resistance: 3</li>
         </ul>
         <p className="mt-2 text-sm text-muted">
-          A mood with no ticker cannot clear {WEAK_LINE}, even when the tape agrees.
+          A mood with no ticker cannot clear {STRONG_LINE}, even when the tape agrees.
         </p>
       </section>
 
@@ -222,17 +222,15 @@ export default async function MethodologyPage() {
         </p>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-ink/80">
           <li>
-            <GradePill grade="strong" /> is the top {Math.round(STRONG_FRACTION * 100)}% of the peer set and a
-            score of at least {WEAK_LINE}. On a readout, the peer set is every call on that weekly board,
-            watchlist and viral together. On a leaderboard, the peer set is the accounts inside one bucket.
-            Ties at the cutoff are included. Under {WEAK_LINE} is never STRONG.
+            <GradePill grade="strong" /> is a score of {STRONG_LINE} or more. The line is the same on every
+            board. It does not move with the other calls.
           </li>
           <li>
-            <GradePill grade="weak" /> is any score under {WEAK_LINE}. The line is absolute.
+            <GradePill grade="weak" /> is a score under {WEAK_LINE}. The line is absolute.
           </li>
           <li>
-            <GradePill grade="provisional" /> is a score of {WEAK_LINE} or more that sits outside the peer
-            cut. The card still shows the fill.
+            <GradePill grade="provisional" /> is a score of {WEAK_LINE} or more and under {STRONG_LINE}. The
+            card still shows the fill.
           </li>
           <li>
             <GradePill grade="exit" /> is a 0% fill: the horizon has not closed, or the score is 0. The glass

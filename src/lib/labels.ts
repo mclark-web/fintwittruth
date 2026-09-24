@@ -10,7 +10,7 @@ export const READOUT_META: Record<
   friday: { label: "Friday", short: "Fri", role: "Same cohort, final", time: "12:00 PM ET" },
 };
 
-/** User-facing name for the 0–100 fill. The peer cut still lives in scoring.ts. */
+/** User-facing name for the 0–100 fill. The STRONG and WEAK lines live in scoring.ts. */
 export const GC_FACTOR = "GC Scale";
 
 export const DATA_MODE = process.env.NEXT_PUBLIC_DATA_MODE === "live" ? "live" : "demo";

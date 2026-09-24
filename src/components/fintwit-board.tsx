@@ -61,7 +61,7 @@ export function FinTwitBoard({
       <div className="panel mt-4 grid items-center gap-5 p-4 md:grid-cols-[1.2fr_1fr]">
         <p className="text-sm leading-relaxed text-muted">
           {GC_FACTOR} for graded posts on this horizon. The horizontal tube fills left to right. STRONG is
-          the peer cut. WEAK is under 70. PROVISIONAL cleared 70 and missed the cut. 0% is an empty glass.
+          70% or more. WEAK is under 40%. PROVISIONAL is 40% or more and under 70%. 0% is an empty glass.
         </p>
         <GcTube score={calibration.fill} grade={calibration.grade} variant="sidebar" compactMeta />
       </div>
