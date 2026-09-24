@@ -275,6 +275,15 @@ a.btn {
   color: #f2f1ee;
 }
 
+/* Correct move: sage green. Incorrect move: dusty red. Both stay clear of #eb6505. */
+.readout-print-with {
+  color: #7dcea0;
+}
+
+.readout-print-against {
+  color: #e08a7a;
+}
+
 .stance {
   font-size: 10px;
   line-height: 1.2;

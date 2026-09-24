@@ -106,7 +106,9 @@ export function ReadoutBubble({
       <span className="readout-when" title={meta.time}>
         {meta.short}
       </span>
-      <span className="readout-print">{print?.text ?? primary}</span>
+      <span className={`readout-print${print?.stance === "with" || print?.stance === "against" ? ` readout-print-${print.stance}` : ""}`}>
+        {print?.text ?? primary}
+      </span>
       {print?.stance ? <span className={`stance stance-${print.stance}`}>{STANCE_LABEL[print.stance]}</span> : null}
     </span>
   );
