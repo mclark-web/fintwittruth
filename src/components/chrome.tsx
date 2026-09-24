@@ -9,9 +9,9 @@ export function BrandMark() {
   return (
     <span className="mark" aria-hidden>
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 3v3M12 18v3M5 12H2M22 12h-3" stroke="#ff6a00" strokeWidth="1.6" strokeLinecap="round" />
+        <path d="M12 3v3M12 18v3M5 12H2M22 12h-3" stroke="#eb6505" strokeWidth="1.6" strokeLinecap="round" />
         <path d="M7.5 8.5c1.8-2.2 7.2-2.2 9 0M7.5 15.5c1.8 2.2 7.2 2.2 9 0" stroke="#f2f1ee" strokeWidth="1.5" strokeLinecap="round" />
-        <circle cx="12" cy="12" r="2.2" fill="#ff6a00" />
+        <circle cx="12" cy="12" r="2.2" fill="#eb6505" />
       </svg>
     </span>
   );
@@ -20,9 +20,12 @@ export function BrandMark() {
 export function DemoBanner() {
   if (DATA_MODE !== "demo") return null;
   return (
-    <div className="border-b border-pine/30 bg-pine/10 text-orange-soft">
-      <p className="mx-auto max-w-6xl px-4 py-2 text-center text-sm tracking-wide text-ink">
-        Demo posts — fictional accounts. Market prints are historical Yahoo Finance prices. Not investment advice. Not affiliated with X or Yahoo.
+    <div className="site-banner relative border-b border-pine/30 bg-pine/10 text-orange-soft">
+      <p className="mx-auto max-w-6xl px-4 pt-2 pb-3 text-center text-sm tracking-wide text-ink">
+        Demo weeks are fictional accounts. The latest board quotes verified public posts and links each source. Market prints are historical Yahoo Finance prices. Not investment advice. Not affiliated with X or Yahoo.{" "}
+        <Link href="/demo" className="font-medium text-pine underline-offset-4 hover:underline">
+          Fictional doom and melt-up book
+        </Link>
       </p>
     </div>
   );
@@ -38,30 +41,31 @@ export async function SiteHeader() {
         ? `/weeks/${latest.slug}/monday-gap`
         : latestHref
     : "/weeks";
+  const tools = (
+    <>
+      <Link href="/weeks" className="btn header-tool">
+        Weekend filter
+      </Link>
+      <Link href={gradeHref} className="btn btn-primary header-tool">
+        Grade feed
+      </Link>
+    </>
+  );
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-[#0b0c0e]/80 backdrop-blur-md">
-      <div className="mx-auto max-w-6xl px-4 py-3 sm:px-7">
-        <div className="flex flex-col gap-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-6">
-          <Link href="/" className="order-1 flex shrink-0 items-center gap-2.5 whitespace-nowrap" aria-label={PRODUCT_NAME}>
-            <BrandMark />
-            <span className="text-[17px] font-semibold tracking-tight text-ink">
-              Graded<span className="text-orange-soft">Calls</span>
-            </span>
-          </Link>
-          <div className="order-3 overflow-x-auto lg:order-2">
-            <Suspense fallback={<span className="block h-9" aria-hidden />}>
-              <NavLinks latestHref={latestHref} />
-            </Suspense>
-          </div>
-          <div className="order-2 flex shrink-0 items-center gap-2 lg:order-3">
-            <Link href="/weeks" className="btn !px-2.5 !text-xs sm:!px-3.5 sm:!text-[13px]">
-              Weekend filter
-            </Link>
-            <Link href={gradeHref} className="btn btn-primary !px-2.5 !text-xs sm:!px-3.5 sm:!text-[13px]">
-              Grade feed
-            </Link>
-          </div>
+    <header className="site-header sticky top-0 z-20 border-b border-line bg-[#0b0c0e]/95 backdrop-blur-md">
+      <div className="header-bar mx-auto grid max-w-6xl grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 px-4 sm:px-7 lg:h-14 lg:max-h-14 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+        <Link href="/" className="hit-44 flex h-14 min-h-11 shrink-0 items-center gap-2.5 whitespace-nowrap" aria-label={PRODUCT_NAME}>
+          <BrandMark />
+          <span className="hidden text-[17px] font-semibold tracking-tight text-ink min-[480px]:inline">
+            Graded<span className="text-[#eb6505]">Calls</span>
+          </span>
+        </Link>
+        <div className="flex h-14 min-w-0 items-center">
+          <Suspense fallback={<span className="block h-11 min-w-0 flex-1" aria-hidden />}>
+            <NavLinks latestHref={latestHref} />
+          </Suspense>
         </div>
+        <div className="header-tools col-span-2 flex gap-2 pb-2 lg:col-span-1 lg:h-14 lg:items-center lg:pb-0">{tools}</div>
       </div>
     </header>
   );
@@ -80,23 +84,26 @@ export function SiteFooter() {
             A {UMBRELLA_NAME} vertical, with {SIBLING_NAMES[0]} and {SIBLING_NAMES[1]}. {NAV_NAME} is this board.
           </p>
         </div>
-        <nav aria-label="Footer" className="flex flex-wrap gap-x-4 gap-y-2">
-          <Link href="/" className="hover:text-orange-soft">
+        <nav aria-label="Footer" className="footer-nav flex flex-wrap gap-x-4 gap-y-3">
+          <Link href="/" className="hit-44 hover:text-[#ee9a44]">
             Hub
           </Link>
-          <Link href="/methodology" className="hover:text-orange-soft">
+          <Link href="/watchlist" className="hit-44 hover:text-[#ee9a44]">
+            Watchlist
+          </Link>
+          <Link href="/methodology" className="hit-44 hover:text-[#ee9a44]">
             Method
           </Link>
-          <Link href="/pending" className="hover:text-orange-soft">
+          <Link href="/pending" className="hit-44 hover:text-[#ee9a44]">
             Pending settle
           </Link>
-          <Link href="/disclaimer" className="hover:text-orange-soft">
+          <Link href="/disclaimer" className="hit-44 hover:text-[#ee9a44]">
             Disclaimer
           </Link>
-          <Link href="/terms" className="hover:text-orange-soft">
+          <Link href="/terms" className="hit-44 hover:text-[#ee9a44]">
             Terms
           </Link>
-          <Link href="/donate" className="hover:text-orange-soft">
+          <Link href="/donate" className="hit-44 hover:text-[#ee9a44]">
             Donate
           </Link>
         </nav>

@@ -9,7 +9,7 @@ import { getLeaderboard, type LeaderRow } from "@/lib/queries";
 export const metadata: Metadata = {
   title: "Leaderboard",
   description:
-    "GradedCalls FinTwit account scoreboards. Ranks use settled grades only. STRONG requires the top 30% and a score of at least 70.",
+    "GradedCalls FinTwit account scoreboards. Ranks use settled grades only. STRONG is 70 or more. WEAK is under 40.",
 };
 
 function Board({ title, note, rows }: { title: string; note: string; rows: LeaderRow[] }) {
@@ -17,8 +17,66 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
     <section className="mt-8">
       <h2 className="font-serif text-3xl text-ink">{title}</h2>
       <p className="mt-2 max-w-3xl text-sm text-muted">{note}</p>
-      <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
-        <table className="min-w-[980px] w-full text-left text-sm">
+      <ul className="mt-4 grid gap-3 min-[820px]:hidden">
+        {rows.length === 0 ? (
+          <li className="panel p-4 text-sm text-muted">
+            No settled grades in this bucket yet. Handles show up here after a readout settles.
+          </li>
+        ) : (
+          rows.map((row) => (
+            <li key={row.handle} className="panel p-4">
+              <p className="text-xs text-[#9a9aa3]">Rank {row.peerRank}</p>
+              <p className="mt-1 font-medium">
+                <Link href={`/accounts/${row.handle}`} className="hover:underline">
+                  {row.displayName}
+                </Link>
+              </p>
+              <p className="text-xs text-muted">
+                @{row.handle} · {row.posture}
+              </p>
+              <p className="mt-2 font-mono text-2xl text-ink">
+                {formatScore(row.avgScore, 1)}
+                <span className="text-sm text-muted">/100</span>
+              </p>
+              <p className="mt-1 text-sm text-muted">
+                Badge {row.badge}/10
+              </p>
+              <div className="mt-2">
+                <GradePill
+                  grade={gcGrade({
+                    score: row.avgScore,
+                    isStrong: row.isStrong,
+                    isWeak: row.isWeak,
+                  })}
+                />
+              </div>
+              <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <dt className="text-xs text-[#9a9aa3]">Hit rate</dt>
+                  <dd className="font-mono">{formatPct(row.hitRate, 0)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-[#9a9aa3]">STRONG rate</dt>
+                  <dd className="font-mono">{formatPct(row.strongRate, 0)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-[#9a9aa3]">WEAK rate</dt>
+                  <dd className="font-mono">{formatPct(row.weakRate, 0)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-[#9a9aa3]">Graded calls</dt>
+                  <dd className="font-mono">{row.callCount}</dd>
+                </div>
+              </dl>
+              <p className="mt-2 font-mono text-xs text-muted">
+                Best {row.bestScore}/100 · worst {row.worstScore}/100
+              </p>
+            </li>
+          ))
+        )}
+      </ul>
+      <div className="mt-4 hidden overflow-x-clip rounded-2xl border border-line bg-card min-[820px]:block">
+        <table className="w-full table-fixed text-left text-sm">
           <caption className="sr-only">{title}</caption>
           <thead className="bg-sheet text-xs uppercase tracking-wide text-muted">
             <tr>
@@ -28,8 +86,8 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
               <th scope="col" className="px-4 py-3 font-medium">Badge</th>
               <th scope="col" className="px-4 py-3 font-medium">Marks</th>
               <th scope="col" className="px-4 py-3 font-medium">Hit rate</th>
-              <th scope="col" className="px-4 py-3 font-medium">Strong rate</th>
-              <th scope="col" className="px-4 py-3 font-medium">Weak rate</th>
+              <th scope="col" className="px-4 py-3 font-medium">STRONG rate</th>
+              <th scope="col" className="px-4 py-3 font-medium">WEAK rate</th>
               <th scope="col" className="px-4 py-3 font-medium">Graded calls</th>
               <th scope="col" className="px-4 py-3 font-medium">Best / worst</th>
             </tr>
@@ -87,25 +145,31 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
 }
 
 export default async function LeaderboardPage() {
-  const [watchlist, viral] = await Promise.all([
-    getLeaderboard("watchlist"),
-    getLeaderboard("viral"),
+  const [verified, watchlist, viral] = await Promise.all([
+    getLeaderboard("watchlist", "live"),
+    getLeaderboard("watchlist", "demo"),
+    getLeaderboard("viral", "demo"),
   ]);
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-serif text-4xl text-ink">Leaderboards</h1>
       <p className="mt-3 max-w-3xl text-muted">
-        Two buckets, ranked apart. Both still feed each week&apos;s graded board. An average uses the furthest
-        settled grade on each call. Hit rate, STRONG rate, and WEAK rate count settled grades only. A call with
-        no grade yet is not in the rank. STRONG is the top 30% of that bucket and also at least 70. Under 70 is
-        WEAK. A 0% fill is EXIT LIQUIDITY.
+        Verified posts rank apart from the fictional demo. An average uses the furthest settled grade on each
+        call. Hit rate, STRONG rate, and WEAK rate count settled grades only. A call with no grade yet is not
+        in the rank. STRONG is 70 or more. WEAK is under 40. PROVISIONAL is 40 or more and under 70. A 0% fill is
+        EXIT LIQUIDITY.
       </p>
       <div className="mt-3">
         <PendingSettleLink href="/pending" />
       </div>
       <Board
-        title="Named watchlist"
-        note="Accounts on the standing watchlist, ranked against each other."
+        title="Verified watchlist"
+        note="Public posts on the latest board, ranked against each other."
+        rows={verified}
+      />
+      <Board
+        title="Demo watchlist"
+        note="Fictional standing accounts, ranked against each other. They are not the verified book."
         rows={watchlist}
       />
       <Board

@@ -12,38 +12,41 @@
   --color-card: #161820;
   --color-sheet: #1c1f28;
   --color-line: rgb(255 255 255 / 0.08);
-  --color-bull: #7dcea0;
-  --color-bear: #e08a7a;
+  --color-bear: #9a9aa3;
   --color-draft: #e8c070;
   --color-draft-wash: rgb(232 192 112 / 0.16);
   --color-muted: #9a9aa3;
-  --color-orange-soft: #ee9a44;
+  --color-orange-soft: #eb6505;
 }
 
 :root {
   --orange: #eb6505;
-  --orange-soft: #ee9a44;
+  --orange-soft: #eb6505;
   --orange-deep: #d15202;
   --orange-glow: rgb(235 101 5 / 0.48);
-  --ok: #7dcea0;
-  --bad: #e08a7a;
+  --bad: #9a9aa3;
 }
 
 @layer base {
   html {
+    color-scheme: dark;
     scroll-behavior: smooth;
+    background-color: var(--color-paper);
+    min-height: 100%;
   }
 
   body {
     min-height: 100vh;
     overflow-x: clip;
     color: var(--color-ink);
-    background:
+    background-color: var(--color-paper);
+    background-image:
       radial-gradient(1200px 700px at 12% -10%, rgb(235 101 5 / 0.16), transparent 55%),
       radial-gradient(900px 600px at 88% 8%, rgb(235 101 5 / 0.09), transparent 50%),
       radial-gradient(800px 500px at 50% 110%, rgb(40 48 70 / 0.35), transparent 55%),
       linear-gradient(165deg, #0a0b0d 0%, #12141a 42%, #0e1014 100%);
-    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
   }
 
   ::selection {
@@ -57,10 +60,17 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 @utility panel {
   border-radius: 14px;
   border: 1px solid rgb(255 255 255 / 0.08);
-  background: linear-gradient(165deg, rgb(26 29 38 / 0.92), rgb(14 16 22 / 0.95));
+  background-color: var(--color-card);
+  background-image: linear-gradient(165deg, #1a1d26, #0e1016);
   box-shadow: 0 20px 60px rgb(0 0 0 / 0.35);
 }
 
@@ -91,12 +101,12 @@ a.btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: 12px;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--orange-soft);
-  background: rgb(200 110 30 / 0.1);
-  border: 1px solid rgb(200 110 30 / 0.3);
+  text-transform: none;
+  color: #c9c9cf;
+  background: transparent;
+  border: 1px solid rgba(154, 154, 163, 0.35);
   padding: 5px 10px;
   border-radius: 999px;
 }
@@ -106,7 +116,7 @@ a.btn {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--orange);
+  background: #2a2a2a;
   box-shadow: 0 0 8px var(--orange-glow);
 }
 
@@ -120,7 +130,7 @@ a.btn {
   place-items: center;
   font-size: 12px;
   font-weight: 700;
-  color: var(--orange-soft);
+  color: #c9c9cf;
   flex-shrink: 0;
 }
 
@@ -146,11 +156,28 @@ a.btn {
   align-items: start;
 }
 
+.ft-hero > *,
+.ft-layout > *,
+.panel,
+.panel .flex,
+.panel .flex > *,
+.vs {
+  min-width: 0;
+}
+
+.panel {
+  max-width: 100%;
+}
+
 .scoreboard {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.scoreboard-rest {
+  margin-top: 10px;
 }
 
 .sb-tile {
@@ -165,7 +192,7 @@ a.btn {
 .sb-tile .sym {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--orange-soft);
+  color: #f2f1ee;
   letter-spacing: 0.04em;
 }
 
@@ -174,10 +201,37 @@ a.btn {
   font-weight: 680;
   margin-top: 4px;
   letter-spacing: -0.02em;
+  color: #f2f1ee;
+}
+
+.sb-tile .chg-glyph {
+  color: #9a9aa3;
+  font-size: 12px;
+  margin-right: 4px;
+}
+
+.sb-tile .chg-num {
+  color: #f2f1ee;
+}
+
+.market-print-note {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #9a9aa3;
+  text-align: right;
+}
+
+.market-move-glyph {
+  color: #9a9aa3;
+  margin-right: 4px;
+}
+
+.market-move-num {
+  color: #f2f1ee;
 }
 
 .sb-tile .lbl {
-  font-size: 10.5px;
+  font-size: 12px;
   color: #9a9aa3;
   margin-top: 2px;
   text-transform: uppercase;
@@ -193,6 +247,10 @@ a.btn {
 }
 
 .filters-bar a {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 44px;
   font-size: 12.5px;
   padding: 7px 12px;
   border-radius: 999px;
@@ -209,12 +267,12 @@ a.btn {
 }
 
 .tag {
-  font-size: 11px;
+  font-size: 12px;
   padding: 3px 8px;
   border-radius: 6px;
-  background: rgb(200 110 30 / 0.1);
-  border: 1px solid rgb(200 110 30 / 0.25);
-  color: var(--orange-soft);
+  background: transparent;
+  border: 1px solid rgba(201, 201, 207, 0.35);
+  color: #c9c9cf;
 }
 
 .vs {
@@ -224,9 +282,9 @@ a.btn {
   margin-top: 10px;
 }
 
-.vs span {
+.vs > span:not(.tape-mark) {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 12px;
   padding: 4px 8px;
   border-radius: 6px;
   background: rgb(255 255 255 / 0.04);
@@ -264,7 +322,7 @@ a.btn {
 
 .rank-n {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--orange);
   width: 22px;
   display: inline-block;
@@ -273,10 +331,476 @@ a.btn {
 @media (max-width: 960px) {
   .ft-hero,
   .ft-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .scoreboard {
     justify-content: flex-start;
   }
+
+  .market-print-note {
+    text-align: left;
+  }
+}
+
+:where(.panel, section, [id]) {
+  scroll-margin-top: 64px;
+}
+
+.site-banner {
+  position: relative;
+  z-index: 0;
+}
+
+.site-banner > p > a {
+  white-space: nowrap;
+}
+
+.site-header {
+  overflow: visible;
+}
+
+@media (min-width: 1024px) {
+  .site-header {
+    height: 56px;
+    max-height: 56px;
+  }
+}
+
+.nav-probe {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+}
+
+.direction-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(154, 154, 163, 0.35);
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #c9c9cf;
+  background: transparent;
+}
+
+/* Closed disclosures must not keep a layout box. The UA hides them with
+   content-visibility, which still reports a box and can cover the footer. */
+details:not([open]) > :not(summary) {
+  display: none;
+}
+
+details > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.hit-44,
+a.tag,
+.footer-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  min-width: 44px;
+  max-width: 100%;
+  text-align: center;
+}
+
+/* Breadcrumbs, lists, and cards: the border box is the target, so wrapped rows do not overlap. */
+:is(a.font-medium, a.text-pine, a.underline-offset-4, .footer-nav a, .rank-list a, ol a, ul a, table a, .panel a, article a, p.text-sm a, p.font-medium a):not(.sr-only):not(p *) {
+  box-sizing: border-box;
+  min-height: 44px;
+  min-width: 44px;
+  max-width: 100%;
+}
+
+:is(a.font-medium, a.text-pine, a.underline-offset-4, .rank-list a, ol a, ul a, table a, .panel a, article a, p.text-sm a, p.font-medium a):not(.flex):not(.block):not(.inline-flex):not(.sr-only):not(.hit-44):not(.tag):not(.btn):not(p *) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+/* Inline body links keep the paragraph line box. The 44px target is the pseudo-element. */
+p a:not(.hit-44):not(.btn):not(.tag):not(.block):not(.flex) {
+  display: inline;
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  line-height: inherit;
+  text-align: start;
+  justify-content: initial;
+  vertical-align: baseline;
+}
+p > a:only-child:not(.hit-44):not(.btn):not(.tag):not(.block):not(.flex) {
+  display: inline-block;
+  vertical-align: top;
+}
+p a:not(.hit-44):not(.btn):not(.tag):not(.block):not(.flex)::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+/* Heading links are controls, so the border box is the 44px target. */
+:is(h1, h2, h3, h4) a:not(.sr-only) {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  min-width: 44px;
+  max-width: 100%;
+}
+
+/* Stacked link paragraphs stay on the paragraph line-height. The gap keeps the 44px ::before boxes apart. */
+p:has(a) + p:has(a),
+:is(h1, h2, h3, h4):has(a) + p:has(a) {
+  margin-top: 28px;
+}
+
+.chip {
+  position: relative;
+}
+
+.header-tool {
+  min-height: 44px;
+  padding-inline: 12px;
+  font-size: 12px;
+}
+
+.header-tools {
+  position: relative;
+  z-index: 0;
+}
+
+.tape-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+  color: #9a9aa3;
+  background: rgba(154, 154, 163, 0.1);
+  border: 1px solid rgba(154, 154, 163, 0.35);
+}
+
+.vs .tape-mark {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #9a9aa3;
+  background: rgba(154, 154, 163, 0.1);
+}
+
+.tape-mark .tape-ticker,
+.vs .tape-mark .tape-ticker {
+  color: #f2f1ee;
+  font-weight: 500;
+}
+
+.tape-mark .tape-pct,
+.tape-mark .tape-glyph,
+.tape-mark .tape-tag {
+  font-weight: 600;
+}
+
+.tape-mark-with,
+.vs .tape-mark-with {
+  background: rgba(76, 195, 138, 0.1);
+  border-color: rgba(76, 195, 138, 0.35);
+}
+
+.tape-mark-with .tape-pct,
+.tape-mark-with .tape-glyph,
+.tape-mark-with .tape-tag,
+.vs .tape-mark-with .tape-pct,
+.vs .tape-mark-with .tape-glyph,
+.vs .tape-mark-with .tape-tag {
+  color: #4cc38a;
+}
+
+.tape-mark-against,
+.vs .tape-mark-against {
+  background: rgba(242, 109, 125, 0.1);
+  border-color: rgba(242, 109, 125, 0.35);
+}
+
+.tape-mark-against .tape-pct,
+.tape-mark-against .tape-glyph,
+.tape-mark-against .tape-tag,
+.vs .tape-mark-against .tape-pct,
+.vs .tape-mark-against .tape-glyph,
+.vs .tape-mark-against .tape-tag {
+  color: #f26d7d;
+}
+
+.tape-mark-flat,
+.vs .tape-mark-flat {
+  background: rgba(154, 154, 163, 0.1);
+  border-color: rgba(154, 154, 163, 0.35);
+}
+
+.tape-mark-flat .tape-pct,
+.tape-mark-flat .tape-glyph,
+.tape-mark-flat .tape-tag,
+.vs .tape-mark-flat .tape-pct,
+.vs .tape-mark-flat .tape-glyph,
+.vs .tape-mark-flat .tape-tag {
+  color: #9a9aa3;
+  font-weight: 600;
+}
+
+.call-grade .gc-scale.is-mini {
+  width: 100% !important;
+  min-width: 72px;
+  max-width: none;
+}
+
+.call-grade .gc-tube,
+.call-grade .gc-vial {
+  --tube-h: 22px;
+  height: 22px;
+  min-width: 72px;
+}
+
+@media (min-width: 820px) and (max-width: 960px) {
+  .scoreboard-primary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .scoreboard-rest {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .scoreboard .sb-tile {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 820px) {
+  .ticker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .ticker-grid .sb-tile {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 639px) {
+  .filters-bar a,
+  .header-tools a,
+  .nav a {
+    min-height: 44px;
+  }
+
+  .ticker-rest .sym,
+  .ticker-rest p {
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 479px) {
+  .mark {
+    width: 40px;
+    height: 40px;
+  }
+
+  .scoreboard-primary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .scoreboard-primary .sb-tile {
+    min-width: 0;
+  }
+}
+
+.readout-bubble {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 8px;
+  max-width: 100%;
+}
+
+.readout-when {
+  color: #9a9aa3;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.readout-line {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.readout-ticker {
+  color: #f2f1ee;
+}
+
+.readout-px,
+.readout-move {
+  color: #9a9aa3;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.readout-move-with {
+  color: #4cc38a;
+}
+
+.readout-move-against {
+  color: #f26d7d;
+}
+
+.stance {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.stance-with {
+  color: #4cc38a;
+  background: rgba(76, 195, 138, 0.12);
+  border-color: rgba(76, 195, 138, 0.35);
+}
+
+.stance-against {
+  color: #f26d7d;
+  background: rgba(242, 109, 125, 0.12);
+  border-color: rgba(242, 109, 125, 0.35);
+}
+
+.stance-flat {
+  color: #c9c9cf;
+  background: transparent;
+  border-color: rgba(154, 154, 163, 0.35);
+}
+
+.call-ref {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #9a9aa3;
+}
+
+.checkpoint-prints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.checkpoint-prints li {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 0.04);
+  border: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.checkpoint-prints .sym {
+  color: #ee9a44;
+  letter-spacing: 0.04em;
+}
+
+.checkpoint-prints .px {
+  color: #f2f1ee;
+}
+
+/* Surfaces stay on the charcoal tokens. Native controls, tables, and code default to white. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="submit"]):not([type="button"]):not([type="image"]):not([type="file"]),
+textarea,
+select,
+option {
+  background-color: var(--color-sheet);
+  color: var(--color-ink);
+}
+
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-ink);
+  caret-color: var(--color-ink);
+  box-shadow: 0 0 0 1000px var(--color-sheet) inset;
+}
+
+table {
+  background-color: var(--color-card);
+  color: inherit;
+}
+
+thead,
+th {
+  background-color: var(--color-sheet);
+}
+
+pre,
+code,
+kbd,
+samp {
+  background-color: var(--color-sheet);
+  color: var(--color-ink);
+}
+
+dialog,
+[role="dialog"] {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+dialog::backdrop {
+  background-color: rgb(11 12 14 / 0.72);
 }

@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded } from "@/components/board-state";
-import { PricePath, PriceSource } from "@/components/market";
-import { Avatar, DirectionChip, LevelList, ScoreMark } from "@/components/score";
-import { formatPct, formatWhen } from "@/lib/format";
+import { PricePath, PriceSource, TapeMark } from "@/components/market";
+import { Avatar, DirectionChip, LevelList, ReadoutBubble, ReferenceLine, ScoreMark } from "@/components/score";
+import { disputePath } from "@/lib/dispute";
+import { etYmd, formatPct, formatWhen } from "@/lib/format";
+import { pendingClosure, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { settledGradeKinds } from "@/lib/board";
 import { getCall, listCallIds } from "@/lib/queries";
@@ -78,6 +80,8 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
   const quote = cohort.quotes.find((item) => item.symbol === call.primary) ?? cohort.quotes[0];
   const settled = settledGradeKinds(call.grades);
   const waiting = READOUTS.filter((kind) => call.grades[kind] == null);
+  const closure = pendingClosure(waiting, cohort);
+  const closedOnly = closure.closed > 0 && closure.upcoming === 0 && closure.name != null;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -92,7 +96,9 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
       </p>
       <article className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <div className="panel p-5">
-          <p className="text-xs uppercase tracking-wide text-muted">Demo call</p>
+          <p className="text-xs uppercase tracking-wide text-muted">
+            {call.dataset === "demo" ? "Demo call" : "Verified real call"}
+          </p>
           <header className="mt-3 flex flex-wrap items-center gap-3">
             <Avatar name={call.displayName} accent={call.accent} />
             <div>
@@ -107,6 +113,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
             <span className="font-mono text-xs text-pine">{call.primary}</span>
             <span className="text-xs uppercase tracking-wide text-muted">{call.conviction} conviction</span>
           </div>
+          <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
           <p className="mt-4 text-xl leading-snug text-ink">{call.body}</p>
           <div className="mt-4">
             <LevelList levels={call.levels} />
@@ -117,6 +124,23 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
             <p className="mt-3 text-sm text-muted">No ticker named. Specificity stays at the floor.</p>
           )}
           <p className="mt-3 text-xs text-muted">Posted {formatWhen(call.postedAt)} inside the collect window.</p>
+          {call.sourceUrl ? (
+            <p className="mt-2 text-sm">
+              <a href={call.sourceUrl} className="text-pine underline-offset-4 hover:underline">
+                Original post
+              </a>
+            </p>
+          ) : null}
+          {call.dataset !== "demo" && call.sourceUrl && settled.length > 0 ? (
+            <p className="mt-2 text-sm">
+              <a
+                href={disputePath(call.id)}
+                className="text-pine underline-offset-4 hover:underline"
+              >
+                Dispute this grade
+              </a>
+            </p>
+          ) : null}
         </div>
         <div className="panel p-5">
           {quote ? (
@@ -149,9 +173,17 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
               const readout = cohort.readouts[kind];
               return (
                 <li key={kind} className="panel p-4">
-                  <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
+                  <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{meta.role}</p>
                   <h3 className="font-serif text-2xl text-ink">{meta.label}</h3>
-                  <p className="text-xs text-muted">{formatWhen(readout.at)}</p>
+                  <p className="text-xs text-muted">{meta.time}</p>
+                  <div className="mt-2">
+                    <ReadoutBubble
+                      kind={kind}
+                      quotes={cohort.quotes}
+                      primary={call.primary}
+                      direction={call.direction}
+                    />
+                  </div>
                   <div className="mt-3">
                     <ScoreMark
                       score={grade.score}
@@ -163,9 +195,11 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                     />
                   </div>
                   <p className="mt-3 text-sm text-ink/80">{grade.note}</p>
-                  <p className="mt-2 font-mono text-xs text-muted">
-                    Tape {formatPct(grade.rawMovePct)} · signed {formatPct(grade.signedMovePct)} · VIX{" "}
-                    {formatPct(grade.vixMovePct)}
+                  <p className="mt-2 flex flex-wrap items-center gap-2">
+                    <TapeMark direction={call.direction} move={grade.rawMovePct} label="Tape" />
+                    <span className="font-mono text-xs text-[#9a9aa3] tabular-nums">
+                      signed {formatPct(grade.signedMovePct)} · VIX {formatPct(grade.vixMovePct)}
+                    </span>
                   </p>
                   <Breakdown
                     directionPoints={grade.directionPoints}
@@ -185,9 +219,11 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
 
       {waiting.length > 0 ? (
         <details className="mt-8">
-          <summary className="cursor-pointer font-serif text-2xl text-ink">Pending settle</summary>
+          <summary className="flex min-h-11 cursor-pointer items-center font-serif text-2xl text-ink">Pending settle</summary>
           <p className="mt-2 max-w-3xl text-sm text-muted">
-            These horizons are not on the board yet. There is no score until the tape prints.
+            {closedOnly
+              ? `These horizons are not graded: the market was closed for ${closure.name}.`
+              : "These horizons are not on the board yet. There is no score until the tape prints."}
           </p>
           <ul className="mt-4 grid gap-3">
             {waiting.map((kind) => {
@@ -195,9 +231,15 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
               const readout = cohort.readouts[kind];
               return (
                 <li key={kind} className="rounded-2xl border border-dashed border-line bg-sheet px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
+                  <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{meta.role}</p>
                   <p className="font-serif text-xl text-ink">{meta.label}</p>
-                  <p className="mt-1 text-sm text-muted">Not graded yet · off the board until {meta.time}</p>
+                  <p className="mt-1 text-sm text-muted">
+                    {ungradedHorizonLine({
+                      kind,
+                      sessionYmd: etYmd(cohort.mondayAt),
+                      time: meta.time,
+                    })}
+                  </p>
                   <p className="mt-2 text-sm text-ink/80">{readout.narrative}</p>
                 </li>
               );
@@ -205,7 +247,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           </ul>
           <p className="mt-3 text-sm">
             <Link href={`/weeks/${cohort.slug}/pending`} className="text-pine underline-offset-4 hover:underline">
-              Open the waiting list for this cohort
+              {closedOnly ? "Open the pending list for this cohort" : "Open the waiting list for this cohort"}
             </Link>
           </p>
         </details>

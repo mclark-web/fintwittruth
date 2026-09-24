@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { CallCard } from "@/components/call-card";
-import { ExitLiquidity, GcTube } from "@/components/gc-tube";
-import { NoiseIndex, QuoteTape } from "@/components/market";
-import { gcBoardGrade, gcGrade } from "@/lib/grades";
+import { GcTube } from "@/components/gc-tube";
+import { CheckpointStrip, NoiseIndex, QuoteTape } from "@/components/market";
+import { closedHorizonNote, gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_FACTOR } from "@/lib/labels";
 import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
@@ -19,7 +19,8 @@ export function FinTwitBoard({
   readout,
   toolbar,
   pendingHref,
-  exitDetail,
+  marketClosed = false,
+  mondayAt,
 }: {
   kicker?: string;
   title: string;
@@ -31,12 +32,15 @@ export function FinTwitBoard({
   readout: ReadoutKind;
   toolbar?: ReactNode;
   pendingHref?: string;
-  exitDetail?: string;
+  marketClosed?: boolean;
+  mondayAt?: Date;
 }) {
   const graded = (feed ?? calls).filter((call) => call.grades[readout] != null);
+  const horizonGraded = calls.some((call) => call.grades[readout] != null);
   const calibration = gcBoardGrade(
     calls.filter((call) => call.grades[readout] != null).map((call) => call.grades[readout]?.score ?? 0),
   );
+  const boardGrade = calibration.ungraded ? "exit" : calibration.grade;
   const ranked = [...graded].sort((a, b) => {
     const left = a.grades[readout]?.score ?? -1;
     const right = b.grades[readout]?.score ?? -1;
@@ -51,19 +55,29 @@ export function FinTwitBoard({
     <div>
       <div className="ft-hero">
         <div>
-          <div className="chip">{kicker}</div>
+          <div className="chip hit-44">{kicker}</div>
           <h1>{title}</h1>
           <p className="mt-2 max-w-[48ch] text-sm leading-relaxed text-muted">{lede}</p>
         </div>
         <QuoteTape quotes={quotes} kind={tapeKind} variant="scoreboard" />
       </div>
 
+      <div className="panel mt-4 p-4">
+        <CheckpointStrip quotes={quotes} />
+      </div>
+
       <div className="panel mt-4 grid items-center gap-5 p-4 md:grid-cols-[1.2fr_1fr]">
         <p className="text-sm leading-relaxed text-muted">
           {GC_FACTOR} for graded posts on this horizon. The horizontal tube fills left to right. STRONG is
-          the peer cut. WEAK is under 70. PROVISIONAL cleared 70 and missed the cut. 0% is an empty glass.
+          70% or more. WEAK is under 40%. PROVISIONAL is 40% or more and under 70%. 0% is an empty glass.
         </p>
-        <GcTube score={calibration.fill} grade={calibration.grade} variant="sidebar" compactMeta />
+        <GcTube
+          score={calibration.fill}
+          grade={boardGrade}
+          variant="sidebar"
+          compactMeta
+          ungraded={!horizonGraded}
+        />
       </div>
 
       {toolbar}
@@ -79,8 +93,10 @@ export function FinTwitBoard({
             ) : (
             <div className="panel p-5">
               <h2 className="text-xl text-ink">Nothing graded yet</h2>
-              <p className="mt-2 text-sm text-muted">
-                This horizon has not settled, so every tube on it stays empty.
+              <p className={`mt-2 text-sm ${marketClosed ? "text-[#9a9aa3]" : "text-muted"}`}>
+                {marketClosed
+                  ? "This horizon is not graded: the market was closed."
+                  : "This horizon has not settled, so every tube on it stays empty."}
               </p>
               {pendingHref ? (
                 <p className="mt-3 text-sm">
@@ -90,7 +106,7 @@ export function FinTwitBoard({
                 </p>
               ) : (
                 <div className="mt-4 max-w-sm">
-                  <ExitLiquidity detail="0% GC Scale — this horizon is still off the board" />
+                  <GcTube score={0} grade="exit" variant="sidebar" compactMeta ungraded />
                 </div>
               )}
             </div>
@@ -100,7 +116,7 @@ export function FinTwitBoard({
           )}
         </div>
         <aside className="flex flex-col gap-3.5">
-          <NoiseIndex calls={calls} quotes={quotes} compact />
+          <NoiseIndex calls={calls} quotes={quotes} compact mondayAt={mondayAt} />
           <section className="panel p-4">
             <h2 className="text-sm font-semibold text-ink">Top handles</h2>
             <p className="mt-1 text-xs text-muted">By GC Scale on this horizon</p>
@@ -120,7 +136,17 @@ export function FinTwitBoard({
                           {call.displayName}
                         </Link>
                       </span>
-                      <span className={pill === "weak" || pill === "exit" ? "text-bear" : pill === "strong" ? "text-bull" : "text-muted"}>
+                      <span
+                        className={
+                          pill === "strong"
+                            ? "text-[#eb6505]"
+                            : pill === "exit"
+                              ? "text-[#9a9aa3]"
+                              : pill === "weak"
+                                ? "text-[#c9c9cf]"
+                                : "text-muted"
+                        }
+                      >
                         {Math.round(grade.score)}%
                       </span>
                     </li>
@@ -132,12 +158,12 @@ export function FinTwitBoard({
           <section className="panel p-4">
             <h2 className="text-sm font-semibold text-ink">Methodology</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Posts lock with the weekend book. Grades use the Monday open and the noon prints against Friday&apos;s
-              regular-session close for SPY, QQQ, DIA, and VIX.
+              Posts lock with the weekend book. Grades use the Monday open, Monday noon, and the Wednesday and
+              Friday official closes against Friday&apos;s regular-session close for SPY, QQQ, DIA, and VIX.
             </p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {["Monday open", "Public sources", "Sample size", "No edits after lock"].map((chip) => (
-                <span key={chip} className="rounded-full border border-line px-2 py-1 text-[11px] text-muted">
+                <span key={chip} className="rounded-full border border-[rgba(154,154,163,.35)] bg-transparent px-2 py-1 text-xs text-[#c9c9cf]">
                   {chip}
                 </span>
               ))}
@@ -146,7 +172,15 @@ export function FinTwitBoard({
               How the week is graded
             </Link>
           </section>
-          {pendingHref ? <ExitLiquidity detail={exitDetail} /> : null}
+          {pendingHref ? (
+            <section className="panel p-4">
+              <h2 className="text-sm font-semibold text-[#9a9aa3]">Not graded yet</h2>
+              <p className="mt-1 text-xs text-[#9a9aa3]">{closedHorizonNote(marketClosed)}</p>
+              <div className="mt-3">
+                <GcTube score={0} grade="exit" variant="sidebar" compactMeta ungraded />
+              </div>
+            </section>
+          ) : null}
         </aside>
       </div>
     </div>

@@ -3,20 +3,38 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { GradePill } from "@/components/gc-tube";
-import { Avatar, DirectionChip, ScoreMark } from "@/components/score";
-import { gcGrade } from "@/lib/grades";
+import { RealCallCard } from "@/components/real-call-card";
+import { Avatar, DirectionChip, ReferenceLine, ReportOutTitle, ScoreMark } from "@/components/score";
+import { TrackedAccount } from "@/components/tracked-account";
+import { cohortClockDates, gcGrade, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade, settledGradeKinds } from "@/lib/board";
 import { formatPct, formatScore } from "@/lib/format";
-import { READOUT_META } from "@/lib/labels";
+import { loadRealCallsForHandle } from "@/lib/public-real";
 import { getAccount, listHandles } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
+import { TRACKING_EMPTY, WATCHLIST, findWatchAccount, profileUrl } from "@/lib/watchlist";
+
+function horizonState(slug: string, calls: { grades: Partial<Record<(typeof READOUTS)[number], unknown>> }[]) {
+  const missing = READOUTS.filter((kind) => calls.some((call) => call.grades[kind] == null));
+  const monday = slug.match(/(\d{4}-\d{2}-\d{2})$/)?.[1];
+  const dates = monday ? cohortClockDates(monday) : null;
+  const closure = dates && missing.length > 0 ? pendingClosure(missing, dates) : null;
+  const note =
+    closure && closure.closed > 0 && closure.upcoming === 0
+      ? "Settled grades only. Closed sessions are not on this card."
+      : "Settled grades only. Horizons still waiting on the tape are not on this card.";
+  return { missing, closure, note };
+}
+
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   const handles = await listHandles();
-  return handles.map((handle) => ({ handle }));
+  const tracked = WATCHLIST.map((account) => account.handle);
+  return [...new Set([...handles, ...tracked])].map((handle) => ({ handle }));
 }
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,
@@ -25,7 +43,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { handle } = await params;
   const account = await getAccount(handle);
-  if (!account) return { title: "Account" };
+  const watched = findWatchAccount(handle);
+  if (!account) return { title: watched ? `@${watched.handle}` : "Account" };
   return {
     title: `@${account.handle}`,
     description: account.bio,
@@ -34,8 +53,19 @@ export async function generateMetadata({
 
 export default async function AccountPage({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
-  const account = await getAccount(handle);
-  if (!account) notFound();
+  const [account, realCalls] = await Promise.all([getAccount(handle), loadRealCallsForHandle(handle)]);
+  const watched = findWatchAccount(handle);
+  if (!account && !watched && realCalls.length === 0) notFound();
+  if (!account) {
+    return (
+      <TrackedAccount
+        handle={watched?.handle ?? realCalls[0]?.handle ?? handle}
+        authorName={realCalls[0]?.authorName ?? null}
+        calls={realCalls}
+      />
+    );
+  }
+  const gradedReal = realCalls.filter((call) => Object.keys(call.grades).length > 0);
   const row = account.row;
   const gradedCalls = account.calls.filter((call) => callHasSettledGrade(call.grades));
   const pendingCount = account.calls.length - gradedCalls.length;
@@ -58,11 +88,24 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
           <Avatar name={account.displayName} accent={account.accent} />
           <div>
             <p className="text-xs uppercase tracking-wide text-muted">
-              Demo {account.bucket === "viral" ? "viral" : "watchlist"} account
+              {account.calls.some((call) => call.dataset === "live") ? "Verified" : "Demo"}{" "}
+              {account.bucket === "viral" ? "viral" : "watchlist"} account
               {row ? ` · rank ${row.peerRank} of ${row.peerCount} in this bucket` : " · not on the leaderboard yet"}
             </p>
             <h1 className="font-serif text-4xl text-ink">{account.displayName}</h1>
-            <p className="text-muted">@{account.handle} · {account.posture}</p>
+            <p className="text-muted">
+              @{account.handle}
+              {watched ? (
+                <>
+                  {" · "}
+                  <a href={profileUrl(account.handle)} className="text-pine underline-offset-4 hover:underline">
+                    Profile on X
+                  </a>
+                </>
+              ) : null}
+              {" · "}
+              {account.posture}
+            </p>
             <p className="mt-3 max-w-2xl text-ink/80">{account.bio}</p>
             {row ? (
               <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-5">
@@ -75,11 +118,11 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                   <dd className="font-mono text-xl">{formatPct(row.hitRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">Strong rate</dt>
+                  <dt className="text-xs uppercase text-muted">STRONG rate</dt>
                   <dd className="font-mono text-xl">{formatPct(row.strongRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">Weak rate</dt>
+                  <dt className="text-xs uppercase text-muted">WEAK rate</dt>
                   <dd className="font-mono text-xl">{formatPct(row.weakRate, 0)}</dd>
                 </div>
                 <div>
@@ -87,6 +130,10 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                   <dd className="font-mono text-xl">{row.callCount}</dd>
                 </div>
               </dl>
+            ) : watched && gradedReal.length === 0 ? (
+              <div className="panel mt-4 p-5">
+                <h2 className="font-serif text-2xl text-ink">{TRACKING_EMPTY}</h2>
+              </div>
             ) : (
               <div className="mt-4">
                 <NothingGraded href="/pending" />
@@ -117,15 +164,28 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
         </div>
       ) : null}
 
+      {realCalls.length > 0 ? (
+        <section className="mt-10 grid gap-4" aria-labelledby="real-calls">
+          <h2 id="real-calls" className="font-serif text-2xl text-ink">
+            Verified real calls
+          </h2>
+          {realCalls.map((call) => (
+            <RealCallCard key={call.id} call={call} />
+          ))}
+        </section>
+      ) : null}
+
       <div className="mt-10 grid gap-8">
-        {[...cohorts.entries()].map(([slug, calls]) => (
+        {[...cohorts.entries()].map(([slug, calls]) => {
+          const horizon = horizonState(slug, calls);
+          return (
           <section key={slug} aria-labelledby={`cohort-${slug}`}>
             <h2 id={`cohort-${slug}`} className="font-serif text-2xl text-ink">
               <Link href={`/weeks/${slug}`} className="hover:underline">
                 {calls[0]?.cohortTitle}
               </Link>
             </h2>
-            <p className="text-sm text-muted">Settled grades only. Horizons still waiting on the tape are not on this card.</p>
+            <p className="text-sm text-muted">{horizon.note}</p>
             <ul className="mt-3 grid gap-3">
               {calls.map((call) => (
                 <li key={call.id} className="panel p-4">
@@ -133,19 +193,25 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                     <DirectionChip direction={call.direction} />
                     <span className="font-mono text-xs text-pine">{call.primary}</span>
                   </div>
-                  <p className="mt-2 text-ink">
+                  <p className="mt-3 text-ink">
                     <Link href={`/calls/${call.id}`} className="hover:underline">
                       {call.body}
                     </Link>
                   </p>
+                  <ReferenceLine quotes={account.quotesBySlug[slug]} primary={call.primary} />
                   <ol className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                     {settledGradeKinds(call.grades).map((kind) => {
                       const grade = call.grades[kind];
                       if (!grade) return null;
                       return (
                         <li key={kind} className="rounded-xl bg-sheet px-3 py-2">
-                          <Link href={`/weeks/${slug}/${kind}`} className="text-[11px] uppercase text-muted hover:underline">
-                            {READOUT_META[kind].short}
+                          <Link href={`/weeks/${slug}/${kind}`} className="block text-xs text-[#9a9aa3] hover:underline">
+                            <ReportOutTitle
+                              kind={kind}
+                              quotes={account.quotesBySlug[slug]}
+                              primary={call.primary}
+                              direction={call.direction}
+                            />
                           </Link>
                           <p className="font-mono text-2xl">
                             {grade.score}
@@ -162,13 +228,18 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                 </li>
               ))}
             </ul>
-            {calls.some((call) => settledGradeKinds(call.grades).length < READOUTS.length) ? (
+            {horizon.missing.length > 0 ? (
               <div className="mt-3">
-                <PendingSettleLink href={`/weeks/${slug}/pending`} />
+                <PendingSettleLink
+                  href={`/weeks/${slug}/pending`}
+                  waiting={horizon.missing.length}
+                  closure={horizon.closure ?? undefined}
+                />
               </div>
             ) : null}
           </section>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

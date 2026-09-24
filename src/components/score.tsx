@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { gcGrade } from "@/lib/grades";
-import { initials } from "@/lib/format";
-import type { GradeView } from "@/lib/queries";
-import { READOUTS, type ReadoutKind } from "@/lib/scoring";
+import { formatPrice, formatSignedPct, initials, moveArrow } from "@/lib/format";
+import { predictedReadout, referencePrint } from "@/lib/prints";
+import type { GradeView, QuoteView } from "@/lib/queries";
+import { READOUTS, type Direction, type ReadoutKind } from "@/lib/scoring";
 import { READOUT_META } from "@/lib/labels";
 import { GcTube, GradePill } from "./gc-tube";
 
@@ -59,26 +60,99 @@ export function ScoreMark({
 }
 
 export function DirectionChip({ direction }: { direction: "bullish" | "bearish" }) {
-  const bull = direction === "bullish";
+  return <span className="direction-tag">{direction}</span>;
+}
+
+const STANCE_LABEL = {
+  with: "with call",
+  against: "against call",
+  flat: "flat",
+} as const;
+
+export function ReferenceLine({ quotes, primary }: { quotes?: QuoteView[]; primary?: string }) {
+  const ref = referencePrint(quotes, primary);
+  if (!ref) return null;
   return (
-    <span
-      className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${
-        bull ? "bg-bull/15 text-bull" : "bg-bear/15 text-bear"
-      }`}
-    >
-      {direction}
+    <p className="call-ref">
+      Reference {ref.symbol} (${formatPrice(ref.price)})
+    </p>
+  );
+}
+
+export function SignedMove({
+  move,
+  stance,
+}: {
+  move: number;
+  stance: "with" | "against" | "flat" | null;
+}) {
+  const arrow = moveArrow(move);
+  const tone = stance === "with" || stance === "against" ? ` readout-move-${stance}` : "";
+  return (
+    <span className={`readout-move${tone}`}>
+      {arrow ? <span aria-hidden="true">{arrow} </span> : null}
+      {formatSignedPct(move)}
     </span>
   );
+}
+
+export function ReadoutBubble({
+  kind,
+  quotes,
+  primary,
+  direction,
+}: {
+  kind: ReadoutKind;
+  quotes?: QuoteView[];
+  primary?: string;
+  direction?: Direction;
+}) {
+  const meta = READOUT_META[kind];
+  const print = predictedReadout(quotes, primary, kind, direction);
+  const stance = print?.stance ?? null;
+  return (
+    <span className="readout-bubble">
+      <span className="readout-when" title={meta.time}>
+        {meta.short}
+      </span>
+      <span className="readout-line">
+        <span className="readout-ticker">{print?.symbol ?? primary}</span>
+        {print?.price != null ? <span className="readout-px">(${formatPrice(print.price)})</span> : null}
+        {print?.move != null ? <SignedMove move={print.move} stance={stance} /> : null}
+      </span>
+      {stance ? <span className={`stance stance-${stance}`}>{STANCE_LABEL[stance]}</span> : null}
+    </span>
+  );
+}
+
+export function ReportOutTitle({
+  kind,
+  quotes,
+  primary,
+  direction,
+}: {
+  kind: ReadoutKind;
+  quotes?: QuoteView[];
+  primary?: string;
+  direction?: Direction;
+}) {
+  return <ReadoutBubble kind={kind} quotes={quotes} primary={primary} direction={direction} />;
 }
 
 export function Evolution({
   grades,
   slug,
   active,
+  quotes,
+  primary,
+  direction,
 }: {
   grades: Record<ReadoutKind, GradeView | null>;
   slug: string;
   active?: ReadoutKind;
+  quotes?: QuoteView[];
+  primary?: string;
+  direction?: Direction;
 }) {
   const settled = READOUTS.filter((kind) => grades[kind] != null);
   return (
@@ -89,15 +163,15 @@ export function Evolution({
         const current = active === kind;
         const pill = gcGrade(grade);
         return (
-          <li key={kind}>
+          <li key={kind} className="w-full sm:w-auto">
             <Link
               href={`/weeks/${slug}/${kind}`}
-              className={`block min-w-28 rounded-xl border px-3 py-1.5 text-xs ${
-                current ? "border-pine bg-pine/15 text-ink" : "border-line bg-sheet text-ink hover:border-pine"
+              className={`block w-full rounded-xl border px-3 py-1.5 text-xs sm:w-auto sm:min-w-52 ${
+                current ? "border-pine bg-[#14171e] text-ink" : "border-line bg-sheet text-ink hover:border-pine"
               }`}
             >
-              <span className="block text-[10px] uppercase tracking-wide text-muted">
-                {READOUT_META[kind].short}
+              <span className="block text-xs text-[#9a9aa3]">
+                <ReportOutTitle kind={kind} quotes={quotes} primary={primary} direction={direction} />
               </span>
               <span className="mt-1 flex items-center justify-between gap-2">
                 <span className="font-mono text-sm">{Math.round(grade.score)}%</span>
@@ -124,7 +198,7 @@ export function LevelList({
       {levels.map((level) => (
         <li
           key={`${level.role}-${level.symbol}-${level.price}`}
-          className="rounded-full border border-line bg-sheet px-2.5 py-1 font-mono text-xs text-ink"
+          className="rounded-full border border-[rgba(154,154,163,.35)] bg-transparent px-2.5 py-1 font-mono text-xs text-[#c9c9cf]"
         >
           {level.symbol} {level.role} {level.price.toFixed(2)}
         </li>

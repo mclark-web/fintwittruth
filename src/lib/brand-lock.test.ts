@@ -35,8 +35,10 @@ test("user-facing copy keeps one GC expansion and none of the retired names", ()
   const hits: string[] = [];
   let expansions = 0;
   for (const path of files(root)) {
-    const text = readFileSync(path, "utf8");
     const rel = relative(root, path);
+    // BRAND.md names the retired words and the one allowed expansion. The UI lock is everything else.
+    if (rel === "BRAND.md") continue;
+    const text = readFileSync(path, "utf8");
     for (const pattern of banned) {
       if (pattern.test(text)) hits.push(rel);
     }

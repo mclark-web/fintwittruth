@@ -2,14 +2,15 @@ import Link from "next/link";
 import { PendingSettleLink } from "@/components/board-state";
 import { FinTwitBoard } from "@/components/fintwit-board";
 import { CalendarStrip } from "@/components/market";
-import { Avatar } from "@/components/score";
+import { Avatar, ReferenceLine, ReportOutTitle } from "@/components/score";
 import { GradePill } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledGradeKinds, settledReadoutKinds } from "@/lib/board";
+import { DEMO_OPEN_COHORT_SLUG } from "@/lib/demo-data";
 import { formatPct, formatScore, formatShortDay } from "@/lib/format";
-import { gcGrade } from "@/lib/grades";
-import { READOUT_META } from "@/lib/labels";
+import { gcGrade, mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
 import { getFeaturedCohort, getLatestCohort, getLeaderboard, type CallView } from "@/lib/queries";
 import { EQUITY_TAPE, type ReadoutKind } from "@/lib/scoring";
+import { TRACKING_EMPTY, WATCHLIST } from "@/lib/watchlist";
 
 const INDEX = new Set<string>([...EQUITY_TAPE, "VIX"]);
 
@@ -64,6 +65,7 @@ export default async function HomePage({
         : null
     : null;
   const waiting = latest ? pendingReadoutKinds(Object.values(latest.readouts)) : [];
+  const closedMonday = latest ? mondayTapeClosedLine(latest.mondayAt) : null;
   const feed = latest && tapeKind
     ? latest.calls.filter((call) => {
         if (query.side === "bullish" || query.side === "bearish") {
@@ -114,34 +116,72 @@ export default async function HomePage({
           readout={tapeKind}
           toolbar={filters}
           pendingHref={waiting.length > 0 ? `/weeks/${latest.slug}/pending` : undefined}
-          exitDetail="0% GC Scale — no graded horizon closed yet"
+          mondayAt={latest.mondayAt}
         />
       ) : (
         <div className="panel p-5">
           <h1 className="text-3xl text-ink">Social calls vs Monday’s tape</h1>
-          <p className="mt-2 text-muted">The Monday tape is off this board until the open prints settle.</p>
+          {closedMonday ? (
+            <p className="mt-2 text-[#9a9aa3]">{closedMonday}</p>
+          ) : (
+            <p className="mt-2 text-muted">The Monday tape is off this board until the open prints settle.</p>
+          )}
           <ExitLink />
         </div>
       )}
 
       {latest ? (
-        <p className="mt-4 text-sm text-muted">
-          {latest.title} · readout week of {formatShortDay(latest.mondayAt)}. {latest.summary}{" "}
-          <Link href={`/weeks/${latest.slug}`} className="text-pine underline-offset-4 hover:underline">
-            Open the side-by-side board
-          </Link>
-          .
-        </p>
+        <>
+          <p className="mt-4 text-sm text-muted">
+            {latest.title} · readout week of {formatShortDay(latest.mondayAt)}. {latest.summary}
+          </p>
+          <p className="text-sm text-muted">
+            <Link href={`/weeks/${latest.slug}`} className="text-pine underline-offset-4 hover:underline">
+              Open the side-by-side board
+            </Link>
+            .
+          </p>
+          <p className="text-sm text-muted">
+            Fictional weekend doom and melt-up posts for this same Monday tape stay graded on the{" "}
+            <Link href={`/weeks/${DEMO_OPEN_COHORT_SLUG}`} className="text-pine underline-offset-4 hover:underline">
+              demo week
+            </Link>
+            .
+          </p>
+        </>
       ) : null}
+
+      <section className="mt-12" aria-labelledby="watchlist-heading">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h2 id="watchlist-heading" className="text-3xl text-ink">
+            Tracked X accounts
+          </h2>
+          <Link href="/watchlist" className="text-sm font-medium text-pine underline-offset-4 hover:underline">
+            Open the watchlist
+          </Link>
+        </div>
+        <p className="mt-2 max-w-3xl text-muted">
+          Fifteen public accounts. {TRACKING_EMPTY} until a status URL is confirmed. Demo posts stay on the demo board.
+        </p>
+        <ul className="mt-4 flex flex-wrap gap-x-2 gap-y-3">
+          {WATCHLIST.map((account) => (
+            <li key={account.handle}>
+              <Link href={`/accounts/${account.handle}`} className="tag hover:text-ink">
+                @{account.handle}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="mt-12" aria-labelledby="calendar-heading">
         <h2 id="calendar-heading" className="text-3xl text-ink">
-          One cohort. Gap, noon, then the week.
+          One cohort. Mon noon, Wed close, Fri close.
         </h2>
         <p className="mt-2 max-w-3xl text-muted">
           Monday&apos;s open and Monday noon are the primary reads on the weekend book. Wednesday and Friday keep
-          grading that same cohort. A new collect window opens Wednesday at noon, and it does not replace the
-          book already being graded.
+          grading that same cohort at the official close. A new collect window opens Wednesday at noon, and it
+          does not replace the book already being graded.
         </p>
         <div className="mt-5">
           <CalendarStrip />
@@ -177,14 +217,17 @@ export default async function HomePage({
                   </div>
                 </div>
                 <p className="mt-3 text-ink">{call.body}</p>
-                <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <ReferenceLine quotes={featured.quotes} primary={call.primary} />
+                <ol className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
                   {featuredKinds.map((kind) => {
                     const grade = call.grades[kind];
                     if (!grade) return null;
                     return (
                       <li key={kind}>
                         <Link href={`/weeks/${featured.slug}/${kind}`} className="block rounded-xl bg-sheet px-3 py-2">
-                          <span className="text-[11px] uppercase text-muted">{READOUT_META[kind].short}</span>
+                          <span className="block text-xs text-[#9a9aa3]">
+                            <ReportOutTitle kind={kind} quotes={featured.quotes} primary={call.primary} direction={call.direction} />
+                          </span>
                           <span className="mt-1 block font-mono text-2xl">
                             {Math.round(grade.score)}
                             <span className="text-sm text-muted">%</span>
@@ -202,7 +245,11 @@ export default async function HomePage({
           </ul>
           {featuredWaiting.length > 0 ? (
             <div className="mt-3">
-              <PendingSettleLink href={`/weeks/${featured.slug}/pending`} waiting={featuredWaiting.length} />
+              <PendingSettleLink
+                href={`/weeks/${featured.slug}/pending`}
+                waiting={featuredWaiting.length}
+                closure={pendingClosure(featuredWaiting, featured)}
+              />
             </div>
           ) : null}
         </section>
@@ -219,8 +266,8 @@ export default async function HomePage({
         </div>
         <p className="mt-2 text-sm text-muted">
           Watchlist accounts with a settled grade, ranked inside that bucket. Each average uses the furthest
-          settled grade. STRONG, WEAK, and hit rate count settled grades only. STRONG is the top 30% of this
-          board and also at least 70. WEAK is under 70.
+          settled grade. STRONG, WEAK, and hit rate count settled grades only. STRONG is 70 or more. WEAK is
+          under 40. PROVISIONAL is 40 or more and under 70.
         </p>
         <ol className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
           {board.slice(0, 5).map((row) => (

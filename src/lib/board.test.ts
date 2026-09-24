@@ -19,17 +19,17 @@ test("a scheduled readout contributes nothing to the primary board", () => {
   for (const readout of latest.readouts) {
     const grades = latest.grades.filter((grade) => grade.readout === readout.kind);
     const onBoard = gradesOnPrimaryBoard(grades, readout.status);
-    if (readout.kind === "monday-gap" || readout.kind === "monday") {
-      assert.equal(readout.status, "published");
-      assert.equal(onBoard.length, latest.calls.length);
-    } else {
+    if (readout.kind === "friday") {
       assert.equal(readout.status, "scheduled");
       assert.equal(grades.length, 0);
       assert.equal(onBoard.length, 0);
+    } else {
+      assert.equal(readout.status, "published");
+      assert.equal(onBoard.length, latest.calls.length);
     }
   }
-  assert.deepEqual(settledReadoutKinds(latest.readouts), ["monday-gap", "monday"]);
-  assert.deepEqual(pendingReadoutKinds(latest.readouts), ["wednesday", "friday"]);
+  assert.deepEqual(settledReadoutKinds(latest.readouts), ["monday-gap", "monday", "wednesday"]);
+  assert.deepEqual(pendingReadoutKinds(latest.readouts), ["friday"]);
 });
 
 test("Labor Day Monday stays off the primary board", () => {
@@ -100,7 +100,7 @@ test("STRONG, WEAK, and hit rate use every settled grade and skip the mature-onl
   assert.equal(stats.avgScore, 80);
   assert.equal(stats.callCount, 1);
   assert.equal(stats.strongRate, 0.5);
-  assert.equal(stats.weakRate, 0.5);
+  assert.equal(stats.weakRate, 0);
   assert.equal(stats.hitRate, 0.5);
 });
 
