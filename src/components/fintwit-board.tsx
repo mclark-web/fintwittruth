@@ -167,7 +167,7 @@ export function FinTwitBoard({
           </section>
           {pendingHref ? (
             <section className="panel p-4">
-              <h2 className="text-sm font-semibold text-ink">Not graded yet</h2>
+              <h2 className="text-sm font-semibold text-[#9a9aa3]">Not graded yet</h2>
               <p className="mt-1 text-xs text-[#9a9aa3]">A horizon on this week is still off the board.</p>
               <div className="mt-3">
                 <GcTube score={0} grade="exit" variant="sidebar" compactMeta ungraded />

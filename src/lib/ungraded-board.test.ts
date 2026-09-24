@@ -13,6 +13,8 @@ test("an ungraded Friday board tube is not EXIT", async () => {
   const html = await markup("2026-09-21", "friday");
   assert.match(html, /aria-label="GC Scale, not graded yet"/);
   assert.match(html, />Not graded yet</);
+  assert.match(html, /<h2 class="text-sm font-semibold text-\[#9a9aa3\]">Not graded yet<\/h2>/);
+  assert.doesNotMatch(html, /<h2 class="[^"]*text-ink[^"]*">Not graded yet<\/h2>/);
   assert.doesNotMatch(html, /aria-label="0% GC Scale, EXIT LIQUIDITY"/);
   assert.doesNotMatch(html, /data-grade="exit"/);
   assert.doesNotMatch(html, /gc-pct[^>]*>0%</);
