@@ -411,14 +411,14 @@ a.tag,
 }
 
 /* Breadcrumbs, lists, and cards: the border box is the target, so wrapped rows do not overlap. */
-:is(a.font-medium, a.text-pine, a.underline-offset-4, .footer-nav a, .rank-list a, ol a, ul a, table a, .panel a, article a, p.text-sm a, p.font-medium a):not(.sr-only) {
+:is(a.font-medium, a.text-pine, a.underline-offset-4, .footer-nav a, .rank-list a, ol a, ul a, table a, .panel a, article a, p.text-sm a, p.font-medium a):not(.sr-only):not(p *) {
   box-sizing: border-box;
   min-height: 44px;
   min-width: 44px;
   max-width: 100%;
 }
 
-:is(a.font-medium, a.text-pine, a.underline-offset-4, .rank-list a, ol a, ul a, table a, .panel a, article a, p.text-sm a, p.font-medium a):not(.flex):not(.block):not(.inline-flex):not(.sr-only):not(.hit-44):not(.tag):not(.btn) {
+:is(a.font-medium, a.text-pine, a.underline-offset-4, .rank-list a, ol a, ul a, table a, .panel a, article a, p.text-sm a, p.font-medium a):not(.flex):not(.block):not(.inline-flex):not(.sr-only):not(.hit-44):not(.tag):not(.btn):not(p *) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -710,8 +710,8 @@ p:has(a) + p:has(a),
 }
 
 .stance-flat {
-  color: #9a9aa3;
-  background: rgba(154, 154, 163, 0.12);
+  color: #c9c9cf;
+  background: transparent;
   border-color: rgba(154, 154, 163, 0.35);
 }
 

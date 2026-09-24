@@ -198,7 +198,7 @@ export function LevelList({
       {levels.map((level) => (
         <li
           key={`${level.role}-${level.symbol}-${level.price}`}
-          className="rounded-full border border-line bg-sheet px-2.5 py-1 font-mono text-xs text-ink"
+          className="rounded-full border border-[rgba(154,154,163,.35)] bg-transparent px-2.5 py-1 font-mono text-xs text-[#c9c9cf]"
         >
           {level.symbol} {level.role} {level.price.toFixed(2)}
         </li>

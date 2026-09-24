@@ -283,7 +283,7 @@ export function PricePath({
         {points.map((point) => (
           <li key={point.label} className="font-mono text-ink">
             <span className="block font-mono text-xs uppercase text-[#9a9aa3]">{point.label}</span>
-            {point.value == null ? "Not graded yet" : formatPrice(point.value)}
+            {point.value == null ? <span className="text-[#9a9aa3]">Not graded yet</span> : formatPrice(point.value)}
           </li>
         ))}
       </ul>

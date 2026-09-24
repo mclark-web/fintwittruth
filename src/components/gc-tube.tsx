@@ -100,21 +100,3 @@ export function GcTube({
     </div>
   );
 }
-
-export function ExitLiquidity({
-  detail = "0% GC Scale — no graded horizon closed yet",
-}: {
-  detail?: string;
-}) {
-  return (
-    <section className="panel p-4" aria-labelledby="exit-liquidity-heading">
-      <h2 id="exit-liquidity-heading" className="text-sm font-semibold text-ink">
-        EXIT LIQUIDITY
-      </h2>
-      <p className="mt-1 text-xs text-muted">{detail}</p>
-      <div className="mt-3">
-        <GcTube score={0} grade="exit" variant="sidebar" compactMeta />
-      </div>
-    </section>
-  );
-}

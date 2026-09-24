@@ -685,16 +685,12 @@ a.gc-link {
 }
 .gc-grade-tag.weak {
   color: #c9c9cf;
-  background:
-    linear-gradient(rgba(154, 154, 163, 0.12), rgba(154, 154, 163, 0.12)),
-    #14171e;
+  background: rgba(154, 154, 163, 0.12);
   border: 1px solid rgba(154, 154, 163, 0.35);
 }
 .gc-grade-tag.provisional {
   color: #c9c9cf;
-  background:
-    linear-gradient(rgba(154, 154, 163, 0.12), rgba(154, 154, 163, 0.12)),
-    #14171e;
+  background: rgba(154, 154, 163, 0.12);
   border: 1px dashed rgba(154, 154, 163, 0.35);
 }
 .gc-grade-tag.exit {

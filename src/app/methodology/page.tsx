@@ -167,46 +167,66 @@ export default async function MethodologyPage() {
           call&apos;s own symbol. Selloff calls only score well when the tape is down; melt-up calls only when
           the tape is up.
         </p>
-        <table className="mt-3 w-full text-left text-sm">
-          <caption className="sr-only">Direction point bands</caption>
-          <thead className="text-xs uppercase tracking-wide text-muted">
-            <tr>
-              <th scope="col" className="py-2 font-medium">Move versus the call</th>
-              <th scope="col" className="py-2 font-medium">Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {DIRECTION_BANDS.map((band) => (
-              <tr key={band.label} className="border-t border-line">
-                <td className="py-2">{band.label}</td>
-                <td className="py-2 font-mono">{band.points}</td>
+        <ul className="mt-3 grid gap-3 min-[820px]:hidden">
+          {DIRECTION_BANDS.map((band) => (
+            <li key={band.label} className="panel p-4">
+              <p className="text-sm">{band.label}</p>
+              <p className="mt-1 font-mono text-sm">{band.points} points</p>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-3 hidden min-[820px]:block">
+          <table className="w-full text-left text-sm">
+            <caption className="sr-only">Direction point bands</caption>
+            <thead className="text-xs uppercase tracking-wide text-muted">
+              <tr>
+                <th scope="col" className="py-2 font-medium">Move versus the call</th>
+                <th scope="col" className="py-2 font-medium">Points</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {DIRECTION_BANDS.map((band) => (
+                <tr key={band.label} className="border-t border-line">
+                  <td className="py-2">{band.label}</td>
+                  <td className="py-2 font-mono">{band.points}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <h3 className="mt-6 font-medium text-ink">VIX factor, {VIX_MAX} points</h3>
         <p className="mt-1 text-sm text-muted">
           VIX is always in the score. A panic, crash, or selloff call wants VIX higher. A melt-up or
           complacency call wants VIX lower. A spike hurts a melt-up call. A drop hurts a panic call. The move
           is Friday&apos;s VIX close to the VIX print at the same stamp as the equity readout.
         </p>
-        <table className="mt-3 w-full text-left text-sm">
-          <caption className="sr-only">VIX point bands</caption>
-          <thead className="text-xs uppercase tracking-wide text-muted">
-            <tr>
-              <th scope="col" className="py-2 font-medium">VIX versus the call</th>
-              <th scope="col" className="py-2 font-medium">Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {VIX_BANDS.map((band) => (
-              <tr key={band.label} className="border-t border-line">
-                <td className="py-2">{band.label}</td>
-                <td className="py-2 font-mono">{band.points}</td>
+        <ul className="mt-3 grid gap-3 min-[820px]:hidden">
+          {VIX_BANDS.map((band) => (
+            <li key={band.label} className="panel p-4">
+              <p className="text-sm">{band.label}</p>
+              <p className="mt-1 font-mono text-sm">{band.points} points</p>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-3 hidden min-[820px]:block">
+          <table className="w-full text-left text-sm">
+            <caption className="sr-only">VIX point bands</caption>
+            <thead className="text-xs uppercase tracking-wide text-muted">
+              <tr>
+                <th scope="col" className="py-2 font-medium">VIX versus the call</th>
+                <th scope="col" className="py-2 font-medium">Points</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {VIX_BANDS.map((band) => (
+                <tr key={band.label} className="border-t border-line">
+                  <td className="py-2">{band.label}</td>
+                  <td className="py-2 font-mono">{band.points}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <h3 className="mt-6 font-medium text-ink">Levels</h3>
         <p className="mt-1 text-sm text-muted">
           A reached target scores {LEVEL_MAX}. A near miss scores less. Support and resistance score when they

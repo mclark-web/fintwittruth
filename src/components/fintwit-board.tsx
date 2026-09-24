@@ -32,6 +32,7 @@ export function FinTwitBoard({
   pendingHref?: string;
 }) {
   const graded = (feed ?? calls).filter((call) => call.grades[readout] != null);
+  const horizonGraded = calls.some((call) => call.grades[readout] != null);
   const calibration = gcBoardGrade(
     calls.filter((call) => call.grades[readout] != null).map((call) => call.grades[readout]?.score ?? 0),
   );
@@ -71,7 +72,7 @@ export function FinTwitBoard({
           grade={boardGrade}
           variant="sidebar"
           compactMeta
-          ungraded={calibration.ungraded}
+          ungraded={!horizonGraded}
         />
       </div>
 
@@ -134,7 +135,7 @@ export function FinTwitBoard({
                           pill === "strong"
                             ? "text-[#eb6505]"
                             : pill === "exit"
-                              ? "text-[#c9a35a]"
+                              ? "text-[#9a9aa3]"
                               : pill === "weak"
                                 ? "text-[#c9c9cf]"
                                 : "text-muted"
@@ -156,7 +157,7 @@ export function FinTwitBoard({
             </p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {["Monday open", "Public sources", "Sample size", "No edits after lock"].map((chip) => (
-                <span key={chip} className="rounded-full border border-line px-2 py-1 text-xs text-[#9a9aa3]">
+                <span key={chip} className="rounded-full border border-[rgba(154,154,163,.35)] bg-transparent px-2 py-1 text-xs text-[#c9c9cf]">
                   {chip}
                 </span>
               ))}
