@@ -10,7 +10,7 @@ import { READOUTS } from "@/lib/scoring";
 export const metadata: Metadata = {
   title: "Weeks",
   description:
-    "Every GradedCalls FinTwit cohort, with Monday gap, Monday noon, Wednesday, and Friday grades on the same calls.",
+    "Every GradedCalls FinTwit cohort, with Monday gap, Monday noon, Wed close, and Fri close grades on the same calls.",
 };
 
 export default async function WeeksPage() {

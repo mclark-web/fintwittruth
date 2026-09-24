@@ -7,7 +7,7 @@ export function NothingGraded({ href, horizon }: { href: string; horizon?: strin
       <p className="mt-2 max-w-2xl text-sm text-muted">
         {horizon
           ? `${horizon} has not settled, so these calls are off the board.`
-          : "This cohort has no settled grade yet. Scores land here after Monday's open, Monday noon, or a later horizon prints."}
+          : "This cohort has no settled grade yet. Scores land here after Monday's open, Monday noon, or a later close prints."}
       </p>
       <p className="mt-3 text-sm">
         <Link href={href} className="font-medium text-pine underline-offset-4 hover:underline">

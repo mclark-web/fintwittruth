@@ -21,8 +21,8 @@ test("locked calendar for the latest readout week", () => {
   assert.equal(latest.collectStart.toISOString(), zonedToUtc(2026, 9, 16, 12, 0).toISOString());
   assert.equal(latest.collectEnd.toISOString(), zonedToUtc(2026, 9, 20, 17, 0).toISOString());
   assert.equal(latest.mondayAt.toISOString(), zonedToUtc(2026, 9, 21, 12, 0).toISOString());
-  assert.equal(latest.wednesdayAt.toISOString(), zonedToUtc(2026, 9, 23, 12, 0).toISOString());
-  assert.equal(latest.fridayAt.toISOString(), zonedToUtc(2026, 9, 25, 12, 0).toISOString());
+  assert.equal(latest.wednesdayAt.toISOString(), zonedToUtc(2026, 9, 23, 16, 0).toISOString());
+  assert.equal(latest.fridayAt.toISOString(), zonedToUtc(2026, 9, 25, 16, 0).toISOString());
 });
 
 test("finished weeks publish every readout except the Labor Day Monday", () => {
@@ -170,7 +170,8 @@ test("the open week keeps future readouts empty and uses real Monday prints", ()
   for (const quote of latest.quotes) {
     assert.equal(quote.mondayOpen, sessionOpen(quote.symbol, "2026-09-21"));
     assert.equal(quote.monday, noonOpen(quote.symbol, "2026-09-21"));
-    assert.equal(quote.wednesday, noonOpen(quote.symbol, "2026-09-23"));
+    assert.equal(quote.wednesday, sessionClose(quote.symbol, "2026-09-23"));
+    assert.notEqual(quote.wednesday, noonOpen(quote.symbol, "2026-09-23"));
     assert.equal(quote.friday, null);
   }
   assert.throws(() => noonOpen("SPY", "2026-09-25"), /Refusing to invent/);
@@ -186,8 +187,10 @@ test("doomscroll on the September 7 cohort is graded on real SPY prints in the 7
   assert.ok(spy.ref > 740 && spy.ref < 800);
   assert.equal(spy.mondayOpen, null);
   assert.equal(spy.monday, null);
-  assert.equal(spy.wednesday, noonOpen("SPY", "2026-09-09"));
-  assert.equal(spy.friday, noonOpen("SPY", "2026-09-11"));
+  assert.equal(spy.wednesday, sessionClose("SPY", "2026-09-09"));
+  assert.equal(spy.friday, sessionClose("SPY", "2026-09-11"));
+  assert.notEqual(spy.wednesday, noonOpen("SPY", "2026-09-09"));
+  assert.notEqual(spy.friday, noonOpen("SPY", "2026-09-11"));
   for (const price of [spy.wednesday, spy.friday]) {
     assert.ok(price != null && price > 740 && price < 800);
   }
@@ -204,6 +207,30 @@ test("doomscroll on the September 7 cohort is graded on real SPY prints in the 7
   const friday = week.readouts.find((item) => item.kind === "friday");
   assert.match(friday?.narrative ?? "", /Weekend Noise Index/);
   assert.match(friday?.narrative ?? "", /Not a signal/);
+});
+
+test("September 23 Wednesday grades use the official close, not the noon bar", () => {
+  const latest = data.cohorts.find((cohort) => cohort.slug === LATEST_COHORT_SLUG);
+  assert.ok(latest);
+  const expected = {
+    SPY: 767.8099975585938,
+    QQQ: 741.2100219726562,
+    DIA: 514.2999877929688,
+    VIX: 15.180000305175781,
+  };
+  for (const [symbol, close] of Object.entries(expected)) {
+    const quote = latest.quotes.find((item) => item.symbol === symbol);
+    assert.ok(quote);
+    assert.equal(quote.wednesday, close);
+    assert.equal(sessionClose(symbol, "2026-09-23"), close);
+    assert.notEqual(close, noonOpen(symbol, "2026-09-23"));
+  }
+  const wednesday = latest.readouts.find((item) => item.kind === "wednesday");
+  assert.equal(wednesday?.status, "published");
+  assert.match(wednesday?.narrative ?? "", /Wednesday close/);
+  const friday = latest.readouts.find((item) => item.kind === "friday");
+  assert.equal(friday?.status, "scheduled");
+  assert.match(friday?.narrative ?? "", /45 minutes after the official close/);
 });
 
 test("September 21 Monday open and noon are distinct recorded prints", () => {

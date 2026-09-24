@@ -151,7 +151,11 @@ function readoutNarrative(input: {
   const lean = `${Math.round(input.bullishShare * 100)}% conviction-weighted bullish`;
   if (input.status === "scheduled") {
     const closed = input.sessionReason ? ` ${input.sessionReason}` : "";
-    return `${input.whenLabel} is not published.${closed} The book is already ${lean}. No new calls are added between readouts.`;
+    const buffer =
+      (input.kind === "wednesday" || input.kind === "friday") && !input.sessionReason
+        ? " Settlement runs 45 minutes after the official close, once the daily bar is posted."
+        : "";
+    return `${input.whenLabel} is not published.${closed}${buffer} The book is already ${lean}. No new calls are added between readouts.`;
   }
   const pct = `${input.move >= 0 ? "+" : ""}${(input.move * 100).toFixed(2)}%`;
   const sessionNote = input.sessionReason ? ` ${input.sessionReason}` : "";
@@ -360,8 +364,8 @@ export function buildDataset(): BuiltDataset {
       const whenLabel = {
         "monday-gap": "Monday gap, Friday regular-session close to the 9:30 AM ET open",
         monday: "Monday 12:00 PM ET weekend-noise grade",
-        wednesday: "Wednesday 12:00 PM ET update on the same weekend cohort",
-        friday: "Friday 12:00 PM ET final grade on the same weekend cohort",
+        wednesday: "Wednesday close, same weekend cohort",
+        friday: "Friday close, final grade on the same weekend cohort",
       }[kind];
       const priceOf = (symbol: string) => {
         const quote = quotes.find((item) => item.symbol === symbol);
@@ -371,7 +375,7 @@ export function buildDataset(): BuiltDataset {
       const published = needed.every((symbol) => priceOf(symbol) != null);
       const sessionKind = kind === "monday-gap" ? "monday" : kind;
       const session = sessionFor(spec.historySlug, sessionKind);
-      const sessionReason = session?.session === "closed" ? session.reason : undefined;
+      const sessionReason = session?.reason;
       const noise = weekendNoise(calls.map((call) => call.sentiment));
 
       if (!published) {

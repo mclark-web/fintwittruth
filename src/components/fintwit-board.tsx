@@ -132,8 +132,8 @@ export function FinTwitBoard({
           <section className="panel p-4">
             <h2 className="text-sm font-semibold text-ink">Methodology</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Posts lock with the weekend book. Grades use the Monday open and the noon prints against Friday&apos;s
-              regular-session close for SPY, QQQ, DIA, and VIX.
+              Posts lock with the weekend book. Grades use the Monday open, Monday noon, and the Wednesday and
+              Friday official closes against Friday&apos;s regular-session close for SPY, QQQ, DIA, and VIX.
             </p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {["Monday open", "Public sources", "Sample size", "No edits after lock"].map((chip) => (

@@ -61,10 +61,10 @@ export default function DisclaimerPage() {
       <LegalSection id="calendar" title="One cohort, four readouts">
         <p>
           The calendar is fixed. Posts are collected from Wednesday at 12:00 PM America/New_York through Sunday
-          at 5:00 PM America/New_York. That same cohort is graded on the Monday regular-session open, then at
-          12:00 PM America/New_York on Monday, Wednesday, and Friday. Wednesday noon also opens the next collect
-          window. That new window is a different cohort. The Wednesday grade still belongs to the book that
-          closed the previous Sunday.
+          at 5:00 PM America/New_York. That same cohort is graded on the Monday regular-session open, at Monday
+          12:00 PM America/New_York, and at the Wednesday and Friday official closes (4:00 PM ET, or 1:00 PM ET
+          on an early close). Wednesday at noon also opens the next collect window. That new window is a different
+          cohort. The Wednesday close still belongs to the book that closed the previous Sunday.
         </p>
         <p>
           The rules are written out on the{" "}
@@ -79,7 +79,8 @@ export default function DisclaimerPage() {
         <p>
           Grades use recorded market prices for the evaluation dates. The weekend reference is the prior Friday
           regular-session close for SPY, QQQ, and DIA, and Friday&apos;s VIX close. Monday&apos;s gap uses the
-          regular-session open. Noon grades use the open of the 12:00 PM ET five-minute bar. A closed session
+          regular-session open. Monday noon uses the open of the 12:00 PM ET five-minute bar. Wednesday and
+          Friday use the official daily close, after a 45-minute buffer so the print is posted. A closed session
           stays blank. A date that has not printed is left blank. GradedCalls FinTwit does not invent a price path to
           make a call look right or wrong, and it does not turn a grade into a buy or sell instruction.
         </p>

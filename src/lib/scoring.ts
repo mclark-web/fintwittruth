@@ -262,8 +262,8 @@ export function gradeNote(input: {
   const when = {
     "monday-gap": "Monday gap, from Friday's regular-session close to the regular-session open",
     monday: "Monday noon weekend-noise grade",
-    wednesday: "Wednesday noon, same weekend cohort",
-    friday: "Friday noon, same weekend cohort",
+    wednesday: "Wednesday close, same weekend cohort",
+    friday: "Friday close, same weekend cohort",
   }[input.kind];
   const pct = `${input.rawMovePct >= 0 ? "+" : ""}${(input.rawMovePct * 100).toFixed(2)}%`;
   const vix = `${input.vixMovePct >= 0 ? "+" : ""}${(input.vixMovePct * 100).toFixed(2)}%`;

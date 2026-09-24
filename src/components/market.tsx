@@ -23,8 +23,8 @@ export function CalendarStrip() {
     { kicker: "Collect closes", title: "Sunday", detail: "5:00 PM ET" },
     { kicker: "Monday gap", title: "Monday", detail: "9:30 AM ET" },
     { kicker: "Weekend-noise grade", title: "Monday noon", detail: "12:00 PM ET" },
-    { kicker: "Same cohort", title: "Wednesday", detail: "12:00 PM ET" },
-    { kicker: "Same cohort, final", title: "Friday", detail: "12:00 PM ET" },
+    { kicker: "Same cohort", title: "Wed close", detail: "4:00 PM ET" },
+    { kicker: "Same cohort, final", title: "Fri close", detail: "4:00 PM ET" },
   ];
   return (
     <ol className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -51,8 +51,8 @@ export function printLabel(kind: ReadoutKind | "latest"): string {
   if (kind === "latest") return "Latest recorded print";
   if (kind === "monday-gap") return "Monday regular-session open";
   if (kind === "monday") return "Monday 12:00 PM ET print";
-  if (kind === "wednesday") return "Wednesday 12:00 PM ET print";
-  return "Friday 12:00 PM ET print";
+  if (kind === "wednesday") return "Wednesday official close";
+  return "Friday official close";
 }
 
 const TILE_ORDER = ["SPY", "DIA", "QQQ", "VIX"];
@@ -60,8 +60,8 @@ const TILE_ORDER = ["SPY", "DIA", "QQQ", "VIX"];
 function tileStamp(kind: ReadoutKind | "latest"): string {
   if (kind === "monday-gap") return "Mon open";
   if (kind === "monday") return "Mon noon";
-  if (kind === "wednesday") return "Wed noon";
-  if (kind === "friday") return "Fri noon";
+  if (kind === "wednesday") return "Wed close";
+  if (kind === "friday") return "Fri close";
   return "Latest";
 }
 
@@ -127,8 +127,8 @@ export function PricePath({
     { label: "Fri ref", value: quote.ref },
     { label: "Mon open", value: quote.mondayOpen },
     { label: "Mon noon", value: quote.monday },
-    { label: "Wed noon", value: quote.wednesday },
-    { label: "Fri noon", value: quote.friday },
+    { label: "Wed close", value: quote.wednesday },
+    { label: "Fri close", value: quote.friday },
   ];
   const present = points.filter((point): point is { label: string; value: number } => point.value != null);
   const min = Math.min(...present.map((point) => point.value));
@@ -149,7 +149,7 @@ export function PricePath({
         <span className="font-medium text-ink">
           {quote.symbol} <span className="font-normal text-muted">{quote.name}</span>
         </span>
-        <span className="text-xs text-muted">Friday session close, then the recorded open and noon prints</span>
+        <span className="text-xs text-muted">Friday session close, Monday noon, then the official closes</span>
       </figcaption>
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${quote.symbol} path from Friday's regular-session close`} className="w-full">
         <rect x="0" y="0" width={width} height={height} rx="16" fill="#161820" />

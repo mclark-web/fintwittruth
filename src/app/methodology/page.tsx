@@ -22,7 +22,7 @@ import {
 export const metadata: Metadata = {
   title: "Methodology",
   description:
-    "GradedCalls FinTwit v1 grades one Wednesday-to-Sunday cohort on the Monday gap, Monday noon, Wednesday noon, and Friday noon, with a VIX factor.",
+    "GradedCalls FinTwit v1 grades one Wednesday-to-Sunday cohort on the Monday gap, Monday noon, the Wednesday close, and the Friday close, with a VIX factor.",
 };
 
 export default async function MethodologyPage() {
@@ -92,7 +92,7 @@ export default async function MethodologyPage() {
               There is no Sunday cash print. The reference is the prior Friday regular-session close for SPY,
               QQQ, DIA, and the Friday VIX close. Equity index futures are shut from Friday 5:00 PM ET until
               Sunday 6:00 PM ET, so Sunday 5:00 PM only ends the book. Yahoo adjclose is stored for audit and is
-              not used against the unadjusted open or noon bar.
+              not used against the unadjusted open, the Monday noon bar, or the official close.
             </dd>
           </div>
           <div className="panel p-4">
@@ -111,11 +111,15 @@ export default async function MethodologyPage() {
             </dd>
           </div>
           <div className="panel p-4">
-            <dt className="font-medium text-ink">Wednesday and Friday noon</dt>
+            <dt className="font-medium text-ink">Wed close and Fri close</dt>
             <dd className="mt-1 text-sm text-muted">
-              The same calls, aged against the real noon prints and VIX at those stamps. Wednesday noon also
-              opens the next collect window. That new window is a different board. Wednesday&apos;s grade still
-              belongs to the cohort that closed the previous Sunday. Friday is the last score on the book.
+              The same calls, aged against the official regular-session close and VIX at that close. A regular
+              session closes at 4:00 PM ET. An early-close day uses the 1:00 PM ET official close. There is no
+              4:00 PM bar on those days. The grade waits 45 minutes after the close so Yahoo&apos;s daily bar and
+              the VIX print are posted. A daily bar before that buffer is the last trade, not the close.
+              Wednesday at noon still opens the next collect window. That new window is a different board.
+              Wednesday&apos;s close still belongs to the cohort that closed the previous Sunday. Friday&apos;s
+              close is the last score on the book.
             </dd>
           </div>
           <div className="panel p-4">
@@ -126,7 +130,7 @@ export default async function MethodologyPage() {
             <dt className="font-medium text-ink">Boards show settled grades only</dt>
             <dd className="mt-1 text-sm text-muted">
               The home tape, weekly rankings, leaderboards, and account scorecards list a call only after a
-              readout has settled. Monday&apos;s open, Monday noon, Wednesday, and Friday are those horizons.
+              readout has settled. Monday&apos;s open, Monday noon, the Wednesday close, and the Friday close are those horizons.
               Hit rate, STRONG rate, and WEAK rate use settled grades only. While a readout is still scheduled,
               the calls sit on{" "}
               <Link href="/pending" className="text-pine underline-offset-4 hover:underline">
@@ -344,9 +348,9 @@ export default async function MethodologyPage() {
           The series is committed in <span className="font-mono text-xs">src/lib/market-history.json</span> and
           was fetched {PRICE_FETCHED_AT}. VIX is the Yahoo symbol ^VIX. Monday, September 7, 2026 was Labor Day.
           SPY, QQQ, and DIA have no session that day. A Yahoo VIX daily bar exists for that holiday and is not
-          used as a Monday open or noon print. Wednesday, September 23 and Friday, September 25 were still ahead
-          of the fetch, so those grades stay empty. GradedCalls FinTwit does not scrape X and does not draw a price
-          when a print is missing.
+          used as a Monday open or noon print. Wednesday, September 23 is graded on that day&apos;s official close.
+          Friday, September 25 had not reached the 45-minute post-close buffer at fetch time, so that grade stays
+          empty. GradedCalls FinTwit does not scrape X and does not draw a price when a print is missing.
         </p>
         <p className="mt-4 text-sm text-muted">
           Scores describe how demo posts lined up with those recorded prints. They are not investment advice.

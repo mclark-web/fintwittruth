@@ -61,7 +61,18 @@ export function readDailyBar(
   return { open, close, adjClose };
 }
 
-/** Open of the 5-minute bar stamped 12:00 PM America/New_York. */
+/**
+ * Official regular-session close from the Yahoo daily bar.
+ * On a 1:00 PM ET early close, this is that early close. There is no 4:00 PM bar.
+ * A holiday has no equity daily bar. Do not call this on an open session before
+ * the post-close buffer: until then Yahoo's daily close is the last trade.
+ */
+export function readOfficialClose(result: ChartResult, ymd: string): { close: number; adjClose: number } {
+  const bar = readDailyBar(result, ymd);
+  return { close: bar.close, adjClose: bar.adjClose };
+}
+
+/** Open of the 5-minute bar stamped 12:00 PM America/New_York. Monday's grade only. */
 export function readNoonBar(result: ChartResult, ymd: string): { open: number; bar: string } {
   const timestamps = result.timestamp ?? [];
   const quote = result.indicators?.quote?.[0];

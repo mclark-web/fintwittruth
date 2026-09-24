@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { etParts, pricesAgree, readDailyBar, readNoonBar, type ChartResult } from "./yahoo";
+import { etParts, pricesAgree, readDailyBar, readNoonBar, readOfficialClose, type ChartResult } from "./yahoo";
 
 const daily: ChartResult = {
   timestamp: [Date.parse("2026-09-18T13:30:00Z") / 1000, Date.parse("2026-09-21T13:30:00Z") / 1000],
@@ -28,6 +28,13 @@ test("daily bar is the regular-session open and close", () => {
   assert.equal(friday.open, 761.3099975585938);
   const monday = readDailyBar(daily, "2026-09-21");
   assert.equal(monday.open, 766.25);
+});
+
+test("official close is the daily close, including an early-close session", () => {
+  const close = readOfficialClose(daily, "2026-09-18");
+  assert.equal(close.close, 761.6900024414062);
+  assert.equal(close.adjClose, 761.6900024414062);
+  assert.throws(() => readOfficialClose(daily, "2026-09-07"), /Refusing to invent/);
 });
 
 test("noon bar is the 12:00 PM ET 5-minute open", () => {

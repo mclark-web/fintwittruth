@@ -258,7 +258,7 @@ export const COHORTS: CohortSpec[] = [
     slug: "2026-08-24",
     title: "Doom versus melt-up",
     summary:
-      "A demo weekend book: crash and sell-the-open posts beside euphoric melt-up calls. Grades use the Friday, August 21 cash close and the real noon prints.",
+      "A demo weekend book: crash and sell-the-open posts beside euphoric melt-up calls. Grades use the Friday, August 21 cash close, Monday's noon print, and the Wednesday and Friday official closes.",
     monday: { year: 2026, month: 8, day: 24 },
     calls: [
       {
@@ -401,7 +401,7 @@ export const COHORTS: CohortSpec[] = [
     slug: "2026-08-31",
     title: "Panic with a pin",
     summary:
-      "Demo weekend posts that mix crash calls with melt-up calls and tight levels. The noon prints are the recorded tape.",
+      "Demo weekend posts that mix crash calls with melt-up calls and tight levels. Monday noon and the Wednesday and Friday official closes are the recorded tape.",
     monday: { year: 2026, month: 8, day: 31 },
     calls: [
       {
@@ -549,7 +549,7 @@ export const COHORTS: CohortSpec[] = [
     slug: "2026-09-07",
     title: "Weekend doom",
     summary:
-      "Fictional weekend posts: war panic, sell-the-open, and melt-up calls. Monday, September 7, 2026 was Labor Day, so the gap and the noon grade stay blank. Wednesday and Friday use the real noon prints.",
+      "Fictional weekend posts: war panic, sell-the-open, and melt-up calls. Monday, September 7, 2026 was Labor Day, so the gap and the noon grade stay blank. Wednesday and Friday use the official closes.",
     monday: { year: 2026, month: 9, day: 7 },
     calls: [
       {
@@ -841,7 +841,7 @@ export const COHORTS: CohortSpec[] = [
     historySlug: "2026-09-21",
     title: "DEMO weekend book",
     summary:
-      "DEMO. Fictional doom and melt-up posts, quarantined off the live board. Monday's real open and noon prints are in, and Wednesday noon is the recorded 12:00 PM ET bar. Friday, September 25 had not printed when this history was fetched, so that grade stays scheduled.",
+      "DEMO. Fictional doom and melt-up posts, quarantined off the live board. Monday's real open and noon prints are in, and Wednesday is the official September 23 close. Friday, September 25 had not reached the post-close buffer when this history was fetched, so that grade stays scheduled.",
     monday: { year: 2026, month: 9, day: 21 },
     calls: [
       {
