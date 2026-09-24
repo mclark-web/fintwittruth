@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatPct, formatPrice, formatShortDay, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
+import { TAPE_DISPLAY, checkpointPrints, checkpointSymbols } from "@/lib/prints";
 import { PRICE_SOURCE_SHORT } from "@/lib/quotes";
 import type { QuoteView, ReadoutView } from "@/lib/queries";
 import { EQUITY_TAPE, READOUTS, equityTapeMove, weekendNoise, type ReadoutKind, type Sentiment } from "@/lib/scoring";
@@ -53,6 +54,64 @@ export function TapeMark({
       <span className="tape-pct tabular-nums">{formatPct(move)}</span>
       <span className="tape-tag">{words}</span>
     </span>
+  );
+}
+
+export function CheckpointPrints({
+  quotes,
+  kind,
+  primary,
+  tapeOnly = true,
+}: {
+  quotes: QuoteView[];
+  kind: ReadoutKind;
+  primary?: string;
+  tapeOnly?: boolean;
+}) {
+  const symbols = tapeOnly ? TAPE_DISPLAY : checkpointSymbols(primary);
+  const prints = checkpointPrints(quotes, kind, symbols);
+  const label = `${READOUT_META[kind].label} prints`;
+  if (prints.length === 0) {
+    return <p className="mt-1 text-xs text-muted">Not graded yet</p>;
+  }
+  return (
+    <ul className="checkpoint-prints" aria-label={label}>
+      {prints.map((print) => (
+        <li key={print.symbol}>
+          <span className="sym">{print.symbol}</span>
+          <span className="px">{formatPrice(print.price)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function CheckpointStrip({
+  quotes,
+  primary,
+  tapeOnly = true,
+}: {
+  quotes: QuoteView[];
+  primary?: string;
+  tapeOnly?: boolean;
+}) {
+  return (
+    <section aria-label="Prints used at each checkpoint">
+      <h2 className="text-sm font-semibold text-ink">Prints used</h2>
+      <p className="mt-1 max-w-3xl text-xs text-muted">
+        Recorded print at each checkpoint. {READOUT_META.monday.short} is {READOUT_META.monday.time}.{" "}
+        {READOUT_META.wednesday.short} and {READOUT_META.friday.short} are {READOUT_META.wednesday.time}.
+      </p>
+      <ol className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {READOUTS.map((kind) => (
+          <li key={kind} className="rounded-xl border border-line bg-sheet px-3 py-3">
+            <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{READOUT_META[kind].short}</p>
+            <p className="text-sm text-ink">{READOUT_META[kind].label}</p>
+            <CheckpointPrints quotes={quotes} kind={kind} primary={primary} tapeOnly={tapeOnly} />
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 

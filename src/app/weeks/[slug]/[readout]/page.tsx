@@ -80,7 +80,7 @@ export default async function ReadoutPage({
       </div>
 
       <div className="mt-6">
-        <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} quotes={cohort.quotes} active={kind} />
+        <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} active={kind} />
       </div>
 
       <section className="panel mt-6 p-5">
