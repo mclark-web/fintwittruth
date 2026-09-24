@@ -2,13 +2,12 @@ import Link from "next/link";
 import { PendingSettleLink } from "@/components/board-state";
 import { FinTwitBoard } from "@/components/fintwit-board";
 import { CalendarStrip } from "@/components/market";
-import { Avatar } from "@/components/score";
+import { Avatar, ReferenceLine, ReportOutTitle } from "@/components/score";
 import { GradePill } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledGradeKinds, settledReadoutKinds } from "@/lib/board";
 import { DEMO_OPEN_COHORT_SLUG } from "@/lib/demo-data";
 import { formatPct, formatScore, formatShortDay } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
-import { READOUT_META } from "@/lib/labels";
 import { getFeaturedCohort, getLatestCohort, getLeaderboard, type CallView } from "@/lib/queries";
 import { EQUITY_TAPE, type ReadoutKind } from "@/lib/scoring";
 
@@ -141,12 +140,12 @@ export default async function HomePage({
 
       <section className="mt-12" aria-labelledby="calendar-heading">
         <h2 id="calendar-heading" className="text-3xl text-ink">
-          One cohort. Gap, noon, then the week.
+          One cohort. Mon noon, Wed close, Fri close.
         </h2>
         <p className="mt-2 max-w-3xl text-muted">
-          Monday&apos;s open and Monday noon are the primary reads on the weekend book. Wednesday and Friday keep
-          grading that same cohort. A new collect window opens Wednesday at noon, and it does not replace the
-          book already being graded.
+          Monday noon is the primary read on the weekend book. Wednesday and Friday close keep grading that same
+          cohort. A new collect window opens Wednesday at noon, and it does not replace the book already being
+          graded.
         </p>
         <div className="mt-5">
           <CalendarStrip />
@@ -182,14 +181,17 @@ export default async function HomePage({
                   </div>
                 </div>
                 <p className="mt-3 text-ink">{call.body}</p>
-                <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <ReferenceLine quotes={featured.quotes} primary={call.primary} />
+                <ol className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
                   {featuredKinds.map((kind) => {
                     const grade = call.grades[kind];
                     if (!grade) return null;
                     return (
                       <li key={kind}>
                         <Link href={`/weeks/${featured.slug}/${kind}`} className="block rounded-xl bg-sheet px-3 py-2">
-                          <span className="text-[11px] uppercase text-muted">{READOUT_META[kind].short}</span>
+                          <span className="block text-xs text-muted">
+                            <ReportOutTitle kind={kind} quotes={featured.quotes} primary={call.primary} direction={call.direction} />
+                          </span>
                           <span className="mt-1 block font-mono text-2xl">
                             {Math.round(grade.score)}
                             <span className="text-sm text-muted">%</span>

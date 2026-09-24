@@ -84,9 +84,9 @@ a.gc-link {
   max-width: 180px;
 }
 .gc-scale.is-mini .gc-meta { gap: 2px; }
-.gc-scale.is-mini .gc-label { font-size: 10px; letter-spacing: 0.08em; }
+.gc-scale.is-mini .gc-label { font-size: 12px; letter-spacing: 0.08em; }
 .gc-scale.is-mini .gc-pct { font-size: 16px; }
-.gc-scale.is-mini .gc-grade-tag { font-size: 10px; padding: 2px 7px; }
+.gc-scale.is-mini .gc-grade-tag { font-size: 12px; padding: 2px 7px; }
 .gc-scale.is-inline {
   flex-direction: row;
   align-items: center;
@@ -619,7 +619,7 @@ a.gc-link {
   width: 100%;
 }
 .gc-label {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: none;
   color: var(--gc-orange-soft);
@@ -636,7 +636,7 @@ a.gc-link {
 .gc-grade-tag {
   display: inline-flex;
   align-items: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 650;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -649,7 +649,7 @@ a.gc-link {
 .gc-grade-tag.exit {
   color: #2a220e;
   background: #c9a35a;
-  /* same typeface / weight / letter-spacing / uppercase as Strong·Weak·Provisional */
+  /* same typeface / weight / letter-spacing / uppercase as STRONG, WEAK, and PROVISIONAL */
 }
 
 /* Sidebar: tube + meta stacked */

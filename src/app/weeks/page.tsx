@@ -58,8 +58,8 @@ export default async function WeeksPage() {
                         href={settled ? `/weeks/${cohort.slug}/${kind}` : `/weeks/${cohort.slug}/pending`}
                         className="block rounded-xl border border-line bg-sheet px-3 py-3 hover:border-pine"
                       >
-                        <span className="text-[11px] uppercase tracking-wide text-muted">
-                          {READOUT_META[kind].label} · {READOUT_META[kind].role}
+                        <span className="text-xs tracking-wide text-muted">
+                          {READOUT_META[kind].short} · {READOUT_META[kind].time}
                         </span>
                         <span className="mt-2 block">
                           <GcTube score={calibration.fill} grade={calibration.grade} variant="mini" showMeta={false} />
@@ -67,7 +67,7 @@ export default async function WeeksPage() {
                         <span className="mt-2 block font-mono text-2xl text-ink">
                           {settled ? `${Math.round(calibration.fill)}%` : "EXIT LIQUIDITY"}
                         </span>
-                        <span className="text-xs text-muted">
+                        <span className="mt-1 block text-xs text-muted">
                           {settled
                             ? `On the board · ${READOUT_META[kind].time}`
                             : `Off the board until ${READOUT_META[kind].time}`}

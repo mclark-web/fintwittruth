@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { GcTube, GradePill } from "@/components/gc-tube";
-import { DirectionChip } from "@/components/score";
+import { DirectionChip, ReadoutBubble, ReferenceLine } from "@/components/score";
 import { gcGrade } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { READOUT_META } from "@/lib/labels";
@@ -39,7 +39,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
   const readouts = Object.values(cohort.readouts);
   const settled = settledReadoutKinds(readouts);
   const pending = pendingReadoutKinds(readouts);
-  const tapeKinds = (["monday-gap", "monday"] as const).filter((kind) => settled.includes(kind));
+  const tapeKinds = settled;
   const rows = cohort.calls
     .filter((call) => callHasSettledGrade(call.grades))
     .sort((a, b) => {
@@ -77,7 +77,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         <PriceSource />
       </div>
       <div className="mt-4">
-        <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} />
+        <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} quotes={cohort.quotes} />
       </div>
       <div className="mt-4">
         <NoiseIndex calls={cohort.calls} quotes={cohort.quotes} />
@@ -96,8 +96,8 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
             <NothingGraded href={`/weeks/${cohort.slug}/pending`} />
           </div>
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
-            <table className="min-w-[720px] w-full text-left text-sm">
+          <div className="settled-grades mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
+            <table className="settled-table w-full text-left text-sm sm:min-w-[720px]">
               <caption className="sr-only">Settled grades for {cohort.title}</caption>
               <thead className="bg-sheet text-xs uppercase tracking-wide text-muted">
                 <tr>
@@ -108,7 +108,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                     Call
                   </th>
                   {settled.map((kind) => (
-                    <th key={kind} scope="col" className="px-4 py-3 font-medium">
+                    <th key={kind} scope="col" className="px-4 py-3 font-medium normal-case tracking-normal">
                       {READOUT_META[kind].short}
                     </th>
                   ))}
@@ -131,6 +131,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                         <DirectionChip direction={call.direction} />
                         <span className="font-mono text-xs text-pine">{call.primary}</span>
                       </span>
+                      <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
                     </td>
                     {settled.map((kind) => {
                       const grade = call.grades[kind];
@@ -138,6 +139,12 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                         <td key={kind} className="px-4 py-3">
                           {grade ? (
                             <Link href={`/weeks/${cohort.slug}/${kind}`} className="block hover:underline">
+                              <ReadoutBubble
+                                kind={kind}
+                                quotes={cohort.quotes}
+                                primary={call.primary}
+                                direction={call.direction}
+                              />
                               <span className="mt-1 block max-w-32">
                                 <GcTube score={grade.score} grade={gcGrade(grade)} variant="mini" showMeta={false} />
                               </span>
