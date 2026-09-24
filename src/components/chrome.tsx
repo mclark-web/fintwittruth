@@ -57,15 +57,13 @@ export async function SiteHeader() {
         <div className="mx-auto flex h-14 max-h-14 items-center gap-3 px-4 sm:px-7 max-w-6xl">
           <Link href="/" className="flex shrink-0 items-center gap-2.5 whitespace-nowrap" aria-label={PRODUCT_NAME}>
             <BrandMark />
-            <span className="text-[17px] font-semibold tracking-tight text-ink">
-              Graded<span className="text-orange-soft">Calls</span>
+            <span className="hidden text-[17px] font-semibold tracking-tight text-ink min-[480px]:inline">
+              Graded<span className="text-[#eb6505]">Calls</span>
             </span>
           </Link>
-          <div className="min-w-0 flex-1 overflow-x-auto">
-            <Suspense fallback={<span className="block h-11" aria-hidden />}>
-              <NavLinks latestHref={latestHref} />
-            </Suspense>
-          </div>
+          <Suspense fallback={<span className="block h-11 min-w-0 flex-1" aria-hidden />}>
+            <NavLinks latestHref={latestHref} />
+          </Suspense>
           <div className="hidden shrink-0 items-center gap-2 lg:flex">{tools}</div>
         </div>
       </header>
@@ -87,23 +85,23 @@ export function SiteFooter() {
             A {UMBRELLA_NAME} vertical, with {SIBLING_NAMES[0]} and {SIBLING_NAMES[1]}. {NAV_NAME} is this board.
           </p>
         </div>
-        <nav aria-label="Footer" className="flex flex-wrap gap-x-4 gap-y-2">
-          <Link href="/" className="hover:text-orange-soft">
+        <nav aria-label="Footer" className="footer-nav flex flex-wrap gap-x-4 gap-y-2">
+          <Link href="/" className="hit-44 hover:text-[#ee9a44]">
             Hub
           </Link>
-          <Link href="/methodology" className="hover:text-orange-soft">
+          <Link href="/methodology" className="hit-44 hover:text-[#ee9a44]">
             Method
           </Link>
-          <Link href="/pending" className="hover:text-orange-soft">
+          <Link href="/pending" className="hit-44 hover:text-[#ee9a44]">
             Pending settle
           </Link>
-          <Link href="/disclaimer" className="hover:text-orange-soft">
+          <Link href="/disclaimer" className="hit-44 hover:text-[#ee9a44]">
             Disclaimer
           </Link>
-          <Link href="/terms" className="hover:text-orange-soft">
+          <Link href="/terms" className="hit-44 hover:text-[#ee9a44]">
             Terms
           </Link>
-          <Link href="/donate" className="hover:text-orange-soft">
+          <Link href="/donate" className="hit-44 hover:text-[#ee9a44]">
             Donate
           </Link>
         </nav>

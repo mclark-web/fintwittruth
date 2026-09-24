@@ -36,7 +36,7 @@ export function CallCard({
             <Link href={`/accounts/${call.handle}`} className="font-medium text-ink hover:underline">
               {call.displayName} <span className="font-normal text-muted">@{call.handle}</span>
             </Link>
-            <p className="mt-0.5 text-xs text-muted">
+            <p className="mt-0.5 font-mono text-xs text-[#c9c9cf]">
               {formatWhen(call.postedAt)}
               {call.dataset === "demo" ? " · DEMO" : " · verified"}
               {grade ? ` · rank ${grade.peerRank} of ${grade.peerCount}` : " · not on this board"}
@@ -75,7 +75,7 @@ export function CallCard({
         <span>{call.toneLabel || (call.sentiment === "panic" ? "Panic" : "Melt-up")} · {call.bucket === "viral" ? "Viral" : "Watchlist"}</span>
         <span className="uppercase tracking-wide">{call.conviction} conviction</span>
         {call.sourceUrl ? (
-          <a href={call.sourceUrl} className="underline-offset-4 hover:text-ink hover:underline">
+          <a href={call.sourceUrl} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
             Source
           </a>
         ) : null}

@@ -120,7 +120,17 @@ export function FinTwitBoard({
                           {call.displayName}
                         </Link>
                       </span>
-                      <span className={pill === "weak" || pill === "exit" ? "text-bear" : pill === "strong" ? "text-bull" : "text-muted"}>
+                      <span
+                        className={
+                          pill === "strong"
+                            ? "text-[#eb6505]"
+                            : pill === "exit"
+                              ? "text-[#c9a35a]"
+                              : pill === "weak"
+                                ? "text-[#c9c9cf]"
+                                : "text-muted"
+                        }
+                      >
                         {Math.round(grade.score)}%
                       </span>
                     </li>

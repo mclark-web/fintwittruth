@@ -13,7 +13,7 @@ export function Move({ value }: { value: number }) {
   const up = value > 0.00005;
   const down = value < -0.00005;
   return (
-    <span className={up ? "text-bull" : down ? "text-bear" : "text-muted"}>{formatPct(value)}</span>
+    <span className={up ? "text-bull" : "text-muted"}>{formatPct(value)}</span>
   );
 }
 
@@ -41,10 +41,10 @@ export function TapeMark({
   const words = verdict === "with" ? "with call" : verdict === "against" ? "against call" : "flat vs call";
   return (
     <span className={`tape-mark tape-mark-${verdict}`}>
-      <span aria-hidden="true">{glyph}</span>
-      {label ? <span>{label}</span> : null}
-      <span className="tabular-nums">{formatPct(move)}</span>
-      <span>{words}</span>
+      <span className="tape-glyph" aria-hidden="true">{glyph}</span>
+      {label ? <span className="tape-ticker">{label}</span> : null}
+      <span className="tape-pct tabular-nums">{formatPct(move)}</span>
+      <span className="tape-tag">{words}</span>
     </span>
   );
 }
@@ -120,7 +120,7 @@ export function QuoteTape({
       return (
         <div key={quote.symbol} className="sb-tile">
           <div className="sym">{quote.symbol}</div>
-          <div className={`chg ${move == null ? "" : move > 0.00005 ? "text-bull" : move < -0.00005 ? "text-bear" : "text-muted"}`}>
+          <div className={`chg ${move == null ? "" : move > 0.00005 ? "text-bull" : "text-muted"}`}>
             {move == null ? "—" : formatPct(move)}
           </div>
           <div className="lbl">{now == null ? "Not graded" : tileStamp(kind)}</div>
@@ -150,7 +150,7 @@ export function QuoteTape({
       <h2 className="mb-3 text-xs uppercase tracking-wide text-[#9a9aa3]">{printLabel(kind)} vs Friday session close</h2>
       <ul className="ticker-grid grid grid-cols-2 gap-3 min-[820px]:grid-cols-4">{primary.map(cell)}</ul>
       {rest.length > 0 ? (
-        <ul className="ticker-rest mt-3 grid grid-cols-2 gap-3 min-[820px]:grid-cols-5">{rest.map(cell)}</ul>
+        <ul className="ticker-rest mt-3 grid grid-cols-3 gap-3 min-[820px]:grid-cols-5">{rest.map(cell)}</ul>
       ) : null}
     </section>
   );
