@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded } from "@/components/board-state";
 import { PricePath, PriceSource, TapeMark } from "@/components/market";
-import { Avatar, DirectionChip, LevelList, ScoreMark } from "@/components/score";
+import { Avatar, DirectionChip, LevelList, ReadoutBubble, ReferenceLine, ScoreMark } from "@/components/score";
 import { disputePath } from "@/lib/dispute";
 import { formatPct, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
@@ -110,6 +110,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
             <span className="font-mono text-xs text-pine">{call.primary}</span>
             <span className="text-xs uppercase tracking-wide text-muted">{call.conviction} conviction</span>
           </div>
+          <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
           <p className="mt-4 text-xl leading-snug text-ink">{call.body}</p>
           <div className="mt-4">
             <LevelList levels={call.levels} />
@@ -171,7 +172,15 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                 <li key={kind} className="panel p-4">
                   <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{meta.role}</p>
                   <h3 className="font-serif text-2xl text-ink">{meta.label}</h3>
-                  <p className="text-xs text-muted">{formatWhen(readout.at)}</p>
+                  <p className="text-xs text-muted">{meta.time}</p>
+                  <div className="mt-2">
+                    <ReadoutBubble
+                      kind={kind}
+                      quotes={cohort.quotes}
+                      primary={call.primary}
+                      direction={call.direction}
+                    />
+                  </div>
                   <div className="mt-3">
                     <ScoreMark
                       score={grade.score}

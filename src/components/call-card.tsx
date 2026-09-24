@@ -4,8 +4,8 @@ import { formatWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
-import { Avatar, DirectionChip, Evolution, LevelList, ScoreMark } from "./score";
 import { printAt, TapeMark } from "./market";
+import { Avatar, DirectionChip, Evolution, LevelList, ReferenceLine, ScoreMark } from "./score";
 
 const TAPE = ["SPY", "DIA", "QQQ", "VIX"] as const;
 
@@ -57,6 +57,7 @@ export function CallCard({
         )}
       </div>
       <p className="mt-3 text-[15px] leading-relaxed text-ink">“{call.body}”</p>
+      <ReferenceLine quotes={quotes} primary={call.primary} />
       {moves.some((item) => item.move != null) ? (
         <div className="vs">
           {moves.map((item) =>
@@ -99,7 +100,14 @@ export function CallCard({
         </p>
       )}
       <div className="mt-4">
-        <Evolution grades={call.grades} slug={call.cohortSlug} active={readout} />
+        <Evolution
+          grades={call.grades}
+          slug={call.cohortSlug}
+          active={readout}
+          quotes={quotes}
+          primary={call.primary}
+          direction={call.direction}
+        />
       </div>
     </article>
   );

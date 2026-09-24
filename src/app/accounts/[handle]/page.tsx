@@ -4,12 +4,11 @@ import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { GradePill } from "@/components/gc-tube";
 import { RealCallCard } from "@/components/real-call-card";
-import { Avatar, DirectionChip, ScoreMark } from "@/components/score";
+import { Avatar, DirectionChip, ReferenceLine, ReportOutTitle, ScoreMark } from "@/components/score";
 import { TrackedAccount } from "@/components/tracked-account";
 import { gcGrade } from "@/lib/grades";
 import { callHasSettledGrade, settledGradeKinds } from "@/lib/board";
 import { formatPct, formatScore } from "@/lib/format";
-import { READOUT_META } from "@/lib/labels";
 import { loadRealCallsForHandle } from "@/lib/public-real";
 import { getAccount, listHandles } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
@@ -107,11 +106,11 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                   <dd className="font-mono text-xl">{formatPct(row.hitRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">Strong rate</dt>
+                  <dt className="text-xs uppercase text-muted">STRONG rate</dt>
                   <dd className="font-mono text-xl">{formatPct(row.strongRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">Weak rate</dt>
+                  <dt className="text-xs uppercase text-muted">WEAK rate</dt>
                   <dd className="font-mono text-xl">{formatPct(row.weakRate, 0)}</dd>
                 </div>
                 <div>
@@ -185,14 +184,20 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                       {call.body}
                     </Link>
                   </p>
+                  <ReferenceLine quotes={account.quotesBySlug[slug]} primary={call.primary} />
                   <ol className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                     {settledGradeKinds(call.grades).map((kind) => {
                       const grade = call.grades[kind];
                       if (!grade) return null;
                       return (
                         <li key={kind} className="rounded-xl bg-sheet px-3 py-2">
-                          <Link href={`/weeks/${slug}/${kind}`} className="text-xs uppercase text-[#9a9aa3] hover:underline">
-                            {READOUT_META[kind].short}
+                          <Link href={`/weeks/${slug}/${kind}`} className="block text-xs text-[#9a9aa3] hover:underline">
+                            <ReportOutTitle
+                              kind={kind}
+                              quotes={account.quotesBySlug[slug]}
+                              primary={call.primary}
+                              direction={call.direction}
+                            />
                           </Link>
                           <p className="font-mono text-2xl">
                             {grade.score}

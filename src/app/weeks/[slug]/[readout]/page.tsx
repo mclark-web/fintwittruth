@@ -80,7 +80,7 @@ export default async function ReadoutPage({
       </div>
 
       <div className="mt-6">
-        <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} active={kind} />
+        <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} quotes={cohort.quotes} active={kind} />
       </div>
 
       <section className="panel mt-6 p-5">
@@ -101,7 +101,7 @@ export default async function ReadoutPage({
               {Math.round(readout.consensusBullish * 100)}% bullish · {Math.round(readout.consensusBearish * 100)}% bearish · crowd {readout.consensusDirection}
             </p>
           </div>
-          <p className="font-mono text-sm text-ink">
+          <div className="font-mono text-sm text-ink">
             {readout.status === "published" ? (
               <>
                 <TapeMark
@@ -113,9 +113,9 @@ export default async function ReadoutPage({
                 {readout.strongCutoff > 0 ? ` · STRONG line ${readout.strongCutoff}/100` : ""}
               </>
             ) : (
-              "Prices publish with the grade"
+              <p>Prices publish with the grade</p>
             )}
-          </p>
+          </div>
         </div>
       </section>
 

@@ -80,7 +80,7 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
                 </p>
                 <p className="mt-3 max-w-3xl text-sm text-ink/80">{readout.narrative}</p>
                 <p className="mt-2 text-sm text-muted">
-                  {waiting.length} {waiting.length === 1 ? "call is" : "calls are"} waiting. No score. Calibration stays at 0%: EXIT LIQUIDITY.
+                  {waiting.length} {waiting.length === 1 ? "call is" : "calls are"} waiting. No score. GC Scale stays at 0%: EXIT LIQUIDITY.
                 </p>
                 <ul className="mt-4 grid gap-3">
                   {waiting.map((call) => (

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { GcTube, GradePill } from "@/components/gc-tube";
-import { DirectionChip } from "@/components/score";
+import { DirectionChip, ReadoutBubble, ReferenceLine } from "@/components/score";
 import { gcGrade } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { READOUT_META } from "@/lib/labels";
@@ -39,7 +39,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
   const readouts = Object.values(cohort.readouts);
   const settled = settledReadoutKinds(readouts);
   const pending = pendingReadoutKinds(readouts);
-  const tapeKinds = (["monday-gap", "monday"] as const).filter((kind) => settled.includes(kind));
+  const tapeKinds = settled;
   const rows = cohort.calls
     .filter((call) => callHasSettledGrade(call.grades))
     .sort((a, b) => {
@@ -115,18 +115,24 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                   <DirectionChip direction={call.direction} />
                   <span className="font-mono text-xs text-pine">{call.primary}</span>
                 </p>
-                <div className="mt-3 grid grid-cols-3 gap-2">
+                <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
+                <div className="mt-3 grid gap-2">
                   {settled.map((kind) => {
                     const grade = call.grades[kind];
                     return (
                       <div key={kind} className="min-w-0">
-                        <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{READOUT_META[kind].short}</p>
                         {grade ? (
                           <Link href={`/weeks/${cohort.slug}/${kind}`} className="mt-1 block hover:underline">
-                            <span className="call-grade block">
+                            <ReadoutBubble
+                              kind={kind}
+                              quotes={cohort.quotes}
+                              primary={call.primary}
+                              direction={call.direction}
+                            />
+                            <span className="call-grade mt-1 block">
                               <GcTube score={grade.score} grade={gcGrade(grade)} variant="mini" showMeta={false} />
                             </span>
-                            <span className="mt-1 flex flex-col items-start gap-1">
+                            <span className="mt-1 flex flex-wrap items-center gap-2">
                               <span className="font-mono text-sm tabular-nums">{Math.round(grade.score)}%</span>
                               <GradePill grade={gcGrade(grade)} />
                             </span>
@@ -142,7 +148,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
             ))}
           </ul>
           <div className="mt-4 hidden overflow-x-auto rounded-2xl border border-line bg-card min-[820px]:block">
-            <table className="min-w-[720px] w-full text-left text-sm">
+            <table className="w-full text-left text-sm">
               <caption className="sr-only">Settled grades for {cohort.title}</caption>
               <thead className="bg-sheet text-xs uppercase tracking-wide text-muted">
                 <tr>
@@ -153,7 +159,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                     Call
                   </th>
                   {settled.map((kind) => (
-                    <th key={kind} scope="col" className="px-4 py-3 font-medium">
+                    <th key={kind} scope="col" className="px-4 py-3 font-medium normal-case tracking-normal">
                       {READOUT_META[kind].short}
                     </th>
                   ))}
@@ -176,6 +182,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                         <DirectionChip direction={call.direction} />
                         <span className="font-mono text-xs text-pine">{call.primary}</span>
                       </span>
+                      <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
                     </td>
                     {settled.map((kind) => {
                       const grade = call.grades[kind];
@@ -183,6 +190,12 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                         <td key={kind} className="px-4 py-3">
                           {grade ? (
                             <Link href={`/weeks/${cohort.slug}/${kind}`} className="block hover:underline">
+                              <ReadoutBubble
+                                kind={kind}
+                                quotes={cohort.quotes}
+                                primary={call.primary}
+                                direction={call.direction}
+                              />
                               <span className="mt-1 block max-w-32">
                                 <GcTube score={grade.score} grade={gcGrade(grade)} variant="mini" showMeta={false} />
                               </span>
