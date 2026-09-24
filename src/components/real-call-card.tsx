@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { GradePill } from "@/components/gc-tube";
-import { disputeHref } from "@/lib/dispute";
+import { disputePath } from "@/lib/dispute";
 import { formatWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
@@ -63,7 +63,7 @@ export function RealCallCard({ call }: { call: RealCallView }) {
         </Link>
         {settled.length > 0 ? (
           <a
-            href={disputeHref({ id: call.id, handle: call.handle, sourceUrl: call.sourceUrl })}
+            href={disputePath(call.id)}
             className="underline-offset-4 hover:text-ink hover:underline"
           >
             Dispute this grade

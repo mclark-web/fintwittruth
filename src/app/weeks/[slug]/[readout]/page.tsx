@@ -7,7 +7,7 @@ import { CohortWindow, Move, ReadoutCards } from "@/components/market";
 import { READOUT_META } from "@/lib/labels";
 import { pendingReadoutKinds } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
-import { READOUTS, isReadoutKind, type ReadoutKind } from "@/lib/scoring";
+import { READOUTS, STRONG_LINE, isReadoutKind, type ReadoutKind } from "@/lib/scoring";
 
 export async function generateStaticParams() {
   const slugs = await listCohortSlugs();
@@ -105,7 +105,7 @@ export default async function ReadoutPage({
             {readout.status === "published" ? (
               <>
                 {readout.benchmarkSymbol} <Move value={readout.benchmarkMovePct} /> from Friday&apos;s close
-                {readout.strongCutoff > 0 ? ` · STRONG line ${readout.strongCutoff}/100` : ""}
+                {` · STRONG line ${STRONG_LINE}/100`}
               </>
             ) : (
               "Prices publish with the grade"

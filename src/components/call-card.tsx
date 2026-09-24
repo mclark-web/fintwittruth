@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { disputeHref } from "@/lib/dispute";
+import { disputePath } from "@/lib/dispute";
 import { formatPct, formatWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import type { CallView, QuoteView } from "@/lib/queries";
@@ -84,7 +84,7 @@ export function CallCard({
         ) : null}
         {call.dataset !== "demo" && call.sourceUrl && grade ? (
           <a
-            href={disputeHref({ id: call.id, handle: call.handle, sourceUrl: call.sourceUrl })}
+            href={disputePath(call.id)}
             className="underline-offset-4 hover:text-ink hover:underline"
           >
             Dispute this grade

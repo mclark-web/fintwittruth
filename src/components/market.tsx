@@ -22,7 +22,7 @@ export function CalendarStrip() {
     { kicker: "Collect opens", title: "Wednesday", detail: "12:00 PM ET" },
     { kicker: "Collect closes", title: "Sunday", detail: "5:00 PM ET" },
     { kicker: "Monday gap", title: "Monday", detail: "9:30 AM ET" },
-    { kicker: "Weekend-noise grade", title: "Monday noon", detail: "12:00 PM ET" },
+    { kicker: "Weekend-noise grade", title: "Monday noon", detail: "Open of the 12:00 PM ET 5-minute bar" },
     { kicker: "Same cohort", title: "Wednesday", detail: "12:00 PM ET" },
     { kicker: "Same cohort, final", title: "Friday", detail: "12:00 PM ET" },
   ];

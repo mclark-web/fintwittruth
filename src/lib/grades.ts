@@ -1,3 +1,5 @@
+import { STRONG_LINE, WEAK_LINE } from "./scoring";
+
 /** User-facing pill. Does not change how a 0–100 score is computed. */
 export type GcGrade = "strong" | "weak" | "provisional" | "exit";
 
@@ -8,13 +10,10 @@ export const GC_GRADE_LABEL: Record<GcGrade, string> = {
   exit: "EXIT LIQUIDITY",
 };
 
-/** Absolute pill bands. 70 and above is STRONG. Under 40 is WEAK. */
-export const STRONG_LINE = 70;
-export const WEAK_CUTOFF = 40;
-
 /**
  * STRONG is 70% or more. WEAK is under 40%. The band between them is PROVISIONAL.
  * EXIT LIQUIDITY is a 0 fill: no closed horizon, or a score of 0.
+ * isStrong and isWeak are ignored. The percent decides the pill.
  */
 export function gcGrade(input: {
   score: number | null | undefined;
@@ -23,7 +22,7 @@ export function gcGrade(input: {
 }): GcGrade {
   if (input.score == null || input.score <= 0) return "exit";
   if (input.score >= STRONG_LINE) return "strong";
-  if (input.score < WEAK_CUTOFF) return "weak";
+  if (input.score < WEAK_LINE) return "weak";
   return "provisional";
 }
 

@@ -129,7 +129,7 @@ async function savePending(
   const posts = existing
     ? book.posts.map((item) => (item.id === id ? post : item))
     : [...book.posts, post];
-  await store.write({ version: 1, posts });
+  await store.write({ version: 1, posts, disputes: book.disputes });
   return post;
 }
 
@@ -201,6 +201,7 @@ export async function reviewIntakePost(
   const updated: IntakeBook = {
     version: 1,
     posts: book.posts.map((post) => (post.id === id ? next : post)),
+    disputes: book.disputes,
   };
   await store.write(updated);
   return next;

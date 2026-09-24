@@ -11,7 +11,7 @@ test("the file store round-trips a book and starts empty", async () => {
   try {
     const store = fileIntakeStore(path.join(dir, "book.json"));
     assert.deepEqual(await store.read(), emptyBook());
-    await store.write({ version: 1, posts: [] });
+    await store.write(emptyBook());
     assert.equal((await store.read()).version, 1);
   } finally {
     await rm(dir, { recursive: true, force: true });

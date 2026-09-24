@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { ADMIN_COOKIE, adminSessionValue, sessionMatches, tokenMatches } from "@/lib/admin-auth";
 import { IntakeError, ingestManualText, ingestStatusUrl, reviewIntakePost, type ReviewFields } from "@/lib/intake-service";
 import { IntakeStoreError } from "@/lib/intake-store";
+import { DisputeError, setDisputeStatus } from "@/lib/dispute";
 import { OembedError, OembedUnavailableError } from "@/lib/oembed";
 
 function bail(message: string): never {
@@ -82,6 +83,19 @@ export async function manualIngestAction(formData: FormData) {
     redirect(`/admin?notice=${encodeURIComponent(`Stored ${post.sourceUrl} from pasted text for review.`)}`);
   } catch (error) {
     if (error instanceof IntakeError || error instanceof IntakeStoreError) bail(error.message);
+    throw error;
+  }
+}
+
+export async function disputeStatusAction(formData: FormData) {
+  await assertAdmin();
+  const status = formData.get("status") === "resolved" ? "resolved" : "open";
+  try {
+    await setDisputeStatus(String(formData.get("id") ?? ""), status);
+    const notice = status === "resolved" ? "Dispute marked resolved." : "Dispute reopened.";
+    redirect(`/admin?notice=${encodeURIComponent(notice)}`);
+  } catch (error) {
+    if (error instanceof DisputeError || error instanceof IntakeStoreError) bail(error.message);
     throw error;
   }
 }

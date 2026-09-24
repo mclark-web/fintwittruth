@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { NothingGraded } from "@/components/board-state";
 import { PricePath, PriceSource } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ScoreMark } from "@/components/score";
-import { disputeHref } from "@/lib/dispute";
+import { disputePath } from "@/lib/dispute";
 import { formatPct, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
 import { settledGradeKinds } from "@/lib/board";
@@ -130,7 +130,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           {call.dataset !== "demo" && call.sourceUrl && settled.length > 0 ? (
             <p className="mt-2 text-sm">
               <a
-                href={disputeHref({ id: call.id, handle: call.handle, sourceUrl: call.sourceUrl })}
+                href={disputePath(call.id)}
                 className="text-pine underline-offset-4 hover:underline"
               >
                 Dispute this grade

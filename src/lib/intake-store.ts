@@ -31,7 +31,11 @@ export function normalizeBook(value: unknown): IntakeBook {
   if (book.version !== 1 || !Array.isArray(book.posts)) {
     throw new IntakeStoreError("Intake book is not version 1.");
   }
-  return book;
+  return {
+    version: 1,
+    posts: book.posts,
+    disputes: Array.isArray(book.disputes) ? book.disputes : [],
+  };
 }
 
 export function fileIntakeStore(filePath: string): IntakeStore {

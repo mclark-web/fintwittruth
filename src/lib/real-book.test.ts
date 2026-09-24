@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { IntakePost } from "./intake-types";
 import { cohortSlugForPostedAt, gradeRealPosts } from "./real-book";
-import { disputeHref } from "./dispute";
+import { disputePath } from "./dispute";
 import { scoreCall } from "./scoring";
 import { quotesForCohort, sessionClose, sessionFor } from "./quotes";
 
@@ -60,7 +60,7 @@ test("a confirmed SPY call uses Monday 12:00 and the Wednesday close, and keeps 
   assert.ok(call.grades.monday);
   assert.ok(call.grades.wednesday);
   assert.equal(call.grades.friday, undefined);
-  assert.match(call.grades.monday?.note ?? "", /Monday 12:00 PM ET, the open of that bar/);
+  assert.match(call.grades.monday?.note ?? "", /Monday 12:00 PM ET, the open of the 5-minute bar/);
   assert.match(call.grades.wednesday?.note ?? "", /Wednesday 4:00 PM ET regular-session close/);
   const quotes = quotesForCohort("2026-09-21", ["SPY", "QQQ", "DIA", "VIX"]);
   const quote = (symbol: string) => quotes.find((item) => item.symbol === symbol);
@@ -118,10 +118,7 @@ test("a confirmed SPY call uses Monday 12:00 and the Wednesday close, and keeps 
   assert.equal(call.grades.wednesday?.score, wednesdayScore.score);
   const noonWednesday = quote("SPY")?.wednesday;
   assert.notEqual(sessionClose("SPY", wednesday.date), noonWednesday);
-  const href = disputeHref({ id: call.id, handle: call.handle, sourceUrl: call.sourceUrl });
-  assert.match(href, /^mailto:/);
-  assert.match(href, /Dispute%20this%20grade/);
-  assert.match(href, /unusual_whales/);
+  assert.equal(disputePath(call.id), `/dispute?call=${encodeURIComponent(call.id)}`);
 });
 
 test("an unsupported symbol is stored without a grade", () => {

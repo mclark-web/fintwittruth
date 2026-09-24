@@ -32,11 +32,25 @@ export type IntakePost = {
   rejectNote: string;
 };
 
+export type DisputeStatus = "open" | "resolved";
+
+export type Dispute = {
+  id: string;
+  callId: string;
+  name: string;
+  email: string;
+  reason: string;
+  status: DisputeStatus;
+  createdAt: string;
+  resolvedAt: string | null;
+};
+
 export type IntakeBook = {
   version: 1;
   posts: IntakePost[];
+  disputes: Dispute[];
 };
 
 export function emptyBook(): IntakeBook {
-  return { version: 1, posts: [] };
+  return { version: 1, posts: [], disputes: [] };
 }

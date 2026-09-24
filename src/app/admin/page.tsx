@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { adminConfigured, ADMIN_COOKIE, sessionMatches } from "@/lib/admin-auth";
 import { getIntakeStore, UNCONFIGURED_DETAIL } from "@/lib/intake-store";
-import type { IntakePost } from "@/lib/intake-types";
-import { ingestAction, loginAction, logoutAction, manualIngestAction, reviewAction } from "./actions";
+import type { Dispute, IntakePost } from "@/lib/intake-types";
+import { disputeStatusAction, ingestAction, loginAction, logoutAction, manualIngestAction, reviewAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -99,10 +99,16 @@ export default async function AdminPage({
   const signedIn = sessionMatches(jar.get(ADMIN_COOKIE)?.value);
   const store = getIntakeStore();
   let posts: IntakePost[] = [];
+  let disputes: Dispute[] = [];
   let readError: string | null = null;
   if (signedIn && store.kind !== "unconfigured") {
     try {
-      posts = (await store.read()).posts;
+      const book = await store.read();
+      posts = book.posts;
+      disputes = [...book.disputes].sort((a, b) => {
+        if (a.status !== b.status) return a.status === "open" ? -1 : 1;
+        return b.createdAt.localeCompare(a.createdAt);
+      });
     } catch (error) {
       readError = error instanceof Error ? error.message : "The intake store could not be read.";
     }
@@ -222,6 +228,35 @@ export default async function AdminPage({
               </li>
             ))}
           </ul>
+          <section className="grid gap-3">
+            <h2 className="font-serif text-2xl text-ink">Disputes</h2>
+            {disputes.length === 0 ? <p className="text-sm text-muted">No disputes yet.</p> : null}
+            <ul className="grid gap-3">
+              {disputes.map((dispute) => (
+                <li key={dispute.id} className="panel p-5">
+                  <p className="text-xs uppercase tracking-wide text-muted">{dispute.status}</p>
+                  <p className="mt-2 text-sm text-ink">
+                    {dispute.callId}
+                    {dispute.name ? ` · ${dispute.name}` : ""}
+                    {dispute.email ? ` · ${dispute.email}` : ""}
+                  </p>
+                  <p className="mt-2 text-sm text-ink/90">{dispute.reason}</p>
+                  <p className="mt-2 text-xs text-muted">{dispute.createdAt}</p>
+                  <form action={disputeStatusAction} className="mt-3">
+                    <input type="hidden" name="id" value={dispute.id} />
+                    <button
+                      className="rounded-lg border border-line px-3 py-2 text-sm text-ink"
+                      name="status"
+                      type="submit"
+                      value={dispute.status === "open" ? "resolved" : "open"}
+                    >
+                      {dispute.status === "open" ? "Mark resolved" : "Reopen"}
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
       ) : null}
     </div>

@@ -1,11 +1,12 @@
 import { buildCohortWindow } from "./calendar";
 import { isGradableSymbol } from "./gradable";
-import { STRONG_LINE, WEAK_CUTOFF } from "./grades";
 import type { IntakePost, ReviewedCall } from "./intake-types";
 import history from "./market-history.json";
 import { quotesForCohort, sessionClose, sessionFor, type CohortQuotePrint } from "./quotes";
 import {
   EQUITY_TAPE,
+  STRONG_LINE,
+  WEAK_LINE,
   equityTapeMove,
   rankPeers,
   scoreCall,
@@ -73,7 +74,7 @@ const REAL_READOUTS = ["monday", "wednesday", "friday"] as const;
 type RealReadout = (typeof REAL_READOUTS)[number];
 
 export const REAL_READOUT_META: Record<RealReadout, { label: string; role: string }> = {
-  monday: { label: "Monday 12:00 PM ET", role: "Open of the 12:00 PM ET bar" },
+  monday: { label: "Monday 12:00 PM ET", role: "Open of the 12:00 PM ET 5-minute bar" },
   wednesday: { label: "Wednesday close", role: "4:00 PM ET regular-session close" },
   friday: { label: "Friday close", role: "4:00 PM ET regular-session close" },
 };
@@ -106,7 +107,7 @@ function realCheckpointNote(input: {
   score: number;
 }): string {
   const when = {
-    monday: "Monday 12:00 PM ET, the open of that bar",
+    monday: "Monday 12:00 PM ET, the open of the 5-minute bar",
     wednesday: "Wednesday 4:00 PM ET regular-session close",
     friday: "Friday 4:00 PM ET regular-session close",
   }[input.kind];
@@ -124,7 +125,7 @@ function realCheckpointNote(input: {
       ? " GC Scale is 0%: EXIT LIQUIDITY."
       : input.score >= STRONG_LINE
         ? " That score is STRONG."
-        : input.score < WEAK_CUTOFF
+        : input.score < WEAK_LINE
           ? " That score is WEAK."
           : " That score is PROVISIONAL.";
   return `${when}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's regular-session close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;

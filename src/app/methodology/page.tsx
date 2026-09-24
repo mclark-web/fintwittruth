@@ -9,7 +9,7 @@ import { GC_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_ADJUSTMENT, PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { getCohort } from "@/lib/queries";
 import {
-  WEAK_LINE,
+  STRONG_LINE,
   DIRECTION_BANDS,
   DIRECTION_MAX,
   LEVEL_MAX,
@@ -120,7 +120,7 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Verified real calls</dt>
             <dd className="mt-1 text-sm text-muted">
-              Paste-intake calls use Monday as the open of the 12:00 PM ET bar, and Wednesday and Friday as the
+              Paste-intake calls use Monday as the open of the 12:00 PM ET 5-minute bar, and Wednesday and Friday as the
               4:00 PM ET regular-session close. They skip the Monday gap. The demo book keeps the noon stamps
               above.
             </dd>
@@ -215,7 +215,7 @@ export default async function MethodologyPage() {
           <li>Named support or resistance: 3</li>
         </ul>
         <p className="mt-2 text-sm text-muted">
-          A mood with no ticker cannot clear {WEAK_LINE}, even when the tape agrees.
+          A mood with no ticker cannot clear {STRONG_LINE}, even when the tape agrees.
         </p>
       </section>
 

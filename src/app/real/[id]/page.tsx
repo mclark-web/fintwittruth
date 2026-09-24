@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GradePill } from "@/components/gc-tube";
-import { disputeHref } from "@/lib/dispute";
+import { disputePath } from "@/lib/dispute";
 import { formatPct, formatWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
@@ -99,7 +99,7 @@ export default async function RealCallPage({ params }: { params: Promise<{ id: s
         {settled.length > 0 ? (
           <p className="mt-2 text-sm">
             <a
-              href={disputeHref({ id: call.id, handle: call.handle, sourceUrl: call.sourceUrl })}
+              href={disputePath(call.id)}
               className="text-pine underline-offset-4 hover:underline"
             >
               Dispute this grade

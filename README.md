@@ -150,7 +150,8 @@ Paste intake lives at `/admin` and `POST /api/admin/intake`.
 4. Optional: set `XAI_API_KEY` (and `XAI_MODEL` if you do not want `grok-3`) to let an ambiguous paste ask the AI SDK for a suggestion. The suggestion stays in review. Unset means the rules parser runs alone.
 5. Paste an `https://x.com/<handle>/status/<id>` URL. The server calls `https://publish.x.com/oembed` first, then `https://publish.twitter.com/oembed`, and follows redirects. If every host fails, the admin page asks for the post text. Empty text is refused. It stores the URL, handle, oEmbed date label when one exists, and the text. It does not scrape x.com and it does not invent a clock time when oEmbed only returned a date.
 6. Confirm, edit, or reject the parsed call. Symbols in `market-history.json` (SPY, QQQ, DIA, VIX, and the other recorded names) can be graded. Anything else is stored as **Not gradable yet**.
-7. A confirmed call is scored on Monday at the open of the 12:00 PM ET bar, and on Wednesday and Friday at the 4:00 PM ET regular-session close. It skips the Monday gap. It appears on `/real` and on that account, labeled **Verified real call**, with the original post and **Dispute this grade**. The demo book stays labeled demo and still uses its recorded noon bars.
+7. A confirmed call is scored on Monday at the open of the 12:00 PM ET 5-minute bar, and on Wednesday and Friday at the 4:00 PM ET regular-session close. It skips the Monday gap. It appears on `/real` and on that account, labeled **Verified real call**, with the original post and **Dispute this grade**. That link opens `/dispute`. The demo book stays labeled demo. Its Monday grade is the same 12:00 PM ET 5-minute open. Its Wednesday and Friday grades still use the recorded noon bars.
+8. Disputes live in the same intake book (`disputes` on `intake/book.json`, or the local file). `/admin` lists them as open or resolved. Optional `DISPUTE_EMAIL` adds a mailto link. No address is shipped when that variable is unset.
 
 Scheduled X search is a disabled stub in `src/lib/x-search-job.ts`. It does not run, even if `XAI_API_KEY` is set.
 
@@ -162,4 +163,4 @@ Draft pages, labeled “Draft for legal review” until counsel signs off:
 - `/terms` — public posts, the locked calendar, real prints, liability limitation
 - `/donate` — donation-only; a gift is not a signal and is not tax-deductible unless a later notice says so
 
-Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. Verified cards quote public posts and link the source. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. GradedCalls FinTwit is not affiliated with X, Twitter, or Yahoo Finance. The corrections address on those pages is a placeholder.
+Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. Verified cards quote public posts and link the source. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. GradedCalls FinTwit is not affiliated with X, Twitter, or Yahoo Finance. Corrections go through the on-site dispute form.

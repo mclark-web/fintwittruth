@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, LegalSection } from "@/components/legal-page";
-import { CORRECTIONS_EMAIL } from "@/lib/legal";
+import { disputeEmail } from "@/lib/dispute";
 
 export const metadata: Metadata = {
   title: "Terms",
@@ -114,12 +114,20 @@ export default function TermsPage() {
 
       <LegalSection id="corrections" title="Corrections">
         <p>
-          If a print, a grade, or a page is wrong, write to{" "}
-          <a className="text-pine underline-offset-4 hover:underline" href={`mailto:${CORRECTIONS_EMAIL}`}>
-            {CORRECTIONS_EMAIL}
-          </a>
-          . That address is a placeholder. It is not a monitored inbox until it is replaced after legal review.
-          A correction can change a published grade when the underlying print or post was recorded wrong. It
+          If a print, a grade, or a page is wrong, use the{" "}
+          <Link href="/dispute" className="text-pine underline-offset-4 hover:underline">
+            dispute form
+          </Link>
+          {disputeEmail() ? (
+            <>
+              {" "}
+              or write{" "}
+              <a className="text-pine underline-offset-4 hover:underline" href={`mailto:${disputeEmail()}`}>
+                {disputeEmail()}
+              </a>
+            </>
+          ) : null}
+          . A correction can change a published grade when the underlying print or post was recorded wrong. It
           does not exist to renegotiate a score you dislike.
         </p>
       </LegalSection>
