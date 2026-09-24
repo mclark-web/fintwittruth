@@ -20,7 +20,7 @@ export function BrandMark() {
 export function DemoBanner() {
   if (DATA_MODE !== "demo") return null;
   return (
-    <div className="border-b border-pine/30 bg-pine/10 text-orange-soft">
+    <div className="site-banner relative border-b border-pine/30 bg-pine/10 text-orange-soft">
       <p className="mx-auto max-w-6xl px-4 py-2 text-center text-sm tracking-wide text-ink">
         Demo weeks are fictional accounts. The latest board quotes verified public posts and links each source. Market prints are historical Yahoo Finance prices. Not investment advice. Not affiliated with X or Yahoo.{" "}
         <Link href="/demo" className="font-medium text-pine underline-offset-4 hover:underline">
@@ -41,32 +41,36 @@ export async function SiteHeader() {
         ? `/weeks/${latest.slug}/monday-gap`
         : latestHref
     : "/weeks";
+  const tools = (
+    <>
+      <Link href="/weeks" className="btn header-tool">
+        Weekend filter
+      </Link>
+      <Link href={gradeHref} className="btn btn-primary header-tool">
+        Grade feed
+      </Link>
+    </>
+  );
   return (
-    <header className="sticky top-0 z-20 border-b border-line bg-[#0b0c0e]/80 backdrop-blur-md">
-      <div className="mx-auto max-w-6xl px-4 py-3 sm:px-7">
-        <div className="flex flex-col gap-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-6">
-          <Link href="/" className="order-1 flex shrink-0 items-center gap-2.5 whitespace-nowrap" aria-label={PRODUCT_NAME}>
+    <>
+      <header className="site-header sticky top-0 z-20 border-b border-line bg-[#0b0c0e]/95 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-h-14 items-center gap-3 px-4 sm:px-7 max-w-6xl">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5 whitespace-nowrap" aria-label={PRODUCT_NAME}>
             <BrandMark />
             <span className="text-[17px] font-semibold tracking-tight text-ink">
               Graded<span className="text-orange-soft">Calls</span>
             </span>
           </Link>
-          <div className="order-3 overflow-x-auto lg:order-2">
-            <Suspense fallback={<span className="block h-9" aria-hidden />}>
+          <div className="min-w-0 flex-1 overflow-x-auto">
+            <Suspense fallback={<span className="block h-11" aria-hidden />}>
               <NavLinks latestHref={latestHref} />
             </Suspense>
           </div>
-          <div className="order-2 flex shrink-0 items-center gap-2 lg:order-3">
-            <Link href="/weeks" className="btn !px-2.5 !text-xs sm:!px-3.5 sm:!text-[13px]">
-              Weekend filter
-            </Link>
-            <Link href={gradeHref} className="btn btn-primary !px-2.5 !text-xs sm:!px-3.5 sm:!text-[13px]">
-              Grade feed
-            </Link>
-          </div>
+          <div className="hidden shrink-0 items-center gap-2 lg:flex">{tools}</div>
         </div>
-      </div>
-    </header>
+      </header>
+      <div className="header-tools flex gap-2 px-4 py-2 lg:hidden">{tools}</div>
+    </>
   );
 }
 

@@ -91,7 +91,7 @@ a.btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: 12px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--orange-soft);
@@ -153,6 +153,10 @@ a.btn {
   justify-content: flex-end;
 }
 
+.scoreboard-rest {
+  margin-top: 10px;
+}
+
 .sb-tile {
   min-width: 88px;
   padding: 12px 14px;
@@ -177,7 +181,7 @@ a.btn {
 }
 
 .sb-tile .lbl {
-  font-size: 10.5px;
+  font-size: 12px;
   color: #9a9aa3;
   margin-top: 2px;
   text-transform: uppercase;
@@ -209,7 +213,7 @@ a.btn {
 }
 
 .tag {
-  font-size: 11px;
+  font-size: 12px;
   padding: 3px 8px;
   border-radius: 6px;
   background: rgb(200 110 30 / 0.1);
@@ -226,7 +230,7 @@ a.btn {
 
 .vs span {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 12px;
   padding: 4px 8px;
   border-radius: 6px;
   background: rgb(255 255 255 / 0.04);
@@ -264,7 +268,7 @@ a.btn {
 
 .rank-n {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--orange);
   width: 22px;
   display: inline-block;
@@ -278,5 +282,127 @@ a.btn {
 
   .scoreboard {
     justify-content: flex-start;
+  }
+}
+
+:where(.panel, section, [id]) {
+  scroll-margin-top: 64px;
+}
+
+.site-banner {
+  position: relative;
+  z-index: 0;
+}
+
+.site-header {
+  height: 56px;
+  max-height: 56px;
+  overflow: hidden;
+}
+
+.header-tool {
+  min-height: 44px;
+  padding-inline: 12px;
+  font-size: 12px;
+}
+
+.header-tools {
+  position: relative;
+  z-index: 0;
+}
+
+.tape-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vs .tape-mark {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.tape-mark-with,
+.vs .tape-mark-with {
+  color: #4cc38a;
+  background: rgba(76, 195, 138, 0.12);
+  border: 1px solid rgba(76, 195, 138, 0.35);
+}
+
+.tape-mark-against,
+.vs .tape-mark-against {
+  color: #f26d7d;
+  background: rgba(242, 109, 125, 0.12);
+  border: 1px solid rgba(242, 109, 125, 0.35);
+}
+
+.tape-mark-flat,
+.vs .tape-mark-flat {
+  color: #9a9aa3;
+  background: rgba(154, 154, 163, 0.12);
+  border: 1px solid rgba(154, 154, 163, 0.35);
+}
+
+.call-grade .gc-scale.is-mini {
+  width: 100% !important;
+  min-width: 72px;
+  max-width: none;
+}
+
+.call-grade .gc-tube,
+.call-grade .gc-vial {
+  --tube-h: 22px;
+  height: 22px;
+  min-width: 72px;
+}
+
+@media (min-width: 820px) and (max-width: 960px) {
+  .scoreboard-primary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .scoreboard-rest {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .scoreboard .sb-tile {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 820px) {
+  .ticker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .ticker-grid .sb-tile {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 639px) {
+  .filters-bar a,
+  .header-tools a,
+  .nav a {
+    min-height: 44px;
   }
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded } from "@/components/board-state";
-import { PricePath, PriceSource } from "@/components/market";
+import { PricePath, PriceSource, TapeMark } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ScoreMark } from "@/components/score";
 import { formatPct, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
@@ -158,7 +158,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
               const readout = cohort.readouts[kind];
               return (
                 <li key={kind} className="panel p-4">
-                  <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
+                  <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{meta.role}</p>
                   <h3 className="font-serif text-2xl text-ink">{meta.label}</h3>
                   <p className="text-xs text-muted">{formatWhen(readout.at)}</p>
                   <div className="mt-3">
@@ -172,9 +172,11 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                     />
                   </div>
                   <p className="mt-3 text-sm text-ink/80">{grade.note}</p>
-                  <p className="mt-2 font-mono text-xs text-muted">
-                    Tape {formatPct(grade.rawMovePct)} · signed {formatPct(grade.signedMovePct)} · VIX{" "}
-                    {formatPct(grade.vixMovePct)}
+                  <p className="mt-2 flex flex-wrap items-center gap-2">
+                    <TapeMark direction={call.direction} move={grade.rawMovePct} label="Tape" />
+                    <span className="font-mono text-xs text-[#9a9aa3] tabular-nums">
+                      signed {formatPct(grade.signedMovePct)} · VIX {formatPct(grade.vixMovePct)}
+                    </span>
                   </p>
                   <Breakdown
                     directionPoints={grade.directionPoints}
@@ -204,7 +206,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
               const readout = cohort.readouts[kind];
               return (
                 <li key={kind} className="rounded-2xl border border-dashed border-line bg-sheet px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
+                  <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{meta.role}</p>
                   <p className="font-serif text-xl text-ink">{meta.label}</p>
                   <p className="mt-1 text-sm text-muted">Not graded yet · off the board until {meta.time}</p>
                   <p className="mt-2 text-sm text-ink/80">{readout.narrative}</p>

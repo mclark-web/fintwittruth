@@ -189,7 +189,7 @@ export default async function HomePage({
                     return (
                       <li key={kind}>
                         <Link href={`/weeks/${featured.slug}/${kind}`} className="block rounded-xl bg-sheet px-3 py-2">
-                          <span className="text-[11px] uppercase text-muted">{READOUT_META[kind].short}</span>
+                          <span className="text-xs uppercase text-[#9a9aa3]">{READOUT_META[kind].short}</span>
                           <span className="mt-1 block font-mono text-2xl">
                             {Math.round(grade.score)}
                             <span className="text-sm text-muted">%</span>

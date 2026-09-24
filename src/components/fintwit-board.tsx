@@ -137,7 +137,7 @@ export function FinTwitBoard({
             </p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {["Monday open", "Public sources", "Sample size", "No edits after lock"].map((chip) => (
-                <span key={chip} className="rounded-full border border-line px-2 py-1 text-[11px] text-muted">
+                <span key={chip} className="rounded-full border border-line px-2 py-1 text-xs text-[#9a9aa3]">
                   {chip}
                 </span>
               ))}

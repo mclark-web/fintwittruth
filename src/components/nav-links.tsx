@@ -26,7 +26,7 @@ export function NavLinks({ latestHref }: { latestHref: string }) {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`whitespace-nowrap rounded-lg px-3 py-2 text-[13.5px] ${
+            className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-lg px-3 text-xs sm:text-[13.5px] ${
               active
                 ? "bg-white/5 text-ink shadow-[inset_0_-2px_0_#eb6505]"
                 : "text-muted hover:bg-white/5 hover:text-ink"

@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { formatPct, formatWhen } from "@/lib/format";
+import { formatWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
 import { Avatar, DirectionChip, Evolution, LevelList, ScoreMark } from "./score";
-import { printAt } from "./market";
+import { printAt, TapeMark } from "./market";
 
 const TAPE = ["SPY", "DIA", "QQQ", "VIX"] as const;
 
@@ -60,9 +60,7 @@ export function CallCard({
         <div className="vs">
           {moves.map((item) =>
             item.move == null ? null : (
-              <span key={item.symbol} className={item.move > 0.00005 ? "text-bull" : item.move < -0.00005 ? "text-bear" : undefined}>
-                {item.symbol} {formatPct(item.move)}
-              </span>
+              <TapeMark key={item.symbol} direction={call.direction} move={item.move} label={item.symbol} />
             ),
           )}
         </div>

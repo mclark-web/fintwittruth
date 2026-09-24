@@ -96,7 +96,52 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
             <NothingGraded href={`/weeks/${cohort.slug}/pending`} />
           </div>
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
+          <>
+          <ul className="mt-4 grid gap-3 min-[820px]:hidden">
+            {rows.map((call) => (
+              <li key={call.id} className="panel p-4">
+                <p className="font-medium text-ink">
+                  <Link href={`/accounts/${call.handle}`} className="hover:underline">
+                    {call.displayName}
+                  </Link>
+                </p>
+                <p className="text-xs text-[#9a9aa3]">@{call.handle}</p>
+                <p className="mt-3 text-ink">
+                  <Link href={`/calls/${call.id}`} className="hover:underline">
+                    {call.body}
+                  </Link>
+                </p>
+                <p className="mt-2 flex flex-wrap items-center gap-2">
+                  <DirectionChip direction={call.direction} />
+                  <span className="font-mono text-xs text-pine">{call.primary}</span>
+                </p>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {settled.map((kind) => {
+                    const grade = call.grades[kind];
+                    return (
+                      <div key={kind} className="min-w-0">
+                        <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{READOUT_META[kind].short}</p>
+                        {grade ? (
+                          <Link href={`/weeks/${cohort.slug}/${kind}`} className="mt-1 block hover:underline">
+                            <span className="call-grade block">
+                              <GcTube score={grade.score} grade={gcGrade(grade)} variant="mini" showMeta={false} />
+                            </span>
+                            <span className="mt-1 flex flex-col items-start gap-1">
+                              <span className="font-mono text-sm tabular-nums">{Math.round(grade.score)}%</span>
+                              <GradePill grade={gcGrade(grade)} />
+                            </span>
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-[#9a9aa3]">Not graded yet</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 hidden overflow-x-auto rounded-2xl border border-line bg-card min-[820px]:block">
             <table className="min-w-[720px] w-full text-left text-sm">
               <caption className="sr-only">Settled grades for {cohort.title}</caption>
               <thead className="bg-sheet text-xs uppercase tracking-wide text-muted">
@@ -157,6 +202,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
               </tbody>
             </table>
           </div>
+          </>
         )}
         {pending.length > 0 ? (
           <div className="mt-3">
