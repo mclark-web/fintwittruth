@@ -1,13 +1,36 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { gcBoardGrade, gcFill, gcGrade, GC_GRADE_LABEL, UNGRADED_HORIZON, UNGRADED_HORIZON_ARIA } from "./grades";
+import { zonedToUtc } from "./calendar";
+import { etYmd } from "./format";
+import {
+  gcBoardGrade,
+  gcFill,
+  gcGrade,
+  GC_GRADE_LABEL,
+  LABOR_DAY_UNGRADED_LINE,
+  UNGRADED_HORIZON,
+  UNGRADED_HORIZON_ARIA,
+  ungradedHorizonLine,
+} from "./grades";
 
 test("0% is empty glass and EXIT LIQUIDITY", () => {
   assert.equal(gcFill(0), 0);
   assert.equal(gcFill(null), 0);
   assert.equal(gcGrade({ score: 0, isStrong: false, isWeak: true }), "exit");
   assert.equal(gcGrade({ score: null, isStrong: false, isWeak: false }), "exit");
-  assert.deepEqual(gcBoardGrade([]), { fill: 0, grade: "exit" });
+});
+
+test("an empty board is ungraded and a graded zero stays EXIT", () => {
+  assert.deepEqual(gcBoardGrade([]), { fill: 0, ungraded: true });
+  const oneZero = gcBoardGrade([0]);
+  assert.equal(oneZero.ungraded, false);
+  if (!oneZero.ungraded) {
+    assert.equal(oneZero.grade, "exit");
+    assert.equal(oneZero.fill, 0);
+  }
+  const allZero = gcBoardGrade([0, 0]);
+  assert.equal(allZero.ungraded, false);
+  if (!allZero.ungraded) assert.equal(allZero.grade, "exit");
 });
 
 test("an open horizon is not graded yet and is never EXIT", () => {
@@ -31,7 +54,32 @@ test("70 or more is STRONG, under 40 is WEAK, the rest is PROVISIONAL", () => {
 });
 
 test("a board mean uses the same bands", () => {
-  assert.deepEqual(gcBoardGrade([80, 60, 40]), { fill: 60, grade: "provisional" });
-  assert.equal(gcBoardGrade([80, 90, 70]).grade, "strong");
-  assert.equal(gcBoardGrade([10, 20, 30]).grade, "weak");
+  assert.deepEqual(gcBoardGrade([80, 60, 40]), { fill: 60, grade: "provisional", ungraded: false });
+  const strong = gcBoardGrade([80, 90, 70]);
+  const weak = gcBoardGrade([10, 20, 30]);
+  assert.equal(strong.ungraded, false);
+  assert.equal(weak.ungraded, false);
+  if (!strong.ungraded) assert.equal(strong.grade, "strong");
+  if (!weak.ungraded) assert.equal(weak.grade, "weak");
+});
+
+test("Labor Day Monday does not promise an open or a noon print", () => {
+  const ymd = etYmd(zonedToUtc(2026, 9, 7, 12, 0));
+  assert.equal(ymd, "2026-09-07");
+  for (const kind of ["monday-gap", "monday"] as const) {
+    const line = ungradedHorizonLine({
+      kind,
+      sessionYmd: ymd,
+      time: kind === "monday" ? "12:00 PM ET" : "9:30 AM ET",
+      role: "Friday close to the open",
+    });
+    assert.equal(line, LABOR_DAY_UNGRADED_LINE);
+    assert.equal(line.includes("until"), false);
+    assert.equal(line.includes("9:30"), false);
+    assert.equal(line.includes("12:00"), false);
+  }
+  assert.equal(
+    ungradedHorizonLine({ kind: "friday", sessionYmd: "2026-09-25", time: "4:00 PM ET" }),
+    "Not graded yet · off the board until 4:00 PM ET",
+  );
 });

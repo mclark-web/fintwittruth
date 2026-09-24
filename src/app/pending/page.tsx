@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
-import { UNGRADED_HORIZON } from "@/lib/grades";
+import { etYmd } from "@/lib/format";
+import { ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 
@@ -67,7 +68,13 @@ export default async function PendingPage() {
                       <div className="mt-2 max-w-40">
                         <GcTube score={0} grade="exit" variant="mini" showMeta={false} ungraded />
                       </div>
-                      <p className="mt-2 text-sm text-[#9a9aa3]">{UNGRADED_HORIZON} · off the board until {READOUT_META[kind].time}</p>
+                      <p className="mt-2 text-sm text-[#9a9aa3]">
+                        {ungradedHorizonLine({
+                          kind,
+                          sessionYmd: etYmd(cohort.mondayAt),
+                          time: READOUT_META[kind].time,
+                        })}
+                      </p>
                     </li>
                   ))}
                 </ul>

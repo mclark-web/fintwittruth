@@ -35,6 +35,7 @@ export function FinTwitBoard({
   const calibration = gcBoardGrade(
     calls.filter((call) => call.grades[readout] != null).map((call) => call.grades[readout]?.score ?? 0),
   );
+  const boardGrade = calibration.ungraded ? "exit" : calibration.grade;
   const ranked = [...graded].sort((a, b) => {
     const left = a.grades[readout]?.score ?? -1;
     const right = b.grades[readout]?.score ?? -1;
@@ -65,7 +66,13 @@ export function FinTwitBoard({
           {GC_FACTOR} for graded posts on this horizon. The horizontal tube fills left to right. STRONG is
           70% or more. WEAK is under 40%. PROVISIONAL is 40% or more and under 70%. 0% is an empty glass.
         </p>
-        <GcTube score={calibration.fill} grade={calibration.grade} variant="sidebar" compactMeta />
+        <GcTube
+          score={calibration.fill}
+          grade={boardGrade}
+          variant="sidebar"
+          compactMeta
+          ungraded={calibration.ungraded}
+        />
       </div>
 
       {toolbar}

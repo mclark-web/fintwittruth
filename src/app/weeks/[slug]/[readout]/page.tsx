@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { PendingSettleLink } from "@/components/board-state";
 import { FinTwitBoard } from "@/components/fintwit-board";
 import { CohortWindow, ReadoutCards, TapeMark } from "@/components/market";
+import { etYmd } from "@/lib/format";
+import { LABOR_DAY_UNGRADED_LINE, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { pendingReadoutKinds } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
@@ -112,6 +114,12 @@ export default async function ReadoutPage({
                 from Friday&apos;s close
                 {readout.strongCutoff > 0 ? ` · STRONG line ${readout.strongCutoff}/100` : ""}
               </>
+            ) : ungradedHorizonLine({
+                kind,
+                sessionYmd: etYmd(cohort.mondayAt),
+                time: meta.time,
+              }) === LABOR_DAY_UNGRADED_LINE ? (
+              <p>{LABOR_DAY_UNGRADED_LINE}</p>
             ) : (
               <p>Prices publish with the grade</p>
             )}

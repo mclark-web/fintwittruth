@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DirectionChip } from "@/components/score";
 import { pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
+import { etYmd } from "@/lib/format";
+import { ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 
@@ -76,7 +78,12 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
                   {meta.label}
                 </h2>
                 <p className="mt-1 text-sm text-muted">
-                  Not graded yet · {meta.role} · off the board until {meta.time}
+                  {ungradedHorizonLine({
+                    kind,
+                    sessionYmd: etYmd(cohort.mondayAt),
+                    time: meta.time,
+                    role: meta.role,
+                  })}
                 </p>
                 <p className="mt-3 max-w-3xl text-sm text-ink/80">{readout.narrative}</p>
                 <p className="mt-2 text-sm text-muted">

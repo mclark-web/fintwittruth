@@ -5,7 +5,8 @@ import { NothingGraded } from "@/components/board-state";
 import { PricePath, PriceSource, TapeMark } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ReadoutBubble, ReferenceLine, ScoreMark } from "@/components/score";
 import { disputePath } from "@/lib/dispute";
-import { formatPct, formatWhen } from "@/lib/format";
+import { etYmd, formatPct, formatWhen } from "@/lib/format";
+import { ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { settledGradeKinds } from "@/lib/board";
 import { getCall, listCallIds } from "@/lib/queries";
@@ -228,7 +229,13 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                 <li key={kind} className="rounded-2xl border border-dashed border-line bg-sheet px-4 py-3">
                   <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{meta.role}</p>
                   <p className="font-serif text-xl text-ink">{meta.label}</p>
-                  <p className="mt-1 text-sm text-muted">Not graded yet · off the board until {meta.time}</p>
+                  <p className="mt-1 text-sm text-muted">
+                    {ungradedHorizonLine({
+                      kind,
+                      sessionYmd: etYmd(cohort.mondayAt),
+                      time: meta.time,
+                    })}
+                  </p>
                   <p className="mt-2 text-sm text-ink/80">{readout.narrative}</p>
                 </li>
               );
