@@ -43,6 +43,13 @@ export function marketHolidayName(ymd: string): string | null {
   return name.length > 0 ? name : null;
 }
 
+/** No Monday open or noon print when that Monday is a full close. */
+export function mondayTapeClosedLine(mondayAt: Date | string): string | null {
+  const name = marketHolidayName(etYmd(mondayAt));
+  if (!name) return null;
+  return `Market closed (${name}) · no Monday tape`;
+}
+
 export function readoutSessionYmd(
   kind: ReadoutKind,
   dates: { mondayAt: Date; wednesdayAt: Date; fridayAt: Date },

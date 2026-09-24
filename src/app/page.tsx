@@ -7,7 +7,7 @@ import { GradePill } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledGradeKinds, settledReadoutKinds } from "@/lib/board";
 import { DEMO_OPEN_COHORT_SLUG } from "@/lib/demo-data";
 import { formatPct, formatScore, formatShortDay } from "@/lib/format";
-import { gcGrade, pendingClosure } from "@/lib/grades";
+import { gcGrade, mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
 import { getFeaturedCohort, getLatestCohort, getLeaderboard, type CallView } from "@/lib/queries";
 import { EQUITY_TAPE, type ReadoutKind } from "@/lib/scoring";
 import { TRACKING_EMPTY, WATCHLIST } from "@/lib/watchlist";
@@ -65,6 +65,7 @@ export default async function HomePage({
         : null
     : null;
   const waiting = latest ? pendingReadoutKinds(Object.values(latest.readouts)) : [];
+  const closedMonday = latest ? mondayTapeClosedLine(latest.mondayAt) : null;
   const feed = latest && tapeKind
     ? latest.calls.filter((call) => {
         if (query.side === "bullish" || query.side === "bearish") {
@@ -115,11 +116,16 @@ export default async function HomePage({
           readout={tapeKind}
           toolbar={filters}
           pendingHref={waiting.length > 0 ? `/weeks/${latest.slug}/pending` : undefined}
+          mondayAt={latest.mondayAt}
         />
       ) : (
         <div className="panel p-5">
           <h1 className="text-3xl text-ink">Social calls vs Monday’s tape</h1>
-          <p className="mt-2 text-muted">The Monday tape is off this board until the open prints settle.</p>
+          {closedMonday ? (
+            <p className="mt-2 text-[#9a9aa3]">{closedMonday}</p>
+          ) : (
+            <p className="mt-2 text-muted">The Monday tape is off this board until the open prints settle.</p>
+          )}
           <ExitLink />
         </div>
       )}

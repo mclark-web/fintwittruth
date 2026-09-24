@@ -20,6 +20,7 @@ export function FinTwitBoard({
   toolbar,
   pendingHref,
   marketClosed = false,
+  mondayAt,
 }: {
   kicker?: string;
   title: string;
@@ -32,6 +33,7 @@ export function FinTwitBoard({
   toolbar?: ReactNode;
   pendingHref?: string;
   marketClosed?: boolean;
+  mondayAt?: Date;
 }) {
   const graded = (feed ?? calls).filter((call) => call.grades[readout] != null);
   const horizonGraded = calls.some((call) => call.grades[readout] != null);
@@ -114,7 +116,7 @@ export function FinTwitBoard({
           )}
         </div>
         <aside className="flex flex-col gap-3.5">
-          <NoiseIndex calls={calls} quotes={quotes} compact />
+          <NoiseIndex calls={calls} quotes={quotes} compact mondayAt={mondayAt} />
           <section className="panel p-4">
             <h2 className="text-sm font-semibold text-ink">Top handles</h2>
             <p className="mt-1 text-xs text-muted">By GC Scale on this horizon</p>

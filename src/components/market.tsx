@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { etYmd, formatPct, formatPrice, formatShortDay, formatWhen } from "@/lib/format";
-import { marketClosedCard, marketHolidayName } from "@/lib/grades";
+import { marketClosedCard, marketHolidayName, mondayTapeClosedLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { TAPE_DISPLAY, checkpointPrints, checkpointSymbols } from "@/lib/prints";
 import { PRICE_SOURCE_SHORT } from "@/lib/quotes";
@@ -359,10 +359,12 @@ export function NoiseIndex({
   calls,
   quotes,
   compact = false,
+  mondayAt,
 }: {
   calls: { sentiment: Sentiment; engagement: number }[];
   quotes: QuoteView[];
   compact?: boolean;
+  mondayAt?: Date;
 }) {
   const noise = weekendNoise(
     calls.map((call) => call.sentiment),
@@ -372,6 +374,7 @@ export function NoiseIndex({
   const noon = tapeMove(quotes, "monday");
   const vixGap = vixMove(quotes, "monday-gap");
   const vixNoon = vixMove(quotes, "monday");
+  const closedMonday = mondayAt ? mondayTapeClosedLine(mondayAt) : null;
   const stats = [
     { label: "Monday gap tape", value: gap },
     { label: "Monday noon tape", value: noon },
@@ -418,7 +421,11 @@ export function NoiseIndex({
               ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted">The Monday tape is off this board until the session settles.</p>
+          closedMonday ? (
+            <p className="text-sm text-[#9a9aa3]">{closedMonday}</p>
+          ) : (
+            <p className="text-sm text-muted">The Monday tape is off this board until the session settles.</p>
+          )
         )}
       </div>
     </section>

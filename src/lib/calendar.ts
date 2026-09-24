@@ -66,7 +66,8 @@ export type CohortWindow = {
 export const SETTLE_BUFFER_MINUTES = 45;
 
 /**
- * NYSE full closes in 2026. A holiday has no regular-session open and no official close.
+ * NYSE full closes in 2026 and 2027, from nyse.com/trade/hours-calendars.
+ * A holiday has no regular-session open and no official close.
  * A vendor bar that exists only for VIX is not a cash session.
  */
 const HOLIDAYS: Record<string, string> = {
@@ -80,15 +81,27 @@ const HOLIDAYS: Record<string, string> = {
   "2026-09-07": "Labor Day. The cash session is closed.",
   "2026-11-26": "Thanksgiving Day. The cash session is closed.",
   "2026-12-25": "Christmas Day. The cash session is closed.",
+  "2027-01-01": "New Year's Day. The cash session is closed.",
+  "2027-01-18": "Martin Luther King Jr. Day. The cash session is closed.",
+  "2027-02-15": "Washington's Birthday. The cash session is closed.",
+  "2027-03-26": "Good Friday. The cash session is closed.",
+  "2027-05-31": "Memorial Day. The cash session is closed.",
+  "2027-06-18": "Juneteenth National Independence Day observed. The cash session is closed.",
+  "2027-07-05": "Independence Day observed. The cash session is closed.",
+  "2027-09-06": "Labor Day. The cash session is closed.",
+  "2027-11-25": "Thanksgiving Day. The cash session is closed.",
+  "2027-12-24": "Christmas Day observed. The cash session is closed.",
 };
 
 /**
- * NYSE 1:00 PM ET early closes in 2026. The official close is that day's daily bar.
+ * NYSE 1:00 PM ET early closes in 2026 and 2027. The official close is that day's daily bar.
  * There is no 4:00 PM print, so a 16:00 lookup would leave the grade blank.
+ * In 2027, December 24 is the observed Christmas close, not an early close.
  */
 const EARLY_CLOSES: Record<string, string> = {
   "2026-11-27": "The day after Thanksgiving is an early close. The official close is 1:00 PM ET.",
   "2026-12-24": "Christmas Eve is an early close. The official close is 1:00 PM ET.",
+  "2027-11-26": "The day after Thanksgiving is an early close. The official close is 1:00 PM ET.",
 };
 
 export function calendarDayString(day: CalendarDay): string {

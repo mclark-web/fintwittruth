@@ -5,7 +5,7 @@ import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { GcTube, GradePill } from "@/components/gc-tube";
 import { DirectionChip, ReadoutBubble, ReferenceLine } from "@/components/score";
-import { gcGrade, pendingClosure } from "@/lib/grades";
+import { gcGrade, mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
@@ -40,6 +40,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
   const settled = settledReadoutKinds(readouts);
   const pending = pendingReadoutKinds(readouts);
   const closure = pendingClosure(pending, cohort);
+  const closedMonday = mondayTapeClosedLine(cohort.mondayAt);
   const tapeKinds = settled;
   const rows = cohort.calls
     .filter((call) => callHasSettledGrade(call.grades))
@@ -73,7 +74,11 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         {tapeKinds.length > 0 ? (
           tapeKinds.map((kind) => <QuoteTape key={kind} quotes={cohort.quotes} kind={kind} />)
         ) : (
-          <p className="text-sm text-muted">The Monday tape is off this board until the session settles.</p>
+          closedMonday ? (
+            <p className="text-sm text-[#9a9aa3]">{closedMonday}</p>
+          ) : (
+            <p className="text-sm text-muted">The Monday tape is off this board until the session settles.</p>
+          )
         )}
         <PriceSource />
       </div>
@@ -81,7 +86,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} />
       </div>
       <div className="mt-4">
-        <NoiseIndex calls={cohort.calls} quotes={cohort.quotes} />
+        <NoiseIndex calls={cohort.calls} quotes={cohort.quotes} mondayAt={cohort.mondayAt} />
       </div>
 
       <section className="mt-10" aria-labelledby="evolution-heading">

@@ -5,7 +5,7 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PendingSettleLink } from "../components/board-state";
-import { ReadoutCards } from "../components/market";
+import { NoiseIndex, ReadoutCards } from "../components/market";
 import { zonedToUtc } from "./calendar";
 import {
   LABOR_DAY_UNGRADED_LINE,
@@ -80,6 +80,29 @@ test("a holiday readout never renders Scheduled or waiting", () => {
   assert.equal(html.includes("waiting"), false);
 });
 
+test("Labor Day Weekend Noise Index does not promise a Monday tape", () => {
+  const holiday = renderToStaticMarkup(
+    createElement(NoiseIndex, {
+      calls: [],
+      quotes: [],
+      mondayAt: zonedToUtc(2026, 9, 7, 12, 0),
+    }),
+  );
+  assert.match(holiday, /text-sm text-\[#9a9aa3\]">Market closed \(Labor Day\) · no Monday tape</);
+  assert.doesNotMatch(holiday, /until the session settles/);
+  assert.doesNotMatch(holiday, /until the open prints settle/);
+
+  const open = renderToStaticMarkup(
+    createElement(NoiseIndex, {
+      calls: [],
+      quotes: [],
+      mondayAt: zonedToUtc(2026, 9, 21, 12, 0),
+    }),
+  );
+  assert.match(open, /The Monday tape is off this board until the session settles/);
+  assert.doesNotMatch(open, /Market closed/);
+});
+
 test("a future trading day still says Scheduled and until the tape prints", () => {
   const friday = zonedToUtc(2026, 9, 25, 16, 0);
   const dates = {
@@ -139,7 +162,10 @@ test("Labor Day Monday board tube stays ungraded and does not promise a print", 
   assert.match(html, /Not graded yet · market closed for Labor Day/);
   assert.equal(html.includes(LABOR_DAY_UNGRADED_LINE), true);
   assert.match(html, /Market closed \(Labor Day\) · Not graded yet/);
+  assert.match(html, /text-2xl text-\[#9a9aa3\]">Market closed for Labor Day</);
   assert.match(html, /Market closed for Labor Day · not graded/);
+  assert.match(html, /Market closed \(Labor Day\) · no Monday tape/);
+  assert.doesNotMatch(html, /until the session settles/);
   assert.match(html, /2 horizons are not graded: the market was closed for Labor Day\./);
   assert.match(html, /A horizon on this week is not graded: the market was closed\./);
   assert.doesNotMatch(html, /off the board until 12:00 PM ET/);

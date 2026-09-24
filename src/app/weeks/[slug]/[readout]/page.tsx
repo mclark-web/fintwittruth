@@ -97,7 +97,9 @@ export default async function ReadoutPage({
       </div>
 
       <section className="panel mt-6 p-5">
-        <p className="text-2xl text-ink">{readout.status === "published" ? "What the tape did" : tapeStatusHeading(holidayName)}</p>
+        <p className={marketClosed ? "text-2xl text-[#9a9aa3]" : "text-2xl text-ink"}>
+          {readout.status === "published" ? "What the tape did" : tapeStatusHeading(holidayName)}
+        </p>
         <p className="mt-2 max-w-3xl text-ink/80">{readout.narrative}</p>
         <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
           <div>
@@ -161,6 +163,7 @@ export default async function ReadoutPage({
           readout={kind}
           pendingHref={pendingCount > 0 ? `/weeks/${cohort.slug}/pending` : undefined}
           marketClosed={marketClosed || (closure.closed > 0 && closure.upcoming === 0)}
+          mondayAt={cohort.mondayAt}
         />
       </section>
     </div>
