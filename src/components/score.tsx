@@ -167,7 +167,7 @@ export function Evolution({
             <Link
               href={`/weeks/${slug}/${kind}`}
               className={`block w-full rounded-xl border px-3 py-1.5 text-xs sm:w-auto sm:min-w-52 ${
-                current ? "border-pine bg-pine/15 text-ink" : "border-line bg-sheet text-ink hover:border-pine"
+                current ? "border-pine bg-[#14171e] text-ink" : "border-line bg-sheet text-ink hover:border-pine"
               }`}
             >
               <span className="block text-xs text-[#9a9aa3]">

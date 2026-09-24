@@ -61,6 +61,12 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 @utility panel {
   border-radius: 14px;
   border: 1px solid rgb(255 255 255 / 0.08);
@@ -384,6 +390,12 @@ a.btn {
    content-visibility, which still reports a box and can cover the footer. */
 details:not([open]) > :not(summary) {
   display: none;
+}
+
+details > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
 }
 
 .hit-44,

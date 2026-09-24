@@ -217,6 +217,58 @@ for (const width of widths) {
       }
       if (ratio < 4.5) failed = true;
     }
+    const rows = (await send("Runtime.evaluate", {
+      expression: `(() => {
+        return [...document.querySelectorAll(".gc-label, .gc-pct")].map((el, i) => {
+          el.dataset.rowIndex = String(i);
+          const color = getComputedStyle(el).color;
+          el.style.color = "transparent";
+          el.style.webkitTextFillColor = "transparent";
+          el.style.textShadow = "none";
+          const r = el.getBoundingClientRect();
+          const kind = el.classList.contains("gc-pct") ? "pct" : "label";
+          return { i, kind, y: r.top + scrollY, color };
+        });
+      })()`,
+      returnByValue: true,
+    }, sessionId)).result?.value ?? [];
+    for (const row of rows) {
+      await send("Runtime.evaluate", {
+        expression: `window.scrollTo(0, ${Math.max(0, row.y - 220)})`,
+        returnByValue: true,
+      }, sessionId);
+      const box = (await send("Runtime.evaluate", {
+        expression: `(() => { const el = document.querySelector('[data-row-index="${row.i}"]'); const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; })()`,
+        returnByValue: true,
+      }, sessionId)).result.value;
+      if (box.y < 0 || box.y + box.h > 860 || box.w < 8) continue;
+      const shot = await send("Page.captureScreenshot", { format: "png" }, sessionId);
+      const png = decodePNG(Buffer.from(shot.data, "base64"));
+      const shotScale = png.width / layoutWidth;
+      const text = parseColor(row.color);
+      const samples = [];
+      const x0 = Math.max(0, Math.round(box.x * shotScale) + 1);
+      const y0 = Math.max(0, Math.round(box.y * shotScale) + 1);
+      const x1 = Math.min(png.width, Math.round((box.x + box.w) * shotScale) - 1);
+      const y1 = Math.min(png.height, Math.round((box.y + box.h) * shotScale) - 1);
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0; x < x1; x++) {
+          const o = (y * png.width + x) * 4;
+          samples.push([png.out[o], png.out[o + 1], png.out[o + 2]]);
+        }
+      }
+      if (!samples.length) continue;
+      const avg = [0, 1, 2].map((c) => {
+        const channel = samples.map((px) => px[c]).sort((a, b) => a - b);
+        return channel[Math.floor(channel.length / 2)];
+      });
+      const ratio = contrast(text, avg);
+      const prev = mins[row.kind];
+      if (prev == null || ratio < prev.ratio) {
+        mins[row.kind] = { ratio, width, bg: avg.map((n) => Math.round(n)) };
+      }
+      if (ratio < 4.5) failed = true;
+    }
   }
 }
 
@@ -227,7 +279,7 @@ for (const [grade, row] of Object.entries(mins)) {
   report[grade] = { min: Math.round(row.ratio * 100) / 100, width: row.width, interior: row.bg };
 }
 console.log(JSON.stringify(report, null, 2));
-const missing = ["strong", "weak", "provisional"].filter((grade) => report[grade] == null);
+const missing = ["strong", "weak", "provisional", "label", "pct"].filter((grade) => report[grade] == null);
 if (missing.length) {
   console.error("Missing pill types: " + missing.join(", "));
   process.exit(1);

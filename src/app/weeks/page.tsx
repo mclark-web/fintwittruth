@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { formatShortDay, formatWhen } from "@/lib/format";
-import { gcBoardGrade } from "@/lib/grades";
+import { gcBoardGrade, UNGRADED_HORIZON } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohortList } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
@@ -62,10 +62,16 @@ export default async function WeeksPage() {
                           {READOUT_META[kind].short} · {READOUT_META[kind].time}
                         </span>
                         <span className="mt-2 block">
-                          <GcTube score={calibration.fill} grade={calibration.grade} variant="mini" showMeta={false} />
+                          <GcTube
+                            score={settled ? calibration.fill : 0}
+                            grade={calibration.grade}
+                            variant="mini"
+                            showMeta={false}
+                            ungraded={!settled}
+                          />
                         </span>
-                        <span className="mt-2 block font-mono text-2xl text-ink">
-                          {settled ? `${Math.round(calibration.fill)}%` : "EXIT LIQUIDITY"}
+                        <span className={`mt-2 block font-mono text-2xl ${settled ? "text-ink" : "text-[#9a9aa3]"}`}>
+                          {settled ? `${Math.round(calibration.fill)}%` : UNGRADED_HORIZON}
                         </span>
                         <span className="mt-1 block text-xs text-muted">
                           {settled

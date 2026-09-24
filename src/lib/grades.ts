@@ -10,6 +10,10 @@ export const GC_GRADE_LABEL: Record<GcGrade, string> = {
   exit: "EXIT LIQUIDITY",
 };
 
+/** Open or unpublished horizons are not a grade. Only a settled 0% is EXIT LIQUIDITY. */
+export const UNGRADED_HORIZON = "Not graded yet";
+export const UNGRADED_HORIZON_ARIA = "GC Scale, not graded yet";
+
 /**
  * One rule on every board. The raw percent decides the pill.
  * STRONG is 70 or more. WEAK is under 40. Otherwise PROVISIONAL.

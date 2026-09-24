@@ -4,7 +4,7 @@ import { READOUTS } from "@/lib/scoring";
 import { WATCHLIST } from "@/lib/watchlist";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const base = "https://fintwittruth.vercel.app";
   const [slugs, handles, calls] = await Promise.all([listCohortSlugs(), listHandles(), listCallIds()]);
   return [
     { url: base },

@@ -216,7 +216,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
 
       {waiting.length > 0 ? (
         <details className="mt-8">
-          <summary className="cursor-pointer font-serif text-2xl text-ink">Pending settle</summary>
+          <summary className="flex min-h-11 cursor-pointer items-center font-serif text-2xl text-ink">Pending settle</summary>
           <p className="mt-2 max-w-3xl text-sm text-muted">
             These horizons are not on the board yet. There is no score until the tape prints.
           </p>

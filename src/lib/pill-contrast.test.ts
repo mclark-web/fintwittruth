@@ -12,7 +12,7 @@ test("grade pill text stays at least 4.5:1 at 390 and 1440", { skip: chrome ? fa
   });
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   const report = JSON.parse(result.stdout);
-  for (const grade of ["strong", "weak", "provisional", "exit"]) {
+  for (const grade of ["strong", "weak", "provisional", "exit", "label", "pct"]) {
     assert.ok(report[grade], `missing ${grade}`);
     assert.ok(report[grade].min >= 4.5, `${grade} contrast ${report[grade].min} is under 4.5`);
   }

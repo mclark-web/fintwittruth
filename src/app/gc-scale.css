@@ -230,6 +230,14 @@ a.gc-link {
   transition: width 1.15s cubic-bezier(0.32, 0.72, 0.22, 1);
 }
 
+/* Older markup puts the bloom directly under the scale. Cut it off before the label row. */
+.gc-scale > .gc-bloom {
+  top: -36px;
+  bottom: auto;
+  height: 108px;
+  clip-path: inset(-80px -80px 30px -80px);
+}
+
 /* Liquid — fills LEFT → RIGHT via --gc-fill
    Clean luminous neon (reference): smooth chemical glow, NOT lava crust */
 .gc-liquid {
@@ -654,7 +662,7 @@ a.gc-link {
   font-weight: 700;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 24px var(--gc-glow-soft);
+  color: #f2f1ee;
 }
 .gc-scale.is-hero .gc-pct { font-size: 36px; }
 .gc-grade-tag {

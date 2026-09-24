@@ -1,4 +1,4 @@
-import { gcFill, GC_GRADE_LABEL, type GcGrade } from "@/lib/grades";
+import { gcFill, GC_GRADE_LABEL, UNGRADED_HORIZON, UNGRADED_HORIZON_ARIA, type GcGrade } from "@/lib/grades";
 import { GC_FACTOR } from "@/lib/labels";
 
 export function GradePill({ grade }: { grade: GcGrade }) {
@@ -44,18 +44,22 @@ export function GcTube({
   variant = "sidebar",
   showMeta = true,
   compactMeta = false,
+  ungraded = false,
 }: {
   score: number | null | undefined;
   grade: GcGrade;
   variant?: "hero" | "mini" | "sidebar" | "card" | "inline";
   showMeta?: boolean;
   compactMeta?: boolean;
+  ungraded?: boolean;
 }) {
-  const empty = grade === "exit" || gcFill(score) <= 0;
+  const empty = ungraded || grade === "exit" || gcFill(score) <= 0;
   const fill = empty ? 0 : gcFill(score);
   const shown = Math.round(fill);
   const rich = variant !== "mini" && variant !== "inline";
-  const label = `${shown}% ${GC_FACTOR}, ${GC_GRADE_LABEL[empty ? "exit" : grade]}`;
+  const label = ungraded
+    ? UNGRADED_HORIZON_ARIA
+    : `${shown}% ${GC_FACTOR}, ${GC_GRADE_LABEL[empty ? "exit" : grade]}`;
 
   return (
     <div
@@ -84,9 +88,13 @@ export function GcTube({
         >
           <div className="gc-label">{GC_FACTOR}</div>
           <div className="gc-pct" style={compactMeta ? { fontSize: 18 } : undefined}>
-            {shown}%
+            {ungraded ? "—" : `${shown}%`}
           </div>
-          <GradePill grade={empty ? "exit" : grade} />
+          {ungraded ? (
+            <span className="text-xs text-[#9a9aa3]">{UNGRADED_HORIZON}</span>
+          ) : (
+            <GradePill grade={empty ? "exit" : grade} />
+          )}
         </div>
       ) : null}
     </div>

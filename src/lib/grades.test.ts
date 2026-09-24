@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { gcBoardGrade, gcFill, gcGrade } from "./grades";
+import { gcBoardGrade, gcFill, gcGrade, GC_GRADE_LABEL, UNGRADED_HORIZON, UNGRADED_HORIZON_ARIA } from "./grades";
 
 test("0% is empty glass and EXIT LIQUIDITY", () => {
   assert.equal(gcFill(0), 0);
@@ -8,6 +8,15 @@ test("0% is empty glass and EXIT LIQUIDITY", () => {
   assert.equal(gcGrade({ score: 0, isStrong: false, isWeak: true }), "exit");
   assert.equal(gcGrade({ score: null, isStrong: false, isWeak: false }), "exit");
   assert.deepEqual(gcBoardGrade([]), { fill: 0, grade: "exit" });
+});
+
+test("an open horizon is not graded yet and is never EXIT", () => {
+  assert.equal(UNGRADED_HORIZON, "Not graded yet");
+  assert.equal(UNGRADED_HORIZON_ARIA, "GC Scale, not graded yet");
+  assert.equal(UNGRADED_HORIZON.includes("EXIT"), false);
+  assert.equal(UNGRADED_HORIZON_ARIA.includes("EXIT"), false);
+  assert.equal(gcGrade({ score: 0 }), "exit");
+  assert.equal(GC_GRADE_LABEL.exit, "EXIT LIQUIDITY");
 });
 
 test("70 or more is STRONG, under 40 is WEAK, the rest is PROVISIONAL", () => {

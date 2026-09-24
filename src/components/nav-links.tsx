@@ -93,7 +93,7 @@ export function NavLinks({ latestHref }: { latestHref: string }) {
           ))}
         </div>
       </div>
-      <nav aria-label="Primary" className="nav flex items-center gap-1 overflow-hidden">
+      <nav aria-label="Primary" className="nav flex items-center gap-1 overflow-visible">
         {shown.map((item) => (
           <Link key={item.href} href={item.href} aria-current={activeFor(item) ? "page" : undefined} className={linkClass(activeFor(item))}>
             {item.label}
@@ -111,7 +111,7 @@ export function NavLinks({ latestHref }: { latestHref: string }) {
               More
             </button>
             {open ? (
-              <div role="menu" className="absolute right-0 top-full z-30 mt-1 min-w-40 rounded-xl border border-line bg-[#0b0c0e] p-1 shadow-lg">
+              <div role="menu" className="absolute right-0 top-full z-50 mt-1 min-w-40 rounded-xl border border-line bg-[#0b0c0e] p-1 shadow-lg">
                 {extra.map((item) => (
                   <Link
                     key={item.href}

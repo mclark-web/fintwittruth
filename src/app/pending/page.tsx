@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
+import { UNGRADED_HORIZON } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 
@@ -64,9 +65,9 @@ export default async function PendingPage() {
                       <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{READOUT_META[kind].role}</p>
                       <p className="mt-1 font-serif text-xl text-ink">{READOUT_META[kind].label}</p>
                       <div className="mt-2 max-w-40">
-                        <GcTube score={0} grade="exit" variant="mini" showMeta={false} />
+                        <GcTube score={0} grade="exit" variant="mini" showMeta={false} ungraded />
                       </div>
-                      <p className="mt-2 text-sm text-muted">0% · EXIT LIQUIDITY · off the board until {READOUT_META[kind].time}</p>
+                      <p className="mt-2 text-sm text-[#9a9aa3]">{UNGRADED_HORIZON} · off the board until {READOUT_META[kind].time}</p>
                     </li>
                   ))}
                 </ul>
