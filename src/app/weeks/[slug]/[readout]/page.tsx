@@ -7,7 +7,7 @@ import { CohortWindow, Move, ReadoutCards } from "@/components/market";
 import { READOUT_META } from "@/lib/labels";
 import { pendingReadoutKinds } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
-import { READOUTS, isReadoutKind, type ReadoutKind } from "@/lib/scoring";
+import { READOUTS, STRONG_LINE, isReadoutKind, type ReadoutKind } from "@/lib/scoring";
 
 export async function generateStaticParams() {
   const slugs = await listCohortSlugs();
@@ -105,7 +105,7 @@ export default async function ReadoutPage({
             {readout.status === "published" ? (
               <>
                 {readout.benchmarkSymbol} <Move value={readout.benchmarkMovePct} /> from Friday&apos;s close
-                {readout.strongCutoff > 0 ? ` · STRONG line ${readout.strongCutoff}/100` : ""}
+                {` · STRONG line ${STRONG_LINE}/100`}
               </>
             ) : (
               "Prices publish with the grade"
@@ -119,7 +119,7 @@ export default async function ReadoutPage({
           {settled ? `${calls.length} graded calls` : `${meta.label} waiting`}
         </h2>
         <p className="mb-4 max-w-3xl text-sm text-muted">
-          STRONG is the top 30% of these settled calls, ties at the cutoff included, and only when the score is also at least 70. WEAK is under 70. PROVISIONAL cleared 70 and missed the cut. 0% is EXIT LIQUIDITY. Watchlist and viral posts share this weekly board.
+          STRONG is 70 or more. WEAK is under 40. PROVISIONAL is 40 up to 70. 0% is EXIT LIQUIDITY. Watchlist and viral posts share this weekly board.
         </p>
         {pendingCount > 0 ? (
           <div className="mb-4">

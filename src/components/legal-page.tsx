@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { CORRECTIONS_EMAIL, LEGAL_DRAFT_LABEL } from "@/lib/legal";
+import { disputeEmail } from "@/lib/dispute";
+import { LEGAL_DRAFT_LABEL } from "@/lib/legal";
 
 const PAGES = [
   { href: "/disclaimer", label: "Disclaimer" },
@@ -19,6 +20,7 @@ export function LegalPage({
   lede: string;
   children: ReactNode;
 }) {
+  const mailbox = disputeEmail();
   return (
     <article className="mx-auto max-w-3xl px-4 py-10">
       <p className="text-xs uppercase tracking-wide text-muted">{kicker}</p>
@@ -43,11 +45,19 @@ export function LegalPage({
         </Link>
       </nav>
       <p className="mt-4 text-sm text-muted">
-        Corrections:{" "}
-        <a className="text-pine underline-offset-4 hover:underline" href={`mailto:${CORRECTIONS_EMAIL}`}>
-          {CORRECTIONS_EMAIL}
-        </a>
-        . That address is a placeholder.
+        <Link href="/dispute" className="text-pine underline-offset-4 hover:underline">
+          Dispute a grade
+        </Link>
+        {mailbox ? (
+          <>
+            {" "}
+            or{" "}
+            <a className="text-pine underline-offset-4 hover:underline" href={`mailto:${mailbox}`}>
+              {mailbox}
+            </a>
+          </>
+        ) : null}
+        .
       </p>
     </article>
   );

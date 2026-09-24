@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { NothingGraded } from "@/components/board-state";
 import { PricePath, PriceSource } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ScoreMark } from "@/components/score";
+import { disputePath } from "@/lib/dispute";
 import { formatPct, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
 import { settledGradeKinds } from "@/lib/board";
@@ -93,7 +94,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
       <article className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <div className="panel p-5">
           <p className="text-xs uppercase tracking-wide text-muted">
-            {call.dataset === "demo" ? "Demo call" : "Verified public post"}
+            {call.dataset === "demo" ? "Demo call" : "Verified real call"}
           </p>
           <header className="mt-3 flex flex-wrap items-center gap-3">
             <Avatar name={call.displayName} accent={call.accent} />
@@ -122,7 +123,17 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           {call.sourceUrl ? (
             <p className="mt-2 text-sm">
               <a href={call.sourceUrl} className="text-pine underline-offset-4 hover:underline">
-                Source
+                Original post
+              </a>
+            </p>
+          ) : null}
+          {call.dataset !== "demo" && call.sourceUrl && settled.length > 0 ? (
+            <p className="mt-2 text-sm">
+              <a
+                href={disputePath(call.id)}
+                className="text-pine underline-offset-4 hover:underline"
+              >
+                Dispute this grade
               </a>
             </p>
           ) : null}
@@ -158,7 +169,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
               const readout = cohort.readouts[kind];
               return (
                 <li key={kind} className="panel p-4">
-                  <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted">{meta.role}</p>
                   <h3 className="font-serif text-2xl text-ink">{meta.label}</h3>
                   <p className="text-xs text-muted">{formatWhen(readout.at)}</p>
                   <div className="mt-3">
@@ -204,7 +215,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
               const readout = cohort.readouts[kind];
               return (
                 <li key={kind} className="rounded-2xl border border-dashed border-line bg-sheet px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-wide text-muted">{meta.role}</p>
+                  <p className="text-xs uppercase tracking-wide text-muted">{meta.role}</p>
                   <p className="font-serif text-xl text-ink">{meta.label}</p>
                   <p className="mt-1 text-sm text-muted">Not graded yet · off the board until {meta.time}</p>
                   <p className="mt-2 text-sm text-ink/80">{readout.narrative}</p>

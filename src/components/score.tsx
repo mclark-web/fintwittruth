@@ -96,7 +96,7 @@ export function Evolution({
                 current ? "border-pine bg-pine/15 text-ink" : "border-line bg-sheet text-ink hover:border-pine"
               }`}
             >
-              <span className="block text-[10px] uppercase tracking-wide text-muted">
+              <span className="block text-xs uppercase tracking-wide text-muted">
                 {READOUT_META[kind].short}
               </span>
               <span className="mt-1 flex items-center justify-between gap-2">

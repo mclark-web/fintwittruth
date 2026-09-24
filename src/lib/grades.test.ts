@@ -10,14 +10,17 @@ test("0% is empty glass and EXIT LIQUIDITY", () => {
   assert.deepEqual(gcBoardGrade([]), { fill: 0, grade: "exit" });
 });
 
-test("peer cut is STRONG, under 70 is WEAK, 70 outside the cut is PROVISIONAL", () => {
-  assert.equal(gcGrade({ score: 88, isStrong: true, isWeak: false }), "strong");
-  assert.equal(gcGrade({ score: 40, isStrong: false, isWeak: true }), "weak");
-  assert.equal(gcGrade({ score: 74, isStrong: false, isWeak: false }), "provisional");
+test("70 and above is STRONG, under 40 is WEAK, and the middle is PROVISIONAL", () => {
+  assert.equal(gcGrade({ score: 70, isStrong: false, isWeak: true }), "strong");
+  assert.equal(gcGrade({ score: 88, isStrong: false, isWeak: false }), "strong");
+  assert.equal(gcGrade({ score: 39, isStrong: true, isWeak: false }), "weak");
+  assert.equal(gcGrade({ score: 40, isStrong: false, isWeak: true }), "provisional");
+  assert.equal(gcGrade({ score: 69, isStrong: true, isWeak: false }), "provisional");
   assert.equal(gcFill(68), 68);
 });
 
-test("a board mean uses the same line without promoting the average to STRONG", () => {
-  assert.deepEqual(gcBoardGrade([80, 60, 40]), { fill: 60, grade: "weak" });
-  assert.equal(gcBoardGrade([80, 90, 70]).grade, "provisional");
+test("a board mean uses the same absolute bands", () => {
+  assert.deepEqual(gcBoardGrade([80, 60, 40]), { fill: 60, grade: "provisional" });
+  assert.equal(gcBoardGrade([80, 90, 70]).grade, "strong");
+  assert.equal(gcBoardGrade([20, 30, 10]).grade, "weak");
 });

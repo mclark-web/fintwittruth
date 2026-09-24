@@ -87,6 +87,9 @@ export function SiteFooter() {
           <Link href="/" className="hover:text-orange-soft">
             Hub
           </Link>
+          <Link href="/watchlist" className="hover:text-orange-soft">
+            Watchlist
+          </Link>
           <Link href="/methodology" className="hover:text-orange-soft">
             Method
           </Link>

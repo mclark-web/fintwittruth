@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, LegalSection } from "@/components/legal-page";
-import { CORRECTIONS_EMAIL } from "@/lib/legal";
+import { disputeEmail } from "@/lib/dispute";
 
 export const metadata: Metadata = {
   title: "Donate",
@@ -89,11 +89,20 @@ export default function DonatePage() {
 
       <LegalSection id="contact" title="Questions">
         <p>
-          Write to{" "}
-          <a className="text-pine underline-offset-4 hover:underline" href={`mailto:${CORRECTIONS_EMAIL}`}>
-            {CORRECTIONS_EMAIL}
-          </a>{" "}
-          about a wrong print or a wrong grade. That address is a placeholder, not a live donations desk.
+          Use the{" "}
+          <Link href="/dispute" className="text-pine underline-offset-4 hover:underline">
+            dispute form
+          </Link>
+          {disputeEmail() ? (
+            <>
+              {" "}
+              or write{" "}
+              <a className="text-pine underline-offset-4 hover:underline" href={`mailto:${disputeEmail()}`}>
+                {disputeEmail()}
+              </a>
+            </>
+          ) : null}{" "}
+          about a wrong print or a wrong grade. This is not a donations desk.
         </p>
       </LegalSection>
     </LegalPage>

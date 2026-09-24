@@ -50,9 +50,8 @@ export default function DisclaimerPage() {
 
       <LegalSection id="marks" title="Grade pills are opinions">
         <p>
-          STRONG, WEAK, PROVISIONAL, and EXIT LIQUIDITY are GC Scale labels. STRONG is the top 30% of
-          a peer set and also a score of at least 70. WEAK is any score under 70. PROVISIONAL is 70 or more
-          that missed that cut. EXIT LIQUIDITY is a 0% fill, when no graded horizon has closed or the score is
+          STRONG, WEAK, PROVISIONAL, and EXIT LIQUIDITY are GC Scale labels. STRONG is 70 or more. WEAK is
+          under 40. PROVISIONAL is 40 up to 70. EXIT LIQUIDITY is a 0% fill, when no graded horizon has closed or the score is
           0. The words judge how a past call lined up with a past print. They are not a finding about a
           person’s character, competence, or fitness, and they are not advice.
         </p>

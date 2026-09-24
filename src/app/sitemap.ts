@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listCallIds, listCohortSlugs, listHandles } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
+import { WATCHLIST } from "@/lib/watchlist";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -8,6 +9,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: base },
     { url: `${base}/weeks` },
+    { url: `${base}/watchlist` },
+    { url: `${base}/real` },
     { url: `${base}/demo` },
     { url: `${base}/leaderboard` },
     { url: `${base}/pending` },
@@ -20,7 +23,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       { url: `${base}/weeks/${slug}/pending` },
       ...READOUTS.map((readout) => ({ url: `${base}/weeks/${slug}/${readout}` })),
     ]),
-    ...handles.map((handle) => ({ url: `${base}/accounts/${handle}` })),
+    ...[...new Set([...handles, ...WATCHLIST.map((account) => account.handle)])].map((handle) => ({
+      url: `${base}/accounts/${handle}`,
+    })),
     ...calls.map((id) => ({ url: `${base}/calls/${id}` })),
   ];
 }

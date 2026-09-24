@@ -1,3 +1,4 @@
+import { gcGrade } from "./grades";
 import { READOUTS, scoreToBadge, tapeDirection, type ReadoutKind } from "./scoring";
 
 function average(values: number[]): number | null {
@@ -65,8 +66,8 @@ export function handleBoardStats(calls: GradedCallInput[]) {
     pendingCount: calls.length - graded.length,
     avgScore,
     badge: scoreToBadge(Math.round(avgScore)),
-    strongRate: rate((grade) => grade.isStrong),
-    weakRate: rate((grade) => grade.isWeak),
+    strongRate: rate((grade) => gcGrade(grade) === "strong"),
+    weakRate: rate((grade) => gcGrade(grade) === "weak"),
     hitRate: rate((grade) => isDirectionHit(grade.signedMovePct)),
     bestScore: matureScores.length ? Math.max(...matureScores) : 0,
     worstScore: matureScores.length ? Math.min(...matureScores) : 0,

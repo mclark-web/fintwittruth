@@ -15,7 +15,7 @@
     "db:push": "prisma db push --accept-data-loss",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset --accept-data-loss && tsx prisma/seed.ts",
-    "test": "tsx --test src/lib/scoring.test.ts src/lib/grades.test.ts src/lib/dataset.test.ts src/lib/board.test.ts src/lib/brand-lock.test.ts src/lib/ingest.test.ts src/lib/yahoo.test.ts",
+    "test": "tsx --test src/lib/scoring.test.ts src/lib/grades.test.ts src/lib/dataset.test.ts src/lib/board.test.ts src/lib/brand-lock.test.ts src/lib/ingest.test.ts src/lib/yahoo.test.ts src/lib/watchlist.test.ts src/lib/extract-call.test.ts src/lib/oembed.test.ts src/lib/real-book.test.ts src/lib/intake-store.test.ts src/lib/intake-service.test.ts src/lib/x-search-job.test.ts src/lib/admin-auth.test.ts src/lib/dispute.test.ts",
     "ingest": "tsx scripts/ingest-call.ts",
     "accuracy": "tsx scripts/accuracy-guard.ts"
   },
@@ -23,11 +23,14 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@ai-sdk/xai": "^5.0.7",
     "@prisma/client": "^6.19.3",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.6.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@vercel/blob": "^2.8.0",
+    "ai": "^7.0.113",
     "next": "^16.3.5",
     "postcss": "^8.5.28",
     "prisma": "^6.19.3",
@@ -35,6 +38,7 @@
     "react-dom": "^19.3.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "zod": "^4.6.5"
   }
 }
