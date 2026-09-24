@@ -16,6 +16,7 @@ import {
   CONVICTION_WEIGHT,
   EQUITY_TAPE,
   READOUTS,
+  STRONG_LINE,
   consensusDirection,
   equityTapeMove,
   gradeNote,
@@ -448,8 +449,7 @@ export function buildDataset(): BuiltDataset {
           score: row.parts.score,
         })),
       );
-      const strongScores = ranked.filter((row) => row.isStrong).map((row) => row.score);
-      const strongCutoff = strongScores.length ? Math.min(...strongScores) : 0;
+      const strongCutoff = STRONG_LINE;
 
       for (const row of ranked) {
         grades.push({

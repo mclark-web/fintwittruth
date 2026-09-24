@@ -78,8 +78,8 @@ export default function TermsPage() {
       <LegalSection id="marks" title="Scores and opinion labels">
         <p>
           Every published grade shows a score from 0 to 100 and a badge from 1 to 10. The tube fill is that
-          score. STRONG is the top 30% of the peer set and also a score of at least 70. WEAK is under 70.
-          PROVISIONAL is 70 or more outside that cut. EXIT LIQUIDITY is a 0% fill. Those labels are the GC
+          score. STRONG is 70 or more. WEAK is under 40. PROVISIONAL is 40 or more and under 70. EXIT
+          LIQUIDITY is a 0% fill. Those labels are the GC
           Scale: opinions about a past call under the published formula. They are not statements of fact
           about a person’s character, and they are not a recommendation to follow or fade that person.
         </p>
