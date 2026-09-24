@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { DirectionChip } from "@/components/score";
 import { pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { etYmd } from "@/lib/format";
-import { ungradedHorizonLine } from "@/lib/grades";
+import { marketHolidayName, pendingClosure, readoutSessionYmd, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 
@@ -23,9 +23,13 @@ export async function generateMetadata({
   const { slug } = await params;
   const cohort = await getCohort(slug);
   if (!cohort) return { title: "Pending settle" };
+  const closure = pendingClosure(pendingReadoutKinds(Object.values(cohort.readouts)), cohort);
+  const closedWeek = closure.closed > 0 && closure.upcoming === 0 && closure.name;
   return {
     title: `${cohort.title} · Pending settle`,
-    description: `Calls in ${cohort.title} that stay off the board until a readout settles.`,
+    description: closedWeek
+      ? `Calls in ${cohort.title} that stay off the board. The market was closed for ${closure.name}.`
+      : `Calls in ${cohort.title} that stay off the board until a readout settles.`,
   };
 }
 
@@ -36,6 +40,8 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
   const readouts = Object.values(cohort.readouts);
   const pending = pendingReadoutKinds(readouts);
   const settled = settledReadoutKinds(readouts);
+  const closure = pendingClosure(pending, cohort);
+  const closedWeek = closure.closed > 0 && closure.upcoming === 0;
   const calls = [...cohort.calls].sort((a, b) => a.handle.localeCompare(b.handle));
 
   return (
@@ -53,11 +59,18 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
       <h1 className="mt-1 font-serif text-4xl text-ink">Pending settle</h1>
       <p className="mt-2 font-serif text-2xl text-pine">{cohort.title}</p>
       <p className="mt-3 max-w-3xl text-muted">
-        These calls are in the book. They are not ranked here. A horizon moves onto the{" "}
-        <Link href={`/weeks/${cohort.slug}`} className="text-pine underline-offset-4 hover:underline">
-          graded board
-        </Link>{" "}
-        when its tape settles.
+        These calls are in the book. They are not ranked here.{" "}
+        {closedWeek ? (
+          <>A closed session stays off the graded board.</>
+        ) : (
+          <>
+            A horizon moves onto the{" "}
+            <Link href={`/weeks/${cohort.slug}`} className="text-pine underline-offset-4 hover:underline">
+              graded board
+            </Link>{" "}
+            when its tape settles.
+          </>
+        )}
       </p>
 
       {pending.length === 0 ? (
@@ -72,6 +85,7 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
             const readout = cohort.readouts[kind];
             const meta = READOUT_META[kind];
             const waiting = calls.filter((call) => call.grades[kind] == null);
+            const holiday = marketHolidayName(readoutSessionYmd(kind, cohort));
             return (
               <section key={kind} aria-labelledby={`pending-${kind}`}>
                 <h2 id={`pending-${kind}`} className="font-serif text-3xl text-ink">
@@ -86,8 +100,10 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
                   })}
                 </p>
                 <p className="mt-3 max-w-3xl text-sm text-ink/80">{readout.narrative}</p>
-                <p className="mt-2 text-sm text-muted">
-                  {waiting.length} {waiting.length === 1 ? "call is" : "calls are"} waiting. Not graded yet.
+                <p className={`mt-2 text-sm ${holiday ? "text-[#9a9aa3]" : "text-muted"}`}>
+                  {holiday
+                    ? `${waiting.length} ${waiting.length === 1 ? "call is" : "calls are"} not graded.`
+                    : `${waiting.length} ${waiting.length === 1 ? "call is" : "calls are"} waiting. Not graded yet.`}
                 </p>
                 <ul className="mt-4 grid gap-3">
                   {waiting.map((call) => (
@@ -99,7 +115,9 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
                         <span className="text-sm text-muted">@{call.handle}</span>
                         <DirectionChip direction={call.direction} />
                         <span className="font-mono text-xs text-pine">{call.primary}</span>
-                        <span className="text-xs uppercase tracking-wide text-muted">Waiting on the tape</span>
+                        <span className={`text-xs uppercase tracking-wide ${holiday ? "text-[#9a9aa3]" : "text-muted"}`}>
+                          {holiday ? "Market closed" : "Waiting on the tape"}
+                        </span>
                       </div>
                       <p className="mt-2 text-ink">
                         <Link href={`/calls/${call.id}`} className="hover:underline">

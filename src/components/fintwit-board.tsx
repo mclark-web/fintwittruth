@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { CallCard } from "@/components/call-card";
 import { GcTube } from "@/components/gc-tube";
 import { CheckpointStrip, NoiseIndex, QuoteTape } from "@/components/market";
-import { gcBoardGrade, gcGrade } from "@/lib/grades";
+import { closedHorizonNote, gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_FACTOR } from "@/lib/labels";
 import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
@@ -19,6 +19,7 @@ export function FinTwitBoard({
   readout,
   toolbar,
   pendingHref,
+  marketClosed = false,
 }: {
   kicker?: string;
   title: string;
@@ -30,6 +31,7 @@ export function FinTwitBoard({
   readout: ReadoutKind;
   toolbar?: ReactNode;
   pendingHref?: string;
+  marketClosed?: boolean;
 }) {
   const graded = (feed ?? calls).filter((call) => call.grades[readout] != null);
   const horizonGraded = calls.some((call) => call.grades[readout] != null);
@@ -89,8 +91,10 @@ export function FinTwitBoard({
             ) : (
             <div className="panel p-5">
               <h2 className="text-xl text-ink">Nothing graded yet</h2>
-              <p className="mt-2 text-sm text-muted">
-                This horizon has not settled, so every tube on it stays empty.
+              <p className={`mt-2 text-sm ${marketClosed ? "text-[#9a9aa3]" : "text-muted"}`}>
+                {marketClosed
+                  ? "This horizon is not graded: the market was closed."
+                  : "This horizon has not settled, so every tube on it stays empty."}
               </p>
               {pendingHref ? (
                 <p className="mt-3 text-sm">
@@ -169,7 +173,7 @@ export function FinTwitBoard({
           {pendingHref ? (
             <section className="panel p-4">
               <h2 className="text-sm font-semibold text-[#9a9aa3]">Not graded yet</h2>
-              <p className="mt-1 text-xs text-[#9a9aa3]">A horizon on this week is still off the board.</p>
+              <p className="mt-1 text-xs text-[#9a9aa3]">{closedHorizonNote(marketClosed)}</p>
               <div className="mt-3">
                 <GcTube score={0} grade="exit" variant="sidebar" compactMeta ungraded />
               </div>

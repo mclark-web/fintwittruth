@@ -1,4 +1,5 @@
-import { marketHoliday } from "./calendar";
+import { addCalendarDays, marketHoliday, parseCalendarDay, zonedToUtc } from "./calendar";
+import { etYmd } from "./format";
 import { STRONG_LINE, WEAK_LINE, type ReadoutKind } from "./scoring";
 
 /** User-facing pill. Does not change how a 0–100 score is computed. */
@@ -32,6 +33,99 @@ export function ungradedHorizonLine(input: {
   }
   const until = `off the board until ${input.time}`;
   return input.role ? `${UNGRADED_HORIZON} · ${input.role} · ${until}` : `${UNGRADED_HORIZON} · ${until}`;
+}
+
+/** Name from the holiday note, such as "Labor Day. The cash session is closed." */
+export function marketHolidayName(ymd: string): string | null {
+  const note = marketHoliday(ymd);
+  if (!note) return null;
+  const name = note.replace(/\.\s*The cash session is closed\.$/, "").trim();
+  return name.length > 0 ? name : null;
+}
+
+export function readoutSessionYmd(
+  kind: ReadoutKind,
+  dates: { mondayAt: Date; wednesdayAt: Date; fridayAt: Date },
+): string {
+  if (kind === "wednesday") return etYmd(dates.wednesdayAt);
+  if (kind === "friday") return etYmd(dates.fridayAt);
+  return etYmd(dates.mondayAt);
+}
+
+/** Clock dates for a Monday slug, used when a page only has the cohort id. */
+export function cohortClockDates(mondayYmd: string): { mondayAt: Date; wednesdayAt: Date; fridayAt: Date } | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(mondayYmd)) return null;
+  const monday = parseCalendarDay(mondayYmd);
+  const wednesday = addCalendarDays(monday, 2);
+  const friday = addCalendarDays(monday, 4);
+  const at = (day: { year: number; month: number; day: number }, hour: number) =>
+    zonedToUtc(day.year, day.month, day.day, hour, 0);
+  return {
+    mondayAt: at(monday, 12),
+    wednesdayAt: at(wednesday, 16),
+    fridayAt: at(friday, 16),
+  };
+}
+
+export type PendingClosure = { closed: number; upcoming: number; name: string | null };
+
+/** Unpublished horizons split into sessions that will never print and sessions that will. */
+export function pendingClosure(
+  kinds: readonly ReadoutKind[],
+  dates: { mondayAt: Date; wednesdayAt: Date; fridayAt: Date },
+): PendingClosure {
+  let closed = 0;
+  let upcoming = 0;
+  let name: string | null = null;
+  for (const kind of kinds) {
+    const holiday = marketHolidayName(readoutSessionYmd(kind, dates));
+    if (holiday) {
+      closed += 1;
+      name ??= holiday;
+    } else {
+      upcoming += 1;
+    }
+  }
+  return { closed, upcoming, name };
+}
+
+export function marketClosedCard(name: string): string {
+  return `Market closed (${name}) · Not graded yet`;
+}
+
+export function pendingHorizonsClause(waiting: number, closure: PendingClosure): string {
+  if (closure.closed > 0 && closure.upcoming === 0 && closure.name) {
+    const verb = closure.closed === 1 ? "horizon is" : "horizons are";
+    return `${closure.closed} ${verb} not graded: the market was closed for ${closure.name}.`;
+  }
+  if (closure.closed > 0 && closure.upcoming > 0 && closure.name) {
+    const closedVerb = closure.closed === 1 ? "horizon is" : "horizons are";
+    const openVerb = closure.upcoming === 1 ? "horizon is" : "horizons are";
+    return `${closure.closed} ${closedVerb} not graded: the market was closed for ${closure.name}. ${closure.upcoming} ${openVerb} off this board until the tape prints.`;
+  }
+  const verb = waiting === 1 ? "horizon is" : "horizons are";
+  return `${waiting} ${verb} off this board until the tape prints.`;
+}
+
+export function closedHorizonNote(marketClosed: boolean): string {
+  return marketClosed
+    ? "A horizon on this week is not graded: the market was closed."
+    : "A horizon on this week is still off the board.";
+}
+
+export function readoutCallsHeading(input: {
+  settled: boolean;
+  count: number;
+  label: string;
+  holidayName: string | null;
+}): string {
+  if (input.settled) return `${input.count} graded calls`;
+  if (input.holidayName) return `Market closed for ${input.holidayName} · not graded`;
+  return `${input.label} waiting`;
+}
+
+export function tapeStatusHeading(holidayName: string | null): string {
+  return holidayName ? `Market closed for ${holidayName}` : "Waiting on the clock";
 }
 
 /**

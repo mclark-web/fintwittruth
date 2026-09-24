@@ -6,7 +6,7 @@ import { PricePath, PriceSource, TapeMark } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ReadoutBubble, ReferenceLine, ScoreMark } from "@/components/score";
 import { disputePath } from "@/lib/dispute";
 import { etYmd, formatPct, formatWhen } from "@/lib/format";
-import { ungradedHorizonLine } from "@/lib/grades";
+import { pendingClosure, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { settledGradeKinds } from "@/lib/board";
 import { getCall, listCallIds } from "@/lib/queries";
@@ -80,6 +80,8 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
   const quote = cohort.quotes.find((item) => item.symbol === call.primary) ?? cohort.quotes[0];
   const settled = settledGradeKinds(call.grades);
   const waiting = READOUTS.filter((kind) => call.grades[kind] == null);
+  const closure = pendingClosure(waiting, cohort);
+  const closedOnly = closure.closed > 0 && closure.upcoming === 0 && closure.name != null;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -219,7 +221,9 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
         <details className="mt-8">
           <summary className="flex min-h-11 cursor-pointer items-center font-serif text-2xl text-ink">Pending settle</summary>
           <p className="mt-2 max-w-3xl text-sm text-muted">
-            These horizons are not on the board yet. There is no score until the tape prints.
+            {closedOnly
+              ? `These horizons are not graded: the market was closed for ${closure.name}.`
+              : "These horizons are not on the board yet. There is no score until the tape prints."}
           </p>
           <ul className="mt-4 grid gap-3">
             {waiting.map((kind) => {
@@ -243,7 +247,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           </ul>
           <p className="mt-3 text-sm">
             <Link href={`/weeks/${cohort.slug}/pending`} className="text-pine underline-offset-4 hover:underline">
-              Open the waiting list for this cohort
+              {closedOnly ? "Open the pending list for this cohort" : "Open the waiting list for this cohort"}
             </Link>
           </p>
         </details>

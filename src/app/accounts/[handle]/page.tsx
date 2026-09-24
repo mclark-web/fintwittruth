@@ -6,13 +6,25 @@ import { GradePill } from "@/components/gc-tube";
 import { RealCallCard } from "@/components/real-call-card";
 import { Avatar, DirectionChip, ReferenceLine, ReportOutTitle, ScoreMark } from "@/components/score";
 import { TrackedAccount } from "@/components/tracked-account";
-import { gcGrade } from "@/lib/grades";
+import { cohortClockDates, gcGrade, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade, settledGradeKinds } from "@/lib/board";
 import { formatPct, formatScore } from "@/lib/format";
 import { loadRealCallsForHandle } from "@/lib/public-real";
 import { getAccount, listHandles } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
 import { TRACKING_EMPTY, WATCHLIST, findWatchAccount, profileUrl } from "@/lib/watchlist";
+
+function horizonState(slug: string, calls: { grades: Partial<Record<(typeof READOUTS)[number], unknown>> }[]) {
+  const missing = READOUTS.filter((kind) => calls.some((call) => call.grades[kind] == null));
+  const monday = slug.match(/(\d{4}-\d{2}-\d{2})$/)?.[1];
+  const dates = monday ? cohortClockDates(monday) : null;
+  const closure = dates && missing.length > 0 ? pendingClosure(missing, dates) : null;
+  const note =
+    closure && closure.closed > 0 && closure.upcoming === 0
+      ? "Settled grades only. Closed sessions are not on this card."
+      : "Settled grades only. Horizons still waiting on the tape are not on this card.";
+  return { missing, closure, note };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -164,14 +176,16 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       ) : null}
 
       <div className="mt-10 grid gap-8">
-        {[...cohorts.entries()].map(([slug, calls]) => (
+        {[...cohorts.entries()].map(([slug, calls]) => {
+          const horizon = horizonState(slug, calls);
+          return (
           <section key={slug} aria-labelledby={`cohort-${slug}`}>
             <h2 id={`cohort-${slug}`} className="font-serif text-2xl text-ink">
               <Link href={`/weeks/${slug}`} className="hover:underline">
                 {calls[0]?.cohortTitle}
               </Link>
             </h2>
-            <p className="text-sm text-muted">Settled grades only. Horizons still waiting on the tape are not on this card.</p>
+            <p className="text-sm text-muted">{horizon.note}</p>
             <ul className="mt-3 grid gap-3">
               {calls.map((call) => (
                 <li key={call.id} className="panel p-4">
@@ -214,13 +228,18 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                 </li>
               ))}
             </ul>
-            {calls.some((call) => settledGradeKinds(call.grades).length < READOUTS.length) ? (
+            {horizon.missing.length > 0 ? (
               <div className="mt-3">
-                <PendingSettleLink href={`/weeks/${slug}/pending`} />
+                <PendingSettleLink
+                  href={`/weeks/${slug}/pending`}
+                  waiting={horizon.missing.length}
+                  closure={horizon.closure ?? undefined}
+                />
               </div>
             ) : null}
           </section>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

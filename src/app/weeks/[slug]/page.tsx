@@ -5,7 +5,7 @@ import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { GcTube, GradePill } from "@/components/gc-tube";
 import { DirectionChip, ReadoutBubble, ReferenceLine } from "@/components/score";
-import { gcGrade } from "@/lib/grades";
+import { gcGrade, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
@@ -39,6 +39,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
   const readouts = Object.values(cohort.readouts);
   const settled = settledReadoutKinds(readouts);
   const pending = pendingReadoutKinds(readouts);
+  const closure = pendingClosure(pending, cohort);
   const tapeKinds = settled;
   const rows = cohort.calls
     .filter((call) => callHasSettledGrade(call.grades))
@@ -88,8 +89,12 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
           Settled grades
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          Rows are calls that already have a settled grade. Watchlist and viral posts share this board. A
-          horizon stays off the table until its tape prints.
+          Rows are calls that already have a settled grade. Watchlist and viral posts share this board.{" "}
+          {closure.closed > 0 && closure.upcoming === 0
+            ? "Closed sessions stay off the table."
+            : closure.closed > 0
+              ? "A closed session stays off the table. A later session stays off until its tape prints."
+              : "A horizon stays off the table until its tape prints."}
         </p>
         {rows.length === 0 || settled.length === 0 ? (
           <div className="mt-4">
@@ -219,7 +224,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         )}
         {pending.length > 0 ? (
           <div className="mt-3">
-            <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pending.length} />
+            <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pending.length} closure={closure} />
           </div>
         ) : null}
       </section>

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { formatPct, formatPrice, formatShortDay, formatWhen } from "@/lib/format";
+import { etYmd, formatPct, formatPrice, formatShortDay, formatWhen } from "@/lib/format";
+import { marketClosedCard, marketHolidayName } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { TAPE_DISPLAY, checkpointPrints, checkpointSymbols } from "@/lib/prints";
 import { PRICE_SOURCE_SHORT } from "@/lib/quotes";
@@ -306,6 +307,7 @@ export function ReadoutCards({
         const readout = readouts[kind];
         const meta = READOUT_META[kind];
         const current = active === kind;
+        const holiday = readout.status === "published" ? null : marketHolidayName(etYmd(readout.at));
         return (
           <li key={kind}>
             <Link
@@ -318,6 +320,8 @@ export function ReadoutCards({
               <p className="mt-3 text-sm text-ink">
                 {readout.status === "published" ? (
                   <TapeMark direction={readout.consensusDirection} move={readout.benchmarkMovePct} label="Tape" />
+                ) : holiday ? (
+                  <span className="text-[#9a9aa3]">{marketClosedCard(holiday)}</span>
                 ) : (
                   <span className="text-muted">Scheduled · same cohort</span>
                 )}

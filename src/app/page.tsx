@@ -7,7 +7,7 @@ import { GradePill } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledGradeKinds, settledReadoutKinds } from "@/lib/board";
 import { DEMO_OPEN_COHORT_SLUG } from "@/lib/demo-data";
 import { formatPct, formatScore, formatShortDay } from "@/lib/format";
-import { gcGrade } from "@/lib/grades";
+import { gcGrade, pendingClosure } from "@/lib/grades";
 import { getFeaturedCohort, getLatestCohort, getLeaderboard, type CallView } from "@/lib/queries";
 import { EQUITY_TAPE, type ReadoutKind } from "@/lib/scoring";
 import { TRACKING_EMPTY, WATCHLIST } from "@/lib/watchlist";
@@ -239,7 +239,11 @@ export default async function HomePage({
           </ul>
           {featuredWaiting.length > 0 ? (
             <div className="mt-3">
-              <PendingSettleLink href={`/weeks/${featured.slug}/pending`} waiting={featuredWaiting.length} />
+              <PendingSettleLink
+                href={`/weeks/${featured.slug}/pending`}
+                waiting={featuredWaiting.length}
+                closure={pendingClosure(featuredWaiting, featured)}
+              />
             </div>
           ) : null}
         </section>

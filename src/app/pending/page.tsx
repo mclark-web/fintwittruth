@@ -3,7 +3,7 @@ import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { etYmd } from "@/lib/format";
-import { ungradedHorizonLine } from "@/lib/grades";
+import { pendingClosure, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 
@@ -48,11 +48,19 @@ export default async function PendingPage() {
         </p>
       ) : (
         <ul className="mt-8 grid gap-4">
-          {waiting.map(({ cohort, pending, settled }) => (
+          {waiting.map(({ cohort, pending, settled }) => {
+            const closure = pendingClosure(pending, cohort);
+            const status =
+              settled.length === 0
+                ? "No settled grade yet"
+                : closure.closed > 0 && closure.upcoming === 0
+                  ? `${settled.length} settled · ${pending.length} not graded`
+                  : `${settled.length} settled · ${pending.length} waiting`;
+            return (
             <li key={cohort.slug}>
               <article className="panel p-5">
                 <p className="text-xs uppercase tracking-wide text-muted">
-                  {settled.length === 0 ? "No settled grade yet" : `${settled.length} settled · ${pending.length} waiting`}
+                  {status}
                 </p>
                 <h2 className="mt-1 font-serif text-3xl text-ink">
                   <Link href={`/weeks/${cohort.slug}/pending`} className="hover:underline">
@@ -80,7 +88,8 @@ export default async function PendingPage() {
                 </ul>
               </article>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>

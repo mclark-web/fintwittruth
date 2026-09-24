@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { pendingHorizonsClause, type PendingClosure } from "@/lib/grades";
 
 export function NothingGraded({ href, horizon }: { href: string; horizon?: string }) {
   return (
@@ -22,17 +23,20 @@ export function NothingGraded({ href, horizon }: { href: string; horizon?: strin
 export function PendingSettleLink({
   href,
   waiting,
+  closure,
 }: {
   href: string;
   waiting?: number;
+  closure?: PendingClosure;
 }) {
+  const upcoming = closure ?? { closed: 0, upcoming: waiting ?? 0, name: null };
   return (
     <p className="text-sm text-muted">
       <Link href={href} className="font-medium text-pine underline-offset-4 hover:underline">
         Pending settle
       </Link>
       {waiting != null && waiting > 0
-        ? ` · ${waiting} ${waiting === 1 ? "horizon is" : "horizons are"} off this board until the tape prints.`
+        ? ` · ${pendingHorizonsClause(waiting, upcoming)}`
         : " · unscored calls stay off this board until the tape prints."}
     </p>
   );

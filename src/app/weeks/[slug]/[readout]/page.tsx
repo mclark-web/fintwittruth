@@ -5,7 +5,14 @@ import { PendingSettleLink } from "@/components/board-state";
 import { FinTwitBoard } from "@/components/fintwit-board";
 import { CohortWindow, ReadoutCards, TapeMark } from "@/components/market";
 import { etYmd } from "@/lib/format";
-import { LABOR_DAY_UNGRADED_LINE, ungradedHorizonLine } from "@/lib/grades";
+import {
+  LABOR_DAY_UNGRADED_LINE,
+  marketHolidayName,
+  pendingClosure,
+  readoutCallsHeading,
+  tapeStatusHeading,
+  ungradedHorizonLine,
+} from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { pendingReadoutKinds } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
@@ -50,7 +57,11 @@ export default async function ReadoutPage({
   const readout = cohort.readouts[kind];
   const meta = READOUT_META[kind];
   const settled = readout.status === "published";
-  const pendingCount = pendingReadoutKinds(Object.values(cohort.readouts)).length;
+  const pendingKinds = pendingReadoutKinds(Object.values(cohort.readouts));
+  const pendingCount = pendingKinds.length;
+  const closure = pendingClosure(pendingKinds, cohort);
+  const holidayName = marketHolidayName(etYmd(readout.at));
+  const marketClosed = holidayName != null && !settled;
   const calls = settled
     ? [...cohort.calls]
         .filter((call) => call.grades[kind] != null)
@@ -86,7 +97,7 @@ export default async function ReadoutPage({
       </div>
 
       <section className="panel mt-6 p-5">
-        <p className="text-2xl text-ink">{readout.status === "published" ? "What the tape did" : "Waiting on the clock"}</p>
+        <p className="text-2xl text-ink">{readout.status === "published" ? "What the tape did" : tapeStatusHeading(holidayName)}</p>
         <p className="mt-2 max-w-3xl text-ink/80">{readout.narrative}</p>
         <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
           <div>
@@ -129,14 +140,14 @@ export default async function ReadoutPage({
 
       <section className="mt-8" aria-labelledby="calls-heading">
         <h2 id="calls-heading" className="sr-only">
-          {settled ? `${calls.length} graded calls` : `${meta.label} waiting`}
+          {readoutCallsHeading({ settled, count: calls.length, label: meta.label, holidayName })}
         </h2>
         <p className="mb-4 max-w-3xl text-sm text-muted">
           STRONG is 70% or more. WEAK is under 40%. PROVISIONAL is 40% or more and under 70%. 0% is EXIT LIQUIDITY. Watchlist and viral posts share this weekly board.
         </p>
         {pendingCount > 0 ? (
           <div className="mb-4">
-            <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pendingCount} />
+            <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pendingCount} closure={closure} />
           </div>
         ) : null}
         <FinTwitBoard
@@ -149,6 +160,7 @@ export default async function ReadoutPage({
           feed={calls}
           readout={kind}
           pendingHref={pendingCount > 0 ? `/weeks/${cohort.slug}/pending` : undefined}
+          marketClosed={marketClosed || (closure.closed > 0 && closure.upcoming === 0)}
         />
       </section>
     </div>
