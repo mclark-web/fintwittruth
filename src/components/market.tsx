@@ -18,6 +18,7 @@ export function Move({ value }: { value: number }) {
 }
 
 const TAPE_HIT = 0.0008;
+const VIX_HIT = 0.005;
 
 /** Whether the tape moved with the call. Color follows the call, not the sign of the move. */
 export function TapeMark({
@@ -30,8 +31,11 @@ export function TapeMark({
   label?: string;
 }) {
   const side = direction === "bullish" || direction === "bearish" ? direction : "split";
-  const withCall = side === "bullish" ? move >= TAPE_HIT : side === "bearish" ? move <= -TAPE_HIT : false;
-  const againstCall = side === "bullish" ? move <= -TAPE_HIT : side === "bearish" ? move >= TAPE_HIT : false;
+  const vix = label === "VIX";
+  const hit = vix ? VIX_HIT : TAPE_HIT;
+  const wantsUp = vix ? side === "bearish" : side === "bullish";
+  const withCall = side === "split" ? false : wantsUp ? move >= hit : move <= -hit;
+  const againstCall = side === "split" ? false : wantsUp ? move <= -hit : move >= hit;
   const verdict = withCall ? "with" : againstCall ? "against" : "flat";
   const glyph = verdict === "with" ? "✓" : verdict === "against" ? "✗" : "–";
   const words = verdict === "with" ? "with call" : verdict === "against" ? "against call" : "flat vs call";
