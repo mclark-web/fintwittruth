@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 const fieldClass =
-  "mt-1 w-full rounded-lg border border-line bg-sheet px-3 py-2 text-sm text-ink outline-none focus:border-pine";
+  "mt-1 min-h-11 w-full rounded-lg border border-line bg-sheet px-3 py-2 text-sm text-ink outline-none focus:border-pine";
 
 export default async function DisputePage({
   searchParams,
@@ -59,7 +59,7 @@ export default async function DisputePage({
             <input name="company" tabIndex={-1} autoComplete="off" />
           </label>
         </div>
-        <button className="w-fit rounded-lg bg-pine px-3 py-2 text-sm font-semibold text-lime" type="submit">
+        <button className="inline-flex min-h-11 w-fit items-center rounded-lg bg-pine px-3 py-2 text-sm font-semibold text-lime" type="submit">
           Send dispute
         </button>
       </form>

@@ -55,7 +55,7 @@ export async function SiteHeader() {
     <>
       <header className="site-header sticky top-0 z-20 border-b border-line bg-[#0b0c0e]/95 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-h-14 items-center gap-3 px-4 sm:px-7 max-w-6xl">
-          <Link href="/" className="flex shrink-0 items-center gap-2.5 whitespace-nowrap" aria-label={PRODUCT_NAME}>
+          <Link href="/" className="hit-44 flex min-h-11 shrink-0 items-center gap-2.5 whitespace-nowrap" aria-label={PRODUCT_NAME}>
             <BrandMark />
             <span className="hidden text-[17px] font-semibold tracking-tight text-ink min-[480px]:inline">
               Graded<span className="text-[#eb6505]">Calls</span>

@@ -25,7 +25,6 @@
   --orange-soft: #eb6505;
   --orange-deep: #d15202;
   --orange-glow: rgb(235 101 5 / 0.48);
-  --ok: #7dcea0;
   --bad: #9a9aa3;
 }
 
@@ -237,6 +236,10 @@ a.btn {
 }
 
 .filters-bar a {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 44px;
   font-size: 12.5px;
   padding: 7px 12px;
   border-radius: 999px;
@@ -366,14 +369,25 @@ a.btn {
   background: transparent;
 }
 
-.hit-44 {
+.hit-44,
+a.font-medium.text-ink,
+a.underline-offset-4,
+a.tag,
+a.text-pine {
   position: relative;
+}
+
+.hit-44 {
   display: inline-flex;
   align-items: center;
 }
 
 .hit-44::before,
-.chip::after {
+.chip::after,
+a.font-medium.text-ink::before,
+a.underline-offset-4::before,
+a.tag::before,
+a.text-pine::before {
   content: "";
   position: absolute;
   left: 0;
