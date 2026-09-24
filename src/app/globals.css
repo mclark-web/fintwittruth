@@ -30,19 +30,24 @@
 
 @layer base {
   html {
+    color-scheme: dark;
     scroll-behavior: smooth;
+    background-color: var(--color-paper);
+    min-height: 100%;
   }
 
   body {
     min-height: 100vh;
     overflow-x: clip;
     color: var(--color-ink);
-    background:
+    background-color: var(--color-paper);
+    background-image:
       radial-gradient(1200px 700px at 12% -10%, rgb(235 101 5 / 0.16), transparent 55%),
       radial-gradient(900px 600px at 88% 8%, rgb(235 101 5 / 0.09), transparent 50%),
       radial-gradient(800px 500px at 50% 110%, rgb(40 48 70 / 0.35), transparent 55%),
       linear-gradient(165deg, #0a0b0d 0%, #12141a 42%, #0e1014 100%);
-    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
   }
 
   ::selection {
@@ -59,7 +64,8 @@
 @utility panel {
   border-radius: 14px;
   border: 1px solid rgb(255 255 255 / 0.08);
-  background: linear-gradient(165deg, rgb(26 29 38 / 0.92), rgb(14 16 22 / 0.95));
+  background-color: var(--color-card);
+  background-image: linear-gradient(165deg, #1a1d26, #0e1016);
   box-shadow: 0 20px 60px rgb(0 0 0 / 0.35);
 }
 
@@ -695,4 +701,49 @@ a.tag,
 
 .checkpoint-prints .px {
   color: #f2f1ee;
+}
+
+/* Surfaces stay on the charcoal tokens. Native controls, tables, and code default to white. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="submit"]):not([type="button"]):not([type="image"]):not([type="file"]),
+textarea,
+select,
+option {
+  background-color: var(--color-sheet);
+  color: var(--color-ink);
+}
+
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-ink);
+  caret-color: var(--color-ink);
+  box-shadow: 0 0 0 1000px var(--color-sheet) inset;
+}
+
+table {
+  background-color: var(--color-card);
+  color: inherit;
+}
+
+thead,
+th {
+  background-color: var(--color-sheet);
+}
+
+pre,
+code,
+kbd,
+samp {
+  background-color: var(--color-sheet);
+  color: var(--color-ink);
+}
+
+dialog,
+[role="dialog"] {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+dialog::backdrop {
+  background-color: rgb(11 12 14 / 0.72);
 }
