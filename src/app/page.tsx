@@ -11,6 +11,7 @@ import { gcGrade } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getFeaturedCohort, getLatestCohort, getLeaderboard, type CallView } from "@/lib/queries";
 import { EQUITY_TAPE, type ReadoutKind } from "@/lib/scoring";
+import { TRACKING_EMPTY, WATCHLIST } from "@/lib/watchlist";
 
 const INDEX = new Set<string>([...EQUITY_TAPE, "VIX"]);
 
@@ -138,6 +139,29 @@ export default async function HomePage({
           .
         </p>
       ) : null}
+
+      <section className="mt-12" aria-labelledby="watchlist-heading">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h2 id="watchlist-heading" className="text-3xl text-ink">
+            Tracked X accounts
+          </h2>
+          <Link href="/watchlist" className="text-sm font-medium text-pine underline-offset-4 hover:underline">
+            Open the watchlist
+          </Link>
+        </div>
+        <p className="mt-2 max-w-3xl text-muted">
+          Fifteen public accounts. {TRACKING_EMPTY} until a status URL is confirmed. Demo posts stay on the demo board.
+        </p>
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {WATCHLIST.map((account) => (
+            <li key={account.handle}>
+              <Link href={`/accounts/${account.handle}`} className="tag hover:text-ink">
+                @{account.handle}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <section className="mt-12" aria-labelledby="calendar-heading">
         <h2 id="calendar-heading" className="text-3xl text-ink">

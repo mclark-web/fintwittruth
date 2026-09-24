@@ -3,20 +3,27 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { GradePill } from "@/components/gc-tube";
+import { RealCallCard } from "@/components/real-call-card";
 import { Avatar, DirectionChip, ScoreMark } from "@/components/score";
+import { TrackedAccount } from "@/components/tracked-account";
 import { gcGrade } from "@/lib/grades";
 import { callHasSettledGrade, settledGradeKinds } from "@/lib/board";
 import { formatPct, formatScore } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
+import { loadRealCallsForHandle } from "@/lib/public-real";
 import { getAccount, listHandles } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
+import { TRACKING_EMPTY, WATCHLIST, findWatchAccount, profileUrl } from "@/lib/watchlist";
+
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   const handles = await listHandles();
-  return handles.map((handle) => ({ handle }));
+  const tracked = WATCHLIST.map((account) => account.handle);
+  return [...new Set([...handles, ...tracked])].map((handle) => ({ handle }));
 }
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,
@@ -25,7 +32,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { handle } = await params;
   const account = await getAccount(handle);
-  if (!account) return { title: "Account" };
+  const watched = findWatchAccount(handle);
+  if (!account) return { title: watched ? `@${watched.handle}` : "Account" };
   return {
     title: `@${account.handle}`,
     description: account.bio,
@@ -34,8 +42,19 @@ export async function generateMetadata({
 
 export default async function AccountPage({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
-  const account = await getAccount(handle);
-  if (!account) notFound();
+  const [account, realCalls] = await Promise.all([getAccount(handle), loadRealCallsForHandle(handle)]);
+  const watched = findWatchAccount(handle);
+  if (!account && !watched && realCalls.length === 0) notFound();
+  if (!account) {
+    return (
+      <TrackedAccount
+        handle={watched?.handle ?? realCalls[0]?.handle ?? handle}
+        authorName={realCalls[0]?.authorName ?? null}
+        calls={realCalls}
+      />
+    );
+  }
+  const gradedReal = realCalls.filter((call) => Object.keys(call.grades).length > 0);
   const row = account.row;
   const gradedCalls = account.calls.filter((call) => callHasSettledGrade(call.grades));
   const pendingCount = account.calls.length - gradedCalls.length;
@@ -63,7 +82,19 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
               {row ? ` · rank ${row.peerRank} of ${row.peerCount} in this bucket` : " · not on the leaderboard yet"}
             </p>
             <h1 className="font-serif text-4xl text-ink">{account.displayName}</h1>
-            <p className="text-muted">@{account.handle} · {account.posture}</p>
+            <p className="text-muted">
+              @{account.handle}
+              {watched ? (
+                <>
+                  {" · "}
+                  <a href={profileUrl(account.handle)} className="text-pine underline-offset-4 hover:underline">
+                    Profile on X
+                  </a>
+                </>
+              ) : null}
+              {" · "}
+              {account.posture}
+            </p>
             <p className="mt-3 max-w-2xl text-ink/80">{account.bio}</p>
             {row ? (
               <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-5">
@@ -88,6 +119,10 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                   <dd className="font-mono text-xl">{row.callCount}</dd>
                 </div>
               </dl>
+            ) : watched && gradedReal.length === 0 ? (
+              <div className="panel mt-4 p-5">
+                <h2 className="font-serif text-2xl text-ink">{TRACKING_EMPTY}</h2>
+              </div>
             ) : (
               <div className="mt-4">
                 <NothingGraded href="/pending" />
@@ -116,6 +151,17 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
         <div className="mt-3">
           <PendingSettleLink href="/pending" />
         </div>
+      ) : null}
+
+      {realCalls.length > 0 ? (
+        <section className="mt-10 grid gap-4" aria-labelledby="real-calls">
+          <h2 id="real-calls" className="font-serif text-2xl text-ink">
+            Verified real calls
+          </h2>
+          {realCalls.map((call) => (
+            <RealCallCard key={call.id} call={call} />
+          ))}
+        </section>
       ) : null}
 
       <div className="mt-10 grid gap-8">

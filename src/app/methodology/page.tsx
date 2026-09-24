@@ -123,6 +123,14 @@ export default async function MethodologyPage() {
             </dd>
           </div>
           <div className="panel p-4">
+            <dt className="font-medium text-ink">Verified real calls</dt>
+            <dd className="mt-1 text-sm text-muted">
+              Demo and paste-intake calls use the same stamps. Monday is the open of the 12:00 PM ET 5-minute
+              bar. Wednesday and Friday are the 4:00 PM ET regular-session close. Paste-intake calls skip the
+              Monday gap.
+            </dd>
+          </div>
+          <div className="panel p-4">
             <dt className="font-medium text-ink">Missing print</dt>
             <dd className="mt-1 text-sm text-muted">{PRICE_CLOSED_RULE}</dd>
           </div>

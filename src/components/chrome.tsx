@@ -89,6 +89,9 @@ export function SiteFooter() {
           <Link href="/" className="hit-44 hover:text-[#ee9a44]">
             Hub
           </Link>
+          <Link href="/watchlist" className="hit-44 hover:text-[#ee9a44]">
+            Watchlist
+          </Link>
           <Link href="/methodology" className="hit-44 hover:text-[#ee9a44]">
             Method
           </Link>

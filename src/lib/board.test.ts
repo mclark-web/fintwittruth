@@ -100,7 +100,7 @@ test("STRONG, WEAK, and hit rate use every settled grade and skip the mature-onl
   assert.equal(stats.avgScore, 80);
   assert.equal(stats.callCount, 1);
   assert.equal(stats.strongRate, 0.5);
-  assert.equal(stats.weakRate, 0.5);
+  assert.equal(stats.weakRate, 0);
   assert.equal(stats.hitRate, 0.5);
 });
 

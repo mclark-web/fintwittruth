@@ -10,3 +10,4 @@ prisma/*.db
 prisma/*.db-journal
 .env.local
 .env.*.local
+data/intake-book.json

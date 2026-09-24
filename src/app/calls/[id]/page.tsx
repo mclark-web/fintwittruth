@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { NothingGraded } from "@/components/board-state";
 import { PricePath, PriceSource, TapeMark } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ScoreMark } from "@/components/score";
+import { disputePath } from "@/lib/dispute";
 import { formatPct, formatWhen } from "@/lib/format";
 import { READOUT_META } from "@/lib/labels";
 import { settledGradeKinds } from "@/lib/board";
@@ -93,7 +94,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
       <article className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <div className="panel p-5">
           <p className="text-xs uppercase tracking-wide text-muted">
-            {call.dataset === "demo" ? "Demo call" : "Verified public post"}
+            {call.dataset === "demo" ? "Demo call" : "Verified real call"}
           </p>
           <header className="mt-3 flex flex-wrap items-center gap-3">
             <Avatar name={call.displayName} accent={call.accent} />
@@ -122,7 +123,17 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           {call.sourceUrl ? (
             <p className="mt-2 text-sm">
               <a href={call.sourceUrl} className="text-pine underline-offset-4 hover:underline">
-                Source
+                Original post
+              </a>
+            </p>
+          ) : null}
+          {call.dataset !== "demo" && call.sourceUrl && settled.length > 0 ? (
+            <p className="mt-2 text-sm">
+              <a
+                href={disputePath(call.id)}
+                className="text-pine underline-offset-4 hover:underline"
+              >
+                Dispute this grade
               </a>
             </p>
           ) : null}

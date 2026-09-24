@@ -212,8 +212,9 @@ export type Ranked<T> = T & {
 };
 
 /**
- * Order is by score. The mark is not: 70 or more is STRONG, under 40 is WEAK,
- * and everything between is neither (PROVISIONAL). A 0 is neither mark.
+ * Order is by score. peerRank is that order only.
+ * The band is on the raw score: 70 or more is STRONG, under 40 is WEAK,
+ * and the band between is PROVISIONAL. A 0 is neither mark.
  */
 export function rankPeers<T extends { score: number; tieBreak: string }>(
   rows: T[],
@@ -260,7 +261,7 @@ export function gradeNote(input: {
 }): string {
   const when = {
     "monday-gap": "Monday gap, from Friday's regular-session close to the regular-session open",
-    monday: "Monday noon weekend-noise grade",
+    monday: "Monday 12:00 PM ET, the open of the 5-minute bar",
     wednesday: "Wednesday close, same weekend cohort",
     friday: "Friday close, same weekend cohort",
   }[input.kind];

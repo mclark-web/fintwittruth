@@ -50,7 +50,7 @@ Every published grade shows the full **0–100** score, built from:
 - **Specificity (up to 15)** — naming a ticker, a target, an invalidation, and a band.
 - **VIX (15)** — panic and selloff calls want VIX higher. Melt-up calls want VIX lower. The move is Friday's VIX close to the VIX print at the same stamp.
 
-**GC Scale.** The horizontal tube fill is the 0–100 score. **STRONG** is 70 or more. **WEAK** is under 40. **PROVISIONAL** is 40 or more and under 70. **EXIT LIQUIDITY** is a 0% fill: an empty glass when no graded horizon has closed, or when the score is 0. The same lines apply on every board.
+**GC Scale.** The horizontal tube fill is the 0–100 score. **STRONG** is 70 or more. **WEAK** is under 40. **PROVISIONAL** is 40 or more and under 70. **EXIT LIQUIDITY** is a 0% fill: an empty glass when no graded horizon has closed, or when the score is 0. The same lines apply on every board. Rank orders the board. It does not decide the pill.
 
 Monday noon is the primary weekend-noise grade. The Monday gap is the open. Wednesday and Friday age that same cohort.
 
@@ -138,6 +138,23 @@ Do not set `DATABASE_URL` in the project settings for the demo. Do not set `NODE
 
 This deploy is a read-only demo. A writable live feed should use Postgres rather than SQLite on serverless disk.
 
+## Real account intake
+
+The watchlist in `src/lib/watchlist.json` is the list of public X accounts. Edit the handles there. Each profile links to `https://x.com/<handle>`. An account with no confirmed grade shows **Tracking — no graded calls yet**. The page does not invent a call or a score.
+
+Paste intake lives at `/admin` and `POST /api/admin/intake`.
+
+1. Set `ADMIN_TOKEN` to a long random string (16 characters or more).
+2. On Vercel, create a Blob store for the project and connect it. That sets `BLOB_READ_WRITE_TOKEN`. The book is a private blob at `intake/book.json`. Until that token exists, the watchlist still renders and the admin page refuses to save a paste.
+3. Locally, leave `BLOB_READ_WRITE_TOKEN` unset and do not set `VERCEL`. Pastes go to `data/intake-book.json`, which is gitignored.
+4. Optional: set `XAI_API_KEY` (and `XAI_MODEL` if you do not want `grok-3`) to let an ambiguous paste ask the AI SDK for a suggestion. The suggestion stays in review. Unset means the rules parser runs alone.
+5. Paste an `https://x.com/<handle>/status/<id>` URL. The server calls `https://publish.x.com/oembed` first, then `https://publish.twitter.com/oembed`, and follows redirects. If every host fails, the admin page asks for the post text. Empty text is refused. It stores the URL, handle, oEmbed date label when one exists, and the text. It does not scrape x.com and it does not invent a clock time when oEmbed only returned a date.
+6. Confirm, edit, or reject the parsed call. Symbols in `market-history.json` (SPY, QQQ, DIA, VIX, and the other recorded names) can be graded. Anything else is stored as **Not gradable yet**.
+7. A confirmed call is scored on Monday at the open of the 12:00 PM ET 5-minute bar, and on Wednesday and Friday at the 4:00 PM ET regular-session close. It skips the Monday gap. It appears on `/real` and on that account, labeled **Verified real call**, with the original post and **Dispute this grade**. That link opens `/dispute`. The demo book stays labeled demo and uses the same Monday noon print and the same Wednesday and Friday official closes.
+8. Disputes live in the same intake book (`disputes` on `intake/book.json`, or the local file). `/admin` lists them as open or resolved. Optional `DISPUTE_EMAIL` adds a mailto link. No address is shipped when that variable is unset.
+
+Scheduled X search is a disabled stub in `src/lib/x-search-job.ts`. It does not run, even if `XAI_API_KEY` is set.
+
 ## Legal
 
 Draft pages, labeled “Draft for legal review” until counsel signs off:
@@ -146,4 +163,4 @@ Draft pages, labeled “Draft for legal review” until counsel signs off:
 - `/terms` — public posts, the locked calendar, real prints, liability limitation
 - `/donate` — donation-only; a gift is not a signal and is not tax-deductible unless a later notice says so
 
-Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. Verified cards quote public posts and link the source. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. GradedCalls FinTwit is not affiliated with X, Twitter, or Yahoo Finance. The corrections address on those pages is a placeholder.
+Not investment advice. Past accuracy is not a prediction of future results. Demo accounts and posts are fictional. Verified cards quote public posts and link the source. The prints used to grade them are historical Yahoo Finance prices for the evaluation dates. GradedCalls FinTwit is not affiliated with X, Twitter, or Yahoo Finance. Corrections go through the on-site dispute form.
