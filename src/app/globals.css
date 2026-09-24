@@ -270,18 +270,19 @@ a.btn {
 
 .readout-print {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 600;
   letter-spacing: 0;
   color: #f2f1ee;
 }
 
-/* Correct move: sage green. Incorrect move: dusty red. Both stay clear of #eb6505. */
+/* Correct: emerald that stays green at 13px on charcoal. Incorrect: rose, cooler than #eb6505. */
 .readout-print-with {
-  color: #7dcea0;
+  color: #6ee7b7;
 }
 
 .readout-print-against {
-  color: #e08a7a;
+  color: #fb7185;
 }
 
 .stance {
