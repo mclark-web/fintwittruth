@@ -352,6 +352,10 @@ a.btn {
   z-index: 0;
 }
 
+.site-banner > p > a {
+  white-space: nowrap;
+}
+
 .site-header {
   overflow: visible;
 }
@@ -437,6 +441,10 @@ p a:not(.hit-44):not(.btn):not(.tag):not(.block):not(.flex) {
   text-align: start;
   justify-content: initial;
   vertical-align: baseline;
+}
+p > a:only-child:not(.hit-44):not(.btn):not(.tag):not(.block):not(.flex) {
+  display: inline-block;
+  vertical-align: top;
 }
 p a:not(.hit-44):not(.btn):not(.tag):not(.block):not(.flex)::before {
   content: "";

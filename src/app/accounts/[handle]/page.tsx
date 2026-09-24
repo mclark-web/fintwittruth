@@ -193,7 +193,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                     <DirectionChip direction={call.direction} />
                     <span className="font-mono text-xs text-pine">{call.primary}</span>
                   </div>
-                  <p className="mt-2 text-ink">
+                  <p className="mt-3 text-ink">
                     <Link href={`/calls/${call.id}`} className="hover:underline">
                       {call.body}
                     </Link>

@@ -119,7 +119,7 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
                           {holiday ? "Market closed" : "Waiting on the tape"}
                         </span>
                       </div>
-                      <p className="mt-2 text-ink">
+                      <p className="mt-3 text-ink">
                         <Link href={`/calls/${call.id}`} className="hover:underline">
                           {call.body}
                         </Link>

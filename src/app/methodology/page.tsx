@@ -267,7 +267,7 @@ export default async function MethodologyPage() {
           </li>
           <li>
             <GradePill grade="exit" /> is a graded score of 0. The glass stays empty. A horizon that has
-            not been graded reads Not graded yet.
+            not been graded reads <span className="text-[#9a9aa3]">Not graded yet</span>.
           </li>
           <li>
             The badge runs from 1 to 10. 0–9 is badge 1. 90–100 is badge 10. Each ten-point step lifts the
