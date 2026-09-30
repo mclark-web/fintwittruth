@@ -425,7 +425,8 @@ export default async function MethodologyPage() {
           The series is committed in <span className="font-mono text-xs">src/lib/market-history.json</span> and
           was fetched {PRICE_FETCHED_AT}. VIX is the Yahoo symbol ^VIX. Monday, September 7, 2026 was Labor Day.
           SPY, QQQ, and DIA have no session that day. A Yahoo VIX daily bar exists for that holiday and is not
-          used as a Monday open or noon print.           Wednesday, September 23 and Friday, September 25 are graded on those days&apos; official closes.
+          used as a Monday open or noon print. Wednesday, September 23 and Friday, September 25 are graded on
+          those days&apos; official closes.
           GradedCalls FinTwit does not scrape X and does not draw a price when a print is missing.
         </p>
         <p className="mt-4 text-sm text-muted">

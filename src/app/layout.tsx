@@ -11,7 +11,7 @@ const plex = IBM_Plex_Mono({
   variable: "--font-plex",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://fintwittruth.vercel.app";
 
 const shareImage = {
   url: "/opengraph-image.png",

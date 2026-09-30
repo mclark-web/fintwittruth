@@ -38,6 +38,11 @@ export default function GlobalError({
           >
             Try again
           </button>
+          <p className="mt-8 text-sm">
+            <a href="https://charoof.vercel.app" title="GradedCalls" className="text-pine underline-offset-4 hover:underline">
+              Hub
+            </a>
+          </p>
         </main>
       </body>
     </html>
