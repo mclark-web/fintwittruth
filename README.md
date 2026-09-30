@@ -118,7 +118,9 @@ Keep the calendar and the scorer. Swap the inputs.
 
 ## Deploy on Vercel
 
-Import the GitHub repository. No environment variables and no secrets. The demo database is created during the build.
+Import the GitHub repository. The demo database is created during the build. No secrets are required.
+
+Set `NEXT_PUBLIC_SITE_URL` to `https://fintwittruth.vercel.app` for Production and Preview. That origin is what absolute `og:image` and `twitter:image` URLs use. The app falls back to the same host when the variable is unset.
 
 Use these settings. The defaults already match. Do not override the build command.
 
@@ -130,7 +132,7 @@ Use these settings. The defaults already match. Do not override the build comman
 | Install command | `npm install` (leave the default) |
 | Build command | `npm run build` (leave the default) |
 | Output directory | leave the Next.js default |
-| Environment variables | none |
+| Environment variables | `NEXT_PUBLIC_SITE_URL=https://fintwittruth.vercel.app` on Production and Preview |
 
 `npm run build` runs `prebuild` first: Prisma generates the client (including the Vercel runtime engine), creates `prisma/fintwittruth.db`, and seeds it. That file is traced into the server bundle. Pages are prerendered from it. On Vercel the filesystem is read-only except `/tmp`, so a server instance copies the seed to `/tmp/fintwittruth.db` before reading it.
 

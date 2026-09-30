@@ -83,14 +83,20 @@ test("the logo link href is the Hub in the same tab", () => {
   assert.doesNotMatch(chrome, /function BrandMark/);
 
   assert.match(globalError, /<LogoLink\b/);
+  assert.match(globalError, /<title>[^<]*GradedCalls[^<]*<\/title>/);
+  assert.match(globalError, /title="GradedCalls"/);
+  assert.ok(globalError.includes(hubHref));
+  assert.match(globalError, />\s*Hub\s*</);
 
   let hrefs = 0;
   for (const path of files(root)) {
     hrefs += readFileSync(path, "utf8").split(hubHref).length - 1;
   }
-  assert.equal(hrefs, 1);
+  assert.equal(hrefs, 2);
 
   const layout = readFileSync(join(root, "src", "app", "layout.tsx"), "utf8");
+  assert.match(layout, /NEXT_PUBLIC_SITE_URL \|\| "https:\/\/fintwittruth\.vercel\.app"/);
+  assert.doesNotMatch(layout, /localhost:3000/);
   assert.match(layout, /alt:\s*"GradedCalls"/);
   assert.match(layout, /width:\s*1200/);
   assert.match(layout, /height:\s*630/);
@@ -104,5 +110,15 @@ test("the logo link href is the Hub in the same tab", () => {
   assert.equal(existsSync(join(root, "src", "app", "apple-icon.png")), true);
   assert.equal(existsSync(join(root, "src", "app", "opengraph-image.png")), true);
   assert.equal(existsSync(join(root, "src", "app", "favicon.ico")), true);
-  assert.equal(existsSync(join(root, "public", "gradedcalls-mark.png")), true);
+  const markPath = join(root, "public", "gradedcalls-mark.png");
+  assert.equal(existsSync(markPath), true);
+  const mark = readFileSync(markPath);
+  assert.equal(mark.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+  const markWidth = mark.readUInt32BE(16);
+  const markHeight = mark.readUInt32BE(20);
+  assert.ok(markWidth >= 96 && markWidth <= 132, `mark width ${markWidth}`);
+  assert.ok(markHeight >= 96 && markHeight <= 132, `mark height ${markHeight}`);
+  assert.equal(mark[25], 6, "mark PNG color type is RGBA");
+  assert.ok(mark.length < 80_000, `mark is ${mark.length} bytes`);
+  assert.equal(existsSync(join(root, "public", "gradedcalls-lockup.png")), false);
 });
