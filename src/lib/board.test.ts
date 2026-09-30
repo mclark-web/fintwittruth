@@ -16,20 +16,18 @@ const data = buildDataset();
 test("a scheduled readout contributes nothing to the primary board", () => {
   const latest = data.cohorts.find((cohort) => cohort.isLatest);
   assert.ok(latest);
+  const friday = latest.readouts.find((item) => item.kind === "friday");
+  assert.equal(friday?.status, "published");
+  const fridayGrades = latest.grades.filter((grade) => grade.readout === "friday");
+  assert.equal(gradesOnPrimaryBoard(fridayGrades, "scheduled").length, 0);
+  assert.equal(gradesOnPrimaryBoard(fridayGrades, "published").length, latest.calls.length);
   for (const readout of latest.readouts) {
     const grades = latest.grades.filter((grade) => grade.readout === readout.kind);
-    const onBoard = gradesOnPrimaryBoard(grades, readout.status);
-    if (readout.kind === "friday") {
-      assert.equal(readout.status, "scheduled");
-      assert.equal(grades.length, 0);
-      assert.equal(onBoard.length, 0);
-    } else {
-      assert.equal(readout.status, "published");
-      assert.equal(onBoard.length, latest.calls.length);
-    }
+    assert.equal(readout.status, "published");
+    assert.equal(gradesOnPrimaryBoard(grades, readout.status).length, latest.calls.length);
   }
-  assert.deepEqual(settledReadoutKinds(latest.readouts), ["monday-gap", "monday", "wednesday"]);
-  assert.deepEqual(pendingReadoutKinds(latest.readouts), ["friday"]);
+  assert.deepEqual(settledReadoutKinds(latest.readouts), ["monday-gap", "monday", "wednesday", "friday"]);
+  assert.deepEqual(pendingReadoutKinds(latest.readouts), []);
 });
 
 test("Labor Day Monday stays off the primary board", () => {
