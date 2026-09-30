@@ -62,6 +62,7 @@ export default async function ReadoutPage({
   const closure = pendingClosure(pendingKinds, cohort);
   const holidayName = marketHolidayName(etYmd(readout.at));
   const marketClosed = holidayName != null && !settled;
+  const boardTitle = `${meta.label} board`;
   const calls = settled
     ? [...cohort.calls]
         .filter((call) => call.grades[kind] != null)
@@ -72,9 +73,17 @@ export default async function ReadoutPage({
           return a.handle.localeCompare(b.handle);
         })
     : [];
+  const callsHeading = readoutCallsHeading({
+    settled,
+    count: calls.length,
+    label: meta.label,
+    holidayName,
+  });
+  const duplicateHolidayHeading = !settled && holidayName != null && callsHeading.startsWith("Market closed for ");
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      <h1 className="sr-only">{boardTitle}</h1>
       <p className="text-sm text-muted">
         <Link href="/weeks" className="hover:underline">
           Weeks
@@ -140,10 +149,12 @@ export default async function ReadoutPage({
         </div>
       </section>
 
-      <section className="mt-8" aria-labelledby="calls-heading">
-        <h2 id="calls-heading" className="sr-only">
-          {readoutCallsHeading({ settled, count: calls.length, label: meta.label, holidayName })}
-        </h2>
+      <section className="mt-8" aria-labelledby={duplicateHolidayHeading ? undefined : "calls-heading"}>
+        {duplicateHolidayHeading ? null : (
+          <h2 id="calls-heading" className="sr-only">
+            {callsHeading}
+          </h2>
+        )}
         <p className="mb-4 max-w-3xl text-sm text-muted">
           STRONG is 70% or more. WEAK is under 40%. PROVISIONAL is 40% or more and under 70%. 0% is EXIT LIQUIDITY. Watchlist and viral posts share this weekly board.
         </p>
@@ -154,7 +165,8 @@ export default async function ReadoutPage({
         ) : null}
         <FinTwitBoard
           kicker={`${meta.role} · ${cohort.dataset === "demo" ? "demo" : "live"}`}
-          title={`${meta.label} board`}
+          title={boardTitle}
+          titleHeading="p"
           lede={cohort.title}
           quotes={cohort.quotes}
           tapeKind={kind}

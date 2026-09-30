@@ -99,7 +99,7 @@ Seed sources:
 - `src/lib/dataset.ts` — applies the locked calendar and the scorer to both books
 - `prisma/seed.ts` — writes the result with Prisma
 
-Finished demo cohorts (`2026-08-24`, `2026-08-31`, `2026-09-07`, `2026-09-14`) each have Monday, Wednesday, and Friday grades on the same calls. `2026-09-07` is the worked example because Monday was Labor Day: the gap and noon stay blank, and Wednesday and Friday use the official closes. `demo-2026-09-21` keeps the fictional doom and melt-up posts for the open week, graded on the real Monday prints and the Wednesday close, off the live board. `2026-09-21` is the verified book: two public posts, with Monday noon and the Wednesday, September 23 official close in. Friday stays scheduled because that session had not reached the post-close buffer at fetch time. Conviction weights stay high 3, medium 2, low 1. Every published grade uses the equal-weight SPY, QQQ, and DIA tape plus VIX.
+Finished demo cohorts (`2026-08-24`, `2026-08-31`, `2026-09-07`, `2026-09-14`) each have Monday, Wednesday, and Friday grades on the same calls. `2026-09-07` is the worked example because Monday was Labor Day: the gap and noon stay blank, and Wednesday and Friday use the official closes. `demo-2026-09-21` keeps the fictional doom and melt-up posts for the open week, graded on the real Monday prints and the Wednesday close, off the live board. `2026-09-21` is the verified book: two public posts, with Monday noon and the Wednesday, September 23 and Friday, September 25 official closes in. Conviction weights stay high 3, medium 2, low 1. Every published grade uses the equal-weight SPY, QQQ, and DIA tape plus VIX.
 
 Cohort slugs are the readout Monday (`YYYY-MM-DD`).
 

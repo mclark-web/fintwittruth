@@ -841,7 +841,7 @@ export const COHORTS: CohortSpec[] = [
     historySlug: "2026-09-21",
     title: "DEMO weekend book",
     summary:
-      "DEMO. Fictional doom and melt-up posts, quarantined off the live board. Monday's real open and noon prints are in, and Wednesday is the official September 23 close. Friday, September 25 had not reached the post-close buffer when this history was fetched, so that grade stays scheduled.",
+      "DEMO. Fictional doom and melt-up posts, quarantined off the live board. Monday's real open and noon prints are in. Wednesday, September 23 and Friday, September 25 are those days' official closes.",
     monday: { year: 2026, month: 9, day: 21 },
     calls: [
       {

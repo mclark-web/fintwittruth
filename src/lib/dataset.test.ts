@@ -41,7 +41,7 @@ test("finished weeks publish every readout except the Labor Day Monday", () => {
   }
 });
 
-test("latest cohort publishes Monday and Wednesday and leaves Friday scheduled", () => {
+test("latest cohort publishes Monday, Wednesday, and Friday", () => {
   const latest = data.cohorts.find((cohort) => cohort.isLatest);
   assert.ok(latest);
   assert.equal(latest.dataset, "live");
@@ -53,13 +53,9 @@ test("latest cohort publishes Monday and Wednesday and leaves Friday scheduled",
   assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
-  assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "scheduled");
-  assert.equal(latest.grades.length, latest.calls.length * 3);
-  assert.ok(
-    latest.grades.every(
-      (grade) => grade.readout === "monday-gap" || grade.readout === "monday" || grade.readout === "wednesday",
-    ),
-  );
+  assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "published");
+  assert.equal(latest.grades.length, latest.calls.length * 4);
+  assert.ok(latest.grades.some((grade) => grade.readout === "friday"));
 });
 
 test("every demo post sits inside the Wednesday-to-Sunday collect window", () => {
@@ -166,7 +162,7 @@ test("Labor Day Monday stays ungraded and does not copy Friday's close", () => {
   assert.match(mondayNoon?.narrative ?? "", /Labor Day/);
 });
 
-test("the open week keeps future readouts empty and uses real Monday prints", () => {
+test("the open week uses real Monday prints and the official Wednesday and Friday closes", () => {
   const latest = data.cohorts.find((cohort) => cohort.slug === LATEST_COHORT_SLUG);
   assert.ok(latest);
   for (const quote of latest.quotes) {
@@ -174,7 +170,7 @@ test("the open week keeps future readouts empty and uses real Monday prints", ()
     assert.equal(quote.monday, noonOpen(quote.symbol, "2026-09-21"));
     assert.equal(quote.wednesday, sessionClose(quote.symbol, "2026-09-23"));
     assert.notEqual(quote.wednesday, noonOpen(quote.symbol, "2026-09-23"));
-    assert.equal(quote.friday, null);
+    assert.equal(quote.friday, sessionClose(quote.symbol, "2026-09-25"));
   }
   assert.throws(() => noonOpen("SPY", "2026-09-25"), /Refusing to invent/);
   assert.throws(() => sessionOpen("SPY", "2026-09-07"), /Refusing to invent/);
@@ -231,8 +227,9 @@ test("September 23 Wednesday grades use the official close, not the noon bar", (
   assert.equal(wednesday?.status, "published");
   assert.match(wednesday?.narrative ?? "", /Wednesday close/);
   const friday = latest.readouts.find((item) => item.kind === "friday");
-  assert.equal(friday?.status, "scheduled");
-  assert.match(friday?.narrative ?? "", /45 minutes after the official close/);
+  assert.equal(friday?.status, "published");
+  assert.match(friday?.narrative ?? "", /Friday close/);
+  assert.equal(latest.quotes.find((item) => item.symbol === "SPY")?.friday, sessionClose("SPY", "2026-09-25"));
 });
 
 test("September 21 Monday open and noon are distinct recorded prints", () => {

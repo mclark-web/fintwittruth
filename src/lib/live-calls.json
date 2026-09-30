@@ -5,7 +5,7 @@
       "slug": "2026-09-21",
       "historySlug": "2026-09-21",
       "title": "Verified weekend book",
-      "summary": "Public posts from Wednesday, September 16, 2026 at noon ET through Sunday, September 20 at 5pm ET. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Fictional demo posts are on the demo board. Monday noon is recorded, and Wednesday is the official September 23 close. Friday, September 25 had not reached the post-close buffer at fetch time.",
+      "summary": "Public posts from Wednesday, September 16, 2026 at noon ET through Sunday, September 20 at 5pm ET. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Fictional demo posts are on the demo board. Monday noon is recorded. Wednesday, September 23 and Friday, September 25 are those days' official closes.",
       "monday": { "year": 2026, "month": 9, "day": 21 },
       "calls": [
         {

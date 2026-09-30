@@ -136,20 +136,18 @@ test("a future trading day still says Scheduled and until the tape prints", () =
   assert.equal(closedHorizonNote(false), "A horizon on this week is still off the board.");
 });
 
-test("an ungraded Friday board tube is not EXIT", { skip: skipWithoutDb }, async () => {
+test("Friday September 25 uses the official close", { skip: skipWithoutDb }, async () => {
   const { default: FridayPage } = await import("../app/weeks/[slug]/[readout]/page");
   const html = renderToStaticMarkup(
     await FridayPage({ params: Promise.resolve({ slug: "2026-09-21", readout: "friday" }) }),
   );
-  assert.match(html, /aria-label="GC Scale, not graded yet"/);
-  assert.match(html, />Not graded yet</);
-  assert.match(html, /<h2 class="text-sm font-semibold text-\[#9a9aa3\]">Not graded yet<\/h2>/);
-  assert.match(html, /A horizon on this week is still off the board/);
-  assert.match(html, /Scheduled · same cohort/);
-  assert.doesNotMatch(html, /<h2 class="[^"]*text-ink[^"]*">Not graded yet<\/h2>/);
+  assert.ok(html.indexOf("<h1") !== -1 && html.indexOf("<h1") < html.indexOf("<h2"));
+  assert.match(html, /What the tape did/);
+  assert.match(html, /771\.35/);
+  assert.doesNotMatch(html, /had not reached the 45-minute post-close buffer/);
+  assert.doesNotMatch(html, /Waiting on the clock/);
+  assert.doesNotMatch(html, /aria-label="GC Scale, not graded yet"/);
   assert.doesNotMatch(html, /aria-label="0% GC Scale, EXIT LIQUIDITY"/);
-  assert.doesNotMatch(html, /data-grade="exit"/);
-  assert.doesNotMatch(html, /gc-pct[^>]*>0%</);
 });
 
 test("Labor Day Monday board tube stays ungraded and does not promise a print", { skip: skipWithoutDb }, async () => {
@@ -163,7 +161,8 @@ test("Labor Day Monday board tube stays ungraded and does not promise a print", 
   assert.equal(html.includes(LABOR_DAY_UNGRADED_LINE), true);
   assert.match(html, /Market closed \(Labor Day\) · Not graded yet/);
   assert.match(html, /text-2xl text-\[#9a9aa3\]">Market closed for Labor Day</);
-  assert.match(html, /Market closed for Labor Day · not graded/);
+  assert.ok(html.indexOf("<h1") !== -1 && html.indexOf("<h1") < html.indexOf("<h2"));
+  assert.doesNotMatch(html, /<h2 class="sr-only">Market closed for Labor Day · not graded<\/h2>/);
   assert.match(html, /Market closed \(Labor Day\) · no Monday tape/);
   assert.doesNotMatch(html, /until the session settles/);
   assert.match(html, /2 horizons are not graded: the market was closed for Labor Day\./);
@@ -172,6 +171,17 @@ test("Labor Day Monday board tube stays ungraded and does not promise a print", 
   assert.doesNotMatch(html, /Scheduled/);
   assert.doesNotMatch(html, /waiting/i);
   assert.doesNotMatch(html, /aria-label="0% GC Scale, EXIT LIQUIDITY"/);
+
+  const gap = renderToStaticMarkup(
+    await FridayPage({ params: Promise.resolve({ slug: "2026-09-07", readout: "monday-gap" }) }),
+  );
+  assert.ok(gap.indexOf("<h1") !== -1 && gap.indexOf("<h1") < gap.indexOf("<h2"));
+  assert.doesNotMatch(gap, /<h2 class="sr-only">Market closed for Labor Day · not graded<\/h2>/);
+  const wednesday = renderToStaticMarkup(
+    await FridayPage({ params: Promise.resolve({ slug: "2026-09-07", readout: "wednesday" }) }),
+  );
+  assert.ok(wednesday.indexOf("<h1") !== -1 && wednesday.indexOf("<h1") < wednesday.indexOf("<h2"));
+  assert.match(wednesday, /What the tape did/);
 
   const pending = renderToStaticMarkup(
     await CohortPendingPage({ params: Promise.resolve({ slug: "2026-09-07" }) }),

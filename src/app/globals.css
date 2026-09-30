@@ -139,11 +139,15 @@ a.btn {
   align-items: end;
 }
 
-.ft-hero h1 {
+.ft-hero h1,
+.ft-hero .ft-hero-title {
   font-size: 30px;
   letter-spacing: -0.03em;
   font-weight: 650;
   margin-top: 12px;
+  margin-bottom: 0;
+  line-height: 1.15;
+  color: var(--color-ink);
 }
 
 .ft-layout {

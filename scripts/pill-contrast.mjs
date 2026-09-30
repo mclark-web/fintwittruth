@@ -13,30 +13,46 @@ const targets = args.length
   : [new URL("./pill-contrast-fixture.html", import.meta.url).href];
 const widths = [390, 1440];
 
-const chrome = spawn(chromeBin, [
+const ci = Boolean(process.env.CI);
+const debugPort = 9241;
+const launchArgs = [
   "--headless=new",
   "--disable-gpu",
-  "--no-sandbox",
   "--hide-scrollbars",
   "--force-device-scale-factor=1",
   "--window-size=1440,900",
   "--allow-file-access-from-files",
-  "--remote-debugging-port=9241",
-  "--user-data-dir=/tmp/chrome-pill-contrast-check",
-], { stdio: "ignore" });
+  `--remote-debugging-port=${debugPort}`,
+  `--user-data-dir=/tmp/chrome-pill-contrast-${process.pid}`,
+];
+if (ci) {
+  launchArgs.push("--no-sandbox", "--disable-dev-shm-usage");
+} else {
+  launchArgs.push("--no-sandbox");
+}
+let chromeLog = "";
+const chrome = spawn(chromeBin, launchArgs, { stdio: ["ignore", "ignore", "pipe"] });
+chrome.stderr?.on("data", (chunk) => {
+  chromeLog += chunk.toString();
+  if (chromeLog.length > 4000) chromeLog = chromeLog.slice(-4000);
+});
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const attempts = ci ? 120 : 40;
+const pauseMs = ci ? 250 : 150;
 let wsUrl;
-for (let i = 0; i < 40; i++) {
+for (let i = 0; i < attempts; i++) {
+  if (chrome.exitCode != null) break;
   try {
-    wsUrl = (await (await fetch("http://127.0.0.1:9241/json/version")).json()).webSocketDebuggerUrl;
+    wsUrl = (await (await fetch(`http://127.0.0.1:${debugPort}/json/version`)).json()).webSocketDebuggerUrl;
     break;
   } catch {
-    await sleep(150);
+    await sleep(pauseMs);
   }
 }
 if (!wsUrl) {
   chrome.kill();
   console.error("Chrome debugger did not start");
+  if (chromeLog.trim()) console.error(chromeLog.trim());
   process.exit(2);
 }
 const ws = new WebSocket(wsUrl);

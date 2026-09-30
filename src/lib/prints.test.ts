@@ -55,7 +55,7 @@ test("Monday noon is the noon print and Wednesday and Friday use the stored clos
     assert.equal(priceAt(quote, "wednesday"), quote.wednesday);
     assert.equal(priceAt(quote, "friday"), quote.friday);
     assert.notEqual(quote.wednesday, null);
-    assert.equal(quote.friday, null);
+    assert.equal(quote.friday, sessionClose(symbol, "2026-09-25"));
   }
   const spy = latest.quotes.find((item) => item.symbol === "SPY");
   assert.ok(spy);
@@ -112,7 +112,7 @@ test("report-out cards put the checkpoint price next to the label", () => {
   assert.ok(quote);
   assert.equal(callCheckpointLabel("Gap", demo.quotes, call.primary, "monday-gap"), reportOutLabel("Gap", quote.mondayOpen));
   assert.equal(callCheckpointLabel("Noon", demo.quotes, call.primary, "monday"), reportOutLabel("Noon", quote.monday));
-  assert.equal(callCheckpointLabel("Fri", demo.quotes, call.primary, "friday"), "Fri");
+  assert.equal(callCheckpointLabel("Fri", demo.quotes, call.primary, "friday"), reportOutLabel("Fri", quote.friday));
   assert.equal(callCheckpointLabel("Gap", demo.quotes, undefined, "monday-gap"), "Gap");
 });
 
