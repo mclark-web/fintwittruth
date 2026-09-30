@@ -3,19 +3,8 @@ import { Suspense } from "react";
 import { NAV_NAME, PRODUCT_NAME, SIBLING_NAMES, UMBRELLA_NAME } from "@/lib/brand";
 import { DATA_MODE } from "@/lib/labels";
 import { getLatestCohort } from "@/lib/queries";
+import { LogoLink } from "./logo-link";
 import { NavLinks } from "./nav-links";
-
-export function BrandMark() {
-  return (
-    <span className="mark" aria-hidden>
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 3v3M12 18v3M5 12H2M22 12h-3" stroke="#eb6505" strokeWidth="1.6" strokeLinecap="round" />
-        <path d="M7.5 8.5c1.8-2.2 7.2-2.2 9 0M7.5 15.5c1.8 2.2 7.2 2.2 9 0" stroke="#f2f1ee" strokeWidth="1.5" strokeLinecap="round" />
-        <circle cx="12" cy="12" r="2.2" fill="#eb6505" />
-      </svg>
-    </span>
-  );
-}
 
 export function DemoBanner() {
   if (DATA_MODE !== "demo") return null;
@@ -54,12 +43,7 @@ export async function SiteHeader() {
   return (
     <header className="site-header sticky top-0 z-20 border-b border-line bg-[#0b0c0e]/95 backdrop-blur-md">
       <div className="header-bar mx-auto grid max-w-6xl grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 px-4 sm:px-7 lg:h-14 lg:max-h-14 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
-        <Link href="/" className="hit-44 flex h-14 min-h-11 shrink-0 items-center gap-2.5 whitespace-nowrap" aria-label={PRODUCT_NAME}>
-          <BrandMark />
-          <span className="hidden text-[17px] font-semibold tracking-tight text-ink min-[480px]:inline">
-            Graded<span className="text-[#eb6505]">Calls</span>
-          </span>
-        </Link>
+        <LogoLink />
         <div className="flex h-14 min-w-0 items-center">
           <Suspense fallback={<span className="block h-11 min-w-0 flex-1" aria-hidden />}>
             <NavLinks latestHref={latestHref} />
