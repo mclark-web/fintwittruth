@@ -74,20 +74,17 @@
   box-shadow: 0 20px 60px rgb(0 0 0 / 0.35);
 }
 
-.mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  background: linear-gradient(145deg, #1c1f28, #0f1116);
-  border: 1px solid rgb(235 101 5 / 0.45);
-  display: grid;
-  place-items: center;
-  box-shadow: 0 0 24px var(--orange-glow);
+.logo-link {
+  position: relative;
+  z-index: 2;
 }
 
-.mark svg {
-  width: 20px;
-  height: 20px;
+.logo-mark {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: block;
+  object-fit: contain;
 }
 
 a.btn {
@@ -631,11 +628,6 @@ p:has(a) + p:has(a),
 }
 
 @media (max-width: 479px) {
-  .mark {
-    width: 40px;
-    height: 40px;
-  }
-
   .scoreboard-primary {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
