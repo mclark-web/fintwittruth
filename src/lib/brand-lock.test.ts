@@ -64,13 +64,24 @@ test("the logo link href is the Hub in the same tab", () => {
   assert.match(logo, /aria-label="GradedCalls"/);
   assert.match(logo, /alt="GradedCalls"/);
   assert.doesNotMatch(logo, /target\s*=/);
+  assert.match(logo, /src="\/gradedcalls-mark\.png"/);
+  assert.match(logo, /height:\s*56/);
+  assert.match(logo, /width:\s*44/);
+  assert.match(logo, /backgroundColor:\s*"transparent"/);
+  assert.doesNotMatch(logo, /backgroundColor:\s*"#/);
+
+  const errorPage = readFileSync(join(root, "src", "app", "error.tsx"), "utf8");
+  const globalError = readFileSync(join(root, "src", "app", "global-error.tsx"), "utf8");
+  assert.match(errorPage, /reset\(\)/);
+  assert.match(globalError, /reset\(\)/);
+  assert.doesNotMatch(errorPage, /retry\(/);
+  assert.doesNotMatch(globalError, /retry\(/);
 
   const chrome = readFileSync(join(root, "src", "components", "chrome.tsx"), "utf8");
   assert.match(chrome, /<LogoLink\b/);
   assert.doesNotMatch(chrome, /aria-label=\{PRODUCT_NAME\}/);
   assert.doesNotMatch(chrome, /function BrandMark/);
 
-  const globalError = readFileSync(join(root, "src", "app", "global-error.tsx"), "utf8");
   assert.match(globalError, /<LogoLink\b/);
 
   let hrefs = 0;

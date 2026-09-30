@@ -2,10 +2,10 @@
 
 export default function Error({
   error,
-  retry,
+  reset,
 }: {
   error: Error & { digest?: string };
-  retry: () => void;
+  reset: () => void;
 }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-20">
@@ -14,7 +14,7 @@ export default function Error({
       {error.digest ? <p className="mt-2 text-sm text-muted">Reference {error.digest}</p> : null}
       <button
         type="button"
-        onClick={() => retry()}
+        onClick={() => reset()}
         className="mt-6 inline-flex min-h-11 min-w-11 items-center rounded-full bg-pine px-5 text-sm text-lime"
       >
         Try again
