@@ -51,7 +51,7 @@ test("a Friday post in the collect window belongs to the following Monday", () =
   assert.equal(cohortSlugForPostedAt("2020-01-01T16:00:00.000Z"), null);
 });
 
-test("a confirmed SPY call uses Monday 12:00 and the Wednesday close, and keeps Friday blank", () => {
+test("a confirmed SPY call uses Monday noon and the Wednesday and Friday official closes", () => {
   const [call] = gradeRealPosts([post()]);
   assert.ok(call);
   assert.equal(call.label, "Verified real call");
@@ -59,7 +59,7 @@ test("a confirmed SPY call uses Monday 12:00 and the Wednesday close, and keeps 
   assert.equal(call.grades["monday-gap"], undefined);
   assert.ok(call.grades.monday);
   assert.ok(call.grades.wednesday);
-  assert.equal(call.grades.friday, undefined);
+  assert.ok(call.grades.friday);
   assert.match(call.grades.monday?.note ?? "", /Monday 12:00 PM ET, the open of the 5-minute bar/);
   assert.match(call.grades.wednesday?.note ?? "", /Wednesday 4:00 PM ET regular-session close/);
   const quotes = quotesForCohort("2026-09-21", ["SPY", "QQQ", "DIA", "VIX"]);
@@ -117,6 +117,31 @@ test("a confirmed SPY call uses Monday 12:00 and the Wednesday close, and keeps 
   );
   assert.equal(call.grades.wednesday?.score, wednesdayScore.score);
   assert.equal(quote("SPY")?.wednesday, sessionClose("SPY", wednesday.date));
+  const friday = sessionFor("2026-09-21", "friday");
+  assert.ok(friday);
+  const fridayMove = (symbol: string) => {
+    const ref = quote(symbol)?.ref;
+    if (ref == null || !friday) throw new Error(symbol);
+    return (sessionClose(symbol, friday.date) - ref) / ref;
+  };
+  const fridayScore = scoreCall(
+    {
+      direction: "bearish",
+      sentiment: "panic",
+      primary: "SPY",
+      tickers: ["SPY"],
+      levels: [],
+      explicit: true,
+    },
+    {
+      tapeMove: (fridayMove("SPY") + fridayMove("QQQ") + fridayMove("DIA")) / 3,
+      primaryRef: quote("SPY")?.ref ?? 0,
+      primaryNow: sessionClose("SPY", friday.date),
+      vixMove: fridayMove("VIX"),
+    },
+  );
+  assert.equal(call.grades.friday?.score, fridayScore.score);
+  assert.match(call.grades.friday?.note ?? "", /Friday 4:00 PM ET regular-session close/);
   assert.equal(disputePath(call.id), `/dispute?call=${encodeURIComponent(call.id)}`);
 });
 
