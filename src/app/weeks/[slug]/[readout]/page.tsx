@@ -3,7 +3,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PendingSettleLink } from "@/components/board-state";
 import { FinTwitBoard } from "@/components/fintwit-board";
-import { CohortWindow, Move, ReadoutCards } from "@/components/market";
+import { CohortWindow, ReadoutCards, TapeMark } from "@/components/market";
+import { etYmd } from "@/lib/format";
+import {
+  LABOR_DAY_UNGRADED_LINE,
+  marketHolidayName,
+  pendingClosure,
+  readoutCallsHeading,
+  tapeStatusHeading,
+  ungradedHorizonLine,
+} from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { pendingReadoutKinds } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
@@ -48,7 +57,11 @@ export default async function ReadoutPage({
   const readout = cohort.readouts[kind];
   const meta = READOUT_META[kind];
   const settled = readout.status === "published";
-  const pendingCount = pendingReadoutKinds(Object.values(cohort.readouts)).length;
+  const pendingKinds = pendingReadoutKinds(Object.values(cohort.readouts));
+  const pendingCount = pendingKinds.length;
+  const closure = pendingClosure(pendingKinds, cohort);
+  const holidayName = marketHolidayName(etYmd(readout.at));
+  const marketClosed = holidayName != null && !settled;
   const calls = settled
     ? [...cohort.calls]
         .filter((call) => call.grades[kind] != null)
@@ -84,7 +97,9 @@ export default async function ReadoutPage({
       </div>
 
       <section className="panel mt-6 p-5">
-        <p className="text-2xl text-ink">{readout.status === "published" ? "What the tape did" : "Waiting on the clock"}</p>
+        <h2 className={marketClosed ? "m-0 font-normal text-2xl text-[#9a9aa3]" : "m-0 font-normal text-2xl text-ink"}>
+          {readout.status === "published" ? "What the tape did" : tapeStatusHeading(holidayName)}
+        </h2>
         <p className="mt-2 max-w-3xl text-ink/80">{readout.narrative}</p>
         <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
           <div>
@@ -94,36 +109,47 @@ export default async function ReadoutPage({
               role="img"
               aria-label={`${Math.round(readout.consensusBullish * 100)} percent bullish and ${Math.round(readout.consensusBearish * 100)} percent bearish`}
             >
-              <div className="bg-bull" style={{ width: `${readout.consensusBullish * 100}%` }} />
-              <div className="bg-bear" style={{ width: `${readout.consensusBearish * 100}%` }} />
+              <div className="bg-[#3a342c]" style={{ width: `${readout.consensusBullish * 100}%` }} />
+              <div className="bg-[#252a34]" style={{ width: `${readout.consensusBearish * 100}%` }} />
             </div>
             <p className="mt-2 text-sm text-muted">
               {Math.round(readout.consensusBullish * 100)}% bullish · {Math.round(readout.consensusBearish * 100)}% bearish · crowd {readout.consensusDirection}
             </p>
           </div>
-          <p className="font-mono text-sm text-ink">
+          <div className="font-mono text-sm text-ink">
             {readout.status === "published" ? (
               <>
-                {readout.benchmarkSymbol} <Move value={readout.benchmarkMovePct} /> from Friday&apos;s close
+                <TapeMark
+                  direction={readout.consensusDirection}
+                  move={readout.benchmarkMovePct}
+                  label={readout.benchmarkSymbol}
+                />{" "}
+                from Friday&apos;s close
                 {readout.strongCutoff > 0 ? ` · STRONG line ${readout.strongCutoff}/100` : ""}
               </>
+            ) : ungradedHorizonLine({
+                kind,
+                sessionYmd: etYmd(cohort.mondayAt),
+                time: meta.time,
+              }) === LABOR_DAY_UNGRADED_LINE ? (
+              <p className="text-[#9a9aa3]">{LABOR_DAY_UNGRADED_LINE}</p>
             ) : (
-              "Prices publish with the grade"
+              <p className="text-[#9a9aa3]">Prices publish with the grade</p>
             )}
-          </p>
+          </div>
         </div>
       </section>
 
       <section className="mt-8" aria-labelledby="calls-heading">
         <h2 id="calls-heading" className="sr-only">
-          {settled ? `${calls.length} graded calls` : `${meta.label} waiting`}
+          {readoutCallsHeading({ settled, count: calls.length, label: meta.label, holidayName })}
         </h2>
         <p className="mb-4 max-w-3xl text-sm text-muted">
-          STRONG is the top 30% of these settled calls, ties at the cutoff included, and only when the score is also at least 70. WEAK is under 70. PROVISIONAL cleared 70 and missed the cut. 0% is EXIT LIQUIDITY. Watchlist and viral posts share this weekly board.
+          STRONG is 70% or more. WEAK is under 40%. PROVISIONAL is 40% or more and under 70%. 0% is EXIT LIQUIDITY. Watchlist and viral posts share this weekly board.
         </p>
         {pendingCount > 0 ? (
           <div className="mb-4">
-            <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pendingCount} />
+            <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pendingCount} closure={closure} />
           </div>
         ) : null}
         <FinTwitBoard
@@ -136,6 +162,8 @@ export default async function ReadoutPage({
           feed={calls}
           readout={kind}
           pendingHref={pendingCount > 0 ? `/weeks/${cohort.slug}/pending` : undefined}
+          marketClosed={marketClosed || (closure.closed > 0 && closure.upcoming === 0)}
+          mondayAt={cohort.mondayAt}
         />
       </section>
     </div>

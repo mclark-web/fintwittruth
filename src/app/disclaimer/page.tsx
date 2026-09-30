@@ -50,21 +50,20 @@ export default function DisclaimerPage() {
 
       <LegalSection id="marks" title="Grade pills are opinions">
         <p>
-          STRONG, WEAK, PROVISIONAL, and EXIT LIQUIDITY are GC Scale labels. STRONG is the top 30% of
-          a peer set and also a score of at least 70. WEAK is any score under 70. PROVISIONAL is 70 or more
-          that missed that cut. EXIT LIQUIDITY is a 0% fill, when no graded horizon has closed or the score is
-          0. The words judge how a past call lined up with a past print. They are not a finding about a
-          person’s character, competence, or fitness, and they are not advice.
+          STRONG, WEAK, PROVISIONAL, and EXIT LIQUIDITY are GC Scale labels. STRONG is a score of 70 or
+          more. WEAK is under 40. PROVISIONAL is 40 or more and under 70. EXIT LIQUIDITY is a graded 0% fill.
+          A horizon that has not been graded is not a grade. The words judge how a past call lined up with a past
+          print. They are not a finding about a person’s character, competence, or fitness, and they are not advice.
         </p>
       </LegalSection>
 
       <LegalSection id="calendar" title="One cohort, four readouts">
         <p>
           The calendar is fixed. Posts are collected from Wednesday at 12:00 PM America/New_York through Sunday
-          at 5:00 PM America/New_York. That same cohort is graded on the Monday regular-session open, then at
-          12:00 PM America/New_York on Monday, Wednesday, and Friday. Wednesday noon also opens the next collect
-          window. That new window is a different cohort. The Wednesday grade still belongs to the book that
-          closed the previous Sunday.
+          at 5:00 PM America/New_York. That same cohort is graded on the Monday regular-session open, at Monday
+          12:00 PM America/New_York, and at the Wednesday and Friday official closes (4:00 PM ET, or 1:00 PM ET
+          on an early close). Wednesday at noon also opens the next collect window. That new window is a different
+          cohort. The Wednesday close still belongs to the book that closed the previous Sunday.
         </p>
         <p>
           The rules are written out on the{" "}
@@ -79,7 +78,8 @@ export default function DisclaimerPage() {
         <p>
           Grades use recorded market prices for the evaluation dates. The weekend reference is the prior Friday
           regular-session close for SPY, QQQ, and DIA, and Friday&apos;s VIX close. Monday&apos;s gap uses the
-          regular-session open. Noon grades use the open of the 12:00 PM ET five-minute bar. A closed session
+          regular-session open. Monday noon uses the open of the 12:00 PM ET five-minute bar. Wednesday and
+          Friday use the official daily close, after a 45-minute buffer so the print is posted. A closed session
           stays blank. A date that has not printed is left blank. GradedCalls FinTwit does not invent a price path to
           make a call look right or wrong, and it does not turn a grade into a buy or sell instruction.
         </p>
@@ -91,10 +91,9 @@ export default function DisclaimerPage() {
 
       <LegalSection id="demo" title="The demo is labeled">
         <p>
-          The accounts and posts shipped with this deployment are a demo. They are labeled as demo data. They
-          are not quotes from real people. The market prints underneath a published grade are the recorded
-          prices for that date. If a live feed of public posts replaces the demo later, the demo label has to
-          come off only after that change is real.
+          Fictional accounts and posts are labeled demo and kept on the demo weeks. They are not quotes from real
+          people. The latest board quotes verified public posts and links each source. The market prints
+          underneath a published grade are the recorded prices for that date. A missing print stays blank.
         </p>
       </LegalSection>
 

@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
 import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { GcTube, GradePill } from "@/components/gc-tube";
-import { DirectionChip } from "@/components/score";
-import { gcGrade } from "@/lib/grades";
+import { DirectionChip, ReadoutBubble, ReferenceLine } from "@/components/score";
+import { gcGrade, mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
@@ -39,7 +39,9 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
   const readouts = Object.values(cohort.readouts);
   const settled = settledReadoutKinds(readouts);
   const pending = pendingReadoutKinds(readouts);
-  const tapeKinds = (["monday-gap", "monday"] as const).filter((kind) => settled.includes(kind));
+  const closure = pendingClosure(pending, cohort);
+  const closedMonday = mondayTapeClosedLine(cohort.mondayAt);
+  const tapeKinds = settled;
   const rows = cohort.calls
     .filter((call) => callHasSettledGrade(call.grades))
     .sort((a, b) => {
@@ -72,7 +74,11 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         {tapeKinds.length > 0 ? (
           tapeKinds.map((kind) => <QuoteTape key={kind} quotes={cohort.quotes} kind={kind} />)
         ) : (
-          <p className="text-sm text-muted">The Monday tape is off this board until the session settles.</p>
+          closedMonday ? (
+            <p className="text-sm text-[#9a9aa3]">{closedMonday}</p>
+          ) : (
+            <p className="text-sm text-muted">The Monday tape is off this board until the session settles.</p>
+          )
         )}
         <PriceSource />
       </div>
@@ -80,7 +86,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         <ReadoutCards slug={cohort.slug} readouts={cohort.readouts} />
       </div>
       <div className="mt-4">
-        <NoiseIndex calls={cohort.calls} quotes={cohort.quotes} />
+        <NoiseIndex calls={cohort.calls} quotes={cohort.quotes} mondayAt={cohort.mondayAt} />
       </div>
 
       <section className="mt-10" aria-labelledby="evolution-heading">
@@ -88,16 +94,71 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
           Settled grades
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          Rows are calls that already have a settled grade. Watchlist and viral posts share this board. A
-          horizon stays off the table until its tape prints.
+          Rows are calls that already have a settled grade. Watchlist and viral posts share this board.{" "}
+          {closure.closed > 0 && closure.upcoming === 0
+            ? "Closed sessions stay off the table."
+            : closure.closed > 0
+              ? "A closed session stays off the table. A later session stays off until its tape prints."
+              : "A horizon stays off the table until its tape prints."}
         </p>
         {rows.length === 0 || settled.length === 0 ? (
           <div className="mt-4">
             <NothingGraded href={`/weeks/${cohort.slug}/pending`} />
           </div>
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-card">
-            <table className="min-w-[720px] w-full text-left text-sm">
+          <>
+          <ul className="mt-4 grid gap-3 min-[820px]:hidden">
+            {rows.map((call) => (
+              <li key={call.id} className="panel p-4">
+                <p className="font-medium text-ink">
+                  <Link href={`/accounts/${call.handle}`} className="hover:underline">
+                    {call.displayName}
+                  </Link>
+                </p>
+                <p className="text-xs text-[#9a9aa3]">@{call.handle}</p>
+                <p className="mt-3 text-ink">
+                  <Link href={`/calls/${call.id}`} className="hover:underline">
+                    {call.body}
+                  </Link>
+                </p>
+                <p className="mt-2 flex flex-wrap items-center gap-2">
+                  <DirectionChip direction={call.direction} />
+                  <span className="font-mono text-xs text-pine">{call.primary}</span>
+                </p>
+                <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
+                <div className="mt-3 grid gap-2">
+                  {settled.map((kind) => {
+                    const grade = call.grades[kind];
+                    return (
+                      <div key={kind} className="min-w-0">
+                        {grade ? (
+                          <Link href={`/weeks/${cohort.slug}/${kind}`} className="mt-1 block hover:underline">
+                            <ReadoutBubble
+                              kind={kind}
+                              quotes={cohort.quotes}
+                              primary={call.primary}
+                              direction={call.direction}
+                            />
+                            <span className="call-grade mt-1 block">
+                              <GcTube score={grade.score} grade={gcGrade(grade)} variant="mini" showMeta={false} />
+                            </span>
+                            <span className="mt-1 flex flex-wrap items-center gap-2">
+                              <span className="font-mono text-sm tabular-nums">{Math.round(grade.score)}%</span>
+                              <GradePill grade={gcGrade(grade)} />
+                            </span>
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-[#9a9aa3]">Not graded yet</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 hidden overflow-x-clip rounded-2xl border border-line bg-card min-[820px]:block">
+            <table className="w-full table-fixed text-left text-sm">
               <caption className="sr-only">Settled grades for {cohort.title}</caption>
               <thead className="bg-sheet text-xs uppercase tracking-wide text-muted">
                 <tr>
@@ -108,7 +169,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                     Call
                   </th>
                   {settled.map((kind) => (
-                    <th key={kind} scope="col" className="px-4 py-3 font-medium">
+                    <th key={kind} scope="col" className="px-4 py-3 font-medium normal-case tracking-normal">
                       {READOUT_META[kind].short}
                     </th>
                   ))}
@@ -131,6 +192,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                         <DirectionChip direction={call.direction} />
                         <span className="font-mono text-xs text-pine">{call.primary}</span>
                       </span>
+                      <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
                     </td>
                     {settled.map((kind) => {
                       const grade = call.grades[kind];
@@ -138,6 +200,12 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
                         <td key={kind} className="px-4 py-3">
                           {grade ? (
                             <Link href={`/weeks/${cohort.slug}/${kind}`} className="block hover:underline">
+                              <ReadoutBubble
+                                kind={kind}
+                                quotes={cohort.quotes}
+                                primary={call.primary}
+                                direction={call.direction}
+                              />
                               <span className="mt-1 block max-w-32">
                                 <GcTube score={grade.score} grade={gcGrade(grade)} variant="mini" showMeta={false} />
                               </span>
@@ -157,10 +225,11 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
               </tbody>
             </table>
           </div>
+          </>
         )}
         {pending.length > 0 ? (
           <div className="mt-3">
-            <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pending.length} />
+            <PendingSettleLink href={`/weeks/${cohort.slug}/pending`} waiting={pending.length} closure={closure} />
           </div>
         ) : null}
       </section>

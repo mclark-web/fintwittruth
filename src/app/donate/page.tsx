@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, LegalSection } from "@/components/legal-page";
-import { CORRECTIONS_EMAIL } from "@/lib/legal";
+import { disputeEmail } from "@/lib/dispute";
 
 export const metadata: Metadata = {
   title: "Donate",
@@ -73,7 +73,7 @@ export default function DonatePage() {
         <p>
           The calendar stays the same whether or not anyone gives: posts from Wednesday at 12:00 PM
           America/New_York through Sunday at 5:00 PM America/New_York, graded on the Monday regular-session open
-          and at Monday, Wednesday, and Friday noon. A closed session stays blank. Outcomes are recorded market
+          at Monday noon, and at the Wednesday and Friday official closes. A closed session stays blank. Outcomes are recorded market
           prints, including VIX. The shipped posts are a labeled demo.
           Only public posts belong on the board. GradedCalls FinTwit is not affiliated with X or Twitter.
         </p>
@@ -89,11 +89,20 @@ export default function DonatePage() {
 
       <LegalSection id="contact" title="Questions">
         <p>
-          Write to{" "}
-          <a className="text-pine underline-offset-4 hover:underline" href={`mailto:${CORRECTIONS_EMAIL}`}>
-            {CORRECTIONS_EMAIL}
-          </a>{" "}
-          about a wrong print or a wrong grade. That address is a placeholder, not a live donations desk.
+          Use the{" "}
+          <Link href="/dispute" className="text-pine underline-offset-4 hover:underline">
+            dispute form
+          </Link>
+          {disputeEmail() ? (
+            <>
+              {" "}
+              or write{" "}
+              <a className="text-pine underline-offset-4 hover:underline" href={`mailto:${disputeEmail()}`}>
+                {disputeEmail()}
+              </a>
+            </>
+          ) : null}{" "}
+          about a wrong print or a wrong grade. This is not a donations desk.
         </p>
       </LegalSection>
     </LegalPage>

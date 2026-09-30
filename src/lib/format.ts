@@ -24,6 +24,19 @@ export function formatDay(date: Date | string): string {
   }).format(value);
 }
 
+/** America/New_York calendar date, YYYY-MM-DD. */
+export function etYmd(date: Date | string): string {
+  const value = typeof date === "string" ? new Date(date) : date;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(value);
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
 export function formatShortDay(date: Date | string): string {
   const value = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("en-US", {
@@ -37,6 +50,23 @@ export function formatPct(value: number, digits = 2): string {
   const pct = value * 100;
   const sign = pct > 0 ? "+" : "";
   return `${sign}${pct.toFixed(digits)}%`;
+}
+
+/** One decimal from the call-time reference. Positive uses `+`; negative uses a minus sign. */
+export function formatSignedPct(value: number): string {
+  const rounded = Math.round(value * 1000) / 10;
+  const body = Math.abs(rounded).toFixed(1);
+  if (rounded > 0) return `+${body}%`;
+  if (rounded < 0) return `\u2212${body}%`;
+  return "0.0%";
+}
+
+/** ▲ when the rounded move is up, ▼ when it is down. The hue is decided separately. */
+export function moveArrow(value: number): "▲" | "▼" | "" {
+  const rounded = Math.round(value * 1000) / 10;
+  if (rounded > 0) return "▲";
+  if (rounded < 0) return "▼";
+  return "";
 }
 
 export function formatPrice(value: number): string {

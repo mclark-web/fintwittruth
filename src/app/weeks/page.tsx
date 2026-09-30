@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { formatShortDay, formatWhen } from "@/lib/format";
-import { gcBoardGrade } from "@/lib/grades";
+import { etYmd } from "@/lib/format";
+import { gcBoardGrade, LABOR_DAY_UNGRADED_LINE, UNGRADED_HORIZON, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohortList } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
@@ -10,7 +11,7 @@ import { READOUTS } from "@/lib/scoring";
 export const metadata: Metadata = {
   title: "Weeks",
   description:
-    "Every GradedCalls FinTwit cohort, with Monday gap, Monday noon, Wednesday, and Friday grades on the same calls.",
+    "Every GradedCalls FinTwit cohort, with Monday gap, Monday noon, Wed close, and Fri close grades on the same calls.",
 };
 
 export default async function WeeksPage() {
@@ -29,7 +30,12 @@ export default async function WeeksPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-muted">
-                    {cohort.isLatest ? "Latest · demo" : "Demo"} · week of {formatShortDay(cohort.mondayAt)}
+                    {cohort.dataset === "live"
+                      ? cohort.isLatest
+                        ? "Latest · verified"
+                        : "Verified"
+                      : "Demo"}{" "}
+                    · week of {formatShortDay(cohort.mondayAt)}
                   </p>
                   <h2 className="mt-1 font-serif text-3xl text-ink">
                     <Link href={`/weeks/${cohort.slug}`} className="hover:underline">
@@ -46,26 +52,40 @@ export default async function WeeksPage() {
                 {READOUTS.map((kind) => {
                   const avg = cohort.averages[kind];
                   const settled = cohort.statuses[kind] === "published" && avg != null;
-                  const calibration = settled && avg != null ? gcBoardGrade([avg]) : { fill: 0, grade: "exit" as const };
+                  const calibration = settled && avg != null ? gcBoardGrade([avg]) : null;
+                  const graded = calibration && !calibration.ungraded ? calibration : null;
+                  const waitingLine = ungradedHorizonLine({
+                    kind,
+                    sessionYmd: etYmd(cohort.mondayAt),
+                    time: READOUT_META[kind].time,
+                  });
                   return (
                     <li key={kind}>
                       <Link
                         href={settled ? `/weeks/${cohort.slug}/${kind}` : `/weeks/${cohort.slug}/pending`}
                         className="block rounded-xl border border-line bg-sheet px-3 py-3 hover:border-pine"
                       >
-                        <span className="text-[11px] uppercase tracking-wide text-muted">
-                          {READOUT_META[kind].label} · {READOUT_META[kind].role}
+                        <span className="text-xs tracking-wide text-[#9a9aa3]">
+                          {READOUT_META[kind].short} · {READOUT_META[kind].time}
                         </span>
                         <span className="mt-2 block">
-                          <GcTube score={calibration.fill} grade={calibration.grade} variant="mini" showMeta={false} />
+                          <GcTube
+                            score={graded ? graded.fill : 0}
+                            grade={graded ? graded.grade : "exit"}
+                            variant="mini"
+                            showMeta={false}
+                            ungraded={!settled}
+                          />
                         </span>
-                        <span className="mt-2 block font-mono text-2xl text-ink">
-                          {settled ? `${Math.round(calibration.fill)}%` : "EXIT LIQUIDITY"}
+                        <span className={`mt-2 block font-mono text-2xl ${settled ? "text-ink" : "text-[#9a9aa3]"}`}>
+                          {settled && graded ? `${Math.round(graded.fill)}%` : UNGRADED_HORIZON}
                         </span>
-                        <span className="text-xs text-muted">
+                        <span className="mt-1 block text-xs text-muted">
                           {settled
                             ? `On the board · ${READOUT_META[kind].time}`
-                            : `Off the board until ${READOUT_META[kind].time}`}
+                            : waitingLine === LABOR_DAY_UNGRADED_LINE
+                              ? waitingLine
+                              : `Off the board until ${READOUT_META[kind].time}`}
                         </span>
                       </Link>
                     </li>

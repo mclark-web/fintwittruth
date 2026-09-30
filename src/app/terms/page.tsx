@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, LegalSection } from "@/components/legal-page";
-import { CORRECTIONS_EMAIL } from "@/lib/legal";
+import { disputeEmail } from "@/lib/dispute";
 
 export const metadata: Metadata = {
   title: "Terms",
@@ -30,7 +30,7 @@ export default function TermsPage() {
       <LegalSection id="service" title="What the service is">
         <p>
           GradedCalls FinTwit publishes a weekly scoreboard. It collects one cohort of bullish and bearish calls,
-          then grades that same cohort at the Monday open and at Monday, Wednesday, and Friday noon. It is a
+          then grades that same cohort at the Monday open, at Monday noon, and at the Wednesday and Friday closes. It is a
           reading of public commentary against recorded market prints. It is not a broker, a signal service, or
           a feed sold by the post.
         </p>
@@ -42,10 +42,11 @@ export default function TermsPage() {
           The posts in that window are one cohort. The cohort does not grow after Sunday.
         </p>
         <p>
-          Readouts on that same cohort: Monday at 9:30 AM America/New_York (the gap, from Friday&apos;s adjusted
-          close to the regular-session open), then Monday, Wednesday, and Friday at 12:00 PM America/New_York.
-          Wednesday at 12:00 PM also opens the next collect window. That is a new cohort. The Wednesday grade
-          still belongs to the book that closed the previous Sunday. A closed session stays blank.
+          Readouts on that same cohort: Monday at 9:30 AM America/New_York (the gap, from Friday&apos;s regular-session
+          close to the regular-session open), Monday at 12:00 PM America/New_York, then the Wednesday and Friday
+          official closes at 4:00 PM America/New_York (1:00 PM on an early-close day). Wednesday at 12:00 PM also
+          opens the next collect window. That is a new cohort. The Wednesday close still belongs to the book that
+          closed the previous Sunday. A closed session stays blank.
         </p>
       </LegalSection>
 
@@ -65,11 +66,12 @@ export default function TermsPage() {
 
       <LegalSection id="data" title="Demo posts, real outcomes">
         <p>
-          This deployment is a labeled demo. Handles and wording in the seed are fictional. They are not quotes
+          The latest week grades verified public posts from the live book. Each of those cards links its source.
+          The other cohorts are a labeled demo. Those handles and posts are fictional. They are not quotes
           from real people. Market outcomes are not fictional. A published grade uses the recorded print for
           that evaluation date: the prior Friday regular-session close as the weekend reference, the
-          regular-session open for Monday&apos;s gap, and the 12:00 PM ET print on Monday, Wednesday, and Friday
-          when the cash market is open. VIX is part of every published grade. A closed session stays blank. A
+          regular-session open for Monday&apos;s gap, the 12:00 PM ET print on Monday, and the official close on
+          Wednesday and Friday when the cash market is open. VIX is part of every published grade. A closed session stays blank. A
           future session stays blank. Missing history is not filled in.
         </p>
       </LegalSection>
@@ -77,8 +79,8 @@ export default function TermsPage() {
       <LegalSection id="marks" title="Scores and opinion labels">
         <p>
           Every published grade shows a score from 0 to 100 and a badge from 1 to 10. The tube fill is that
-          score. STRONG is the top 30% of the peer set and also a score of at least 70. WEAK is under 70.
-          PROVISIONAL is 70 or more outside that cut. EXIT LIQUIDITY is a 0% fill. Those labels are the GC
+          score. STRONG is 70 or more. WEAK is under 40. PROVISIONAL is 40 or more and under 70. EXIT
+          LIQUIDITY is a 0% fill. Those labels are the GC
           Scale: opinions about a past call under the published formula. They are not statements of fact
           about a person’s character, and they are not a recommendation to follow or fade that person.
         </p>
@@ -113,12 +115,20 @@ export default function TermsPage() {
 
       <LegalSection id="corrections" title="Corrections">
         <p>
-          If a print, a grade, or a page is wrong, write to{" "}
-          <a className="text-pine underline-offset-4 hover:underline" href={`mailto:${CORRECTIONS_EMAIL}`}>
-            {CORRECTIONS_EMAIL}
-          </a>
-          . That address is a placeholder. It is not a monitored inbox until it is replaced after legal review.
-          A correction can change a published grade when the underlying print or post was recorded wrong. It
+          If a print, a grade, or a page is wrong, use the{" "}
+          <Link href="/dispute" className="text-pine underline-offset-4 hover:underline">
+            dispute form
+          </Link>
+          {disputeEmail() ? (
+            <>
+              {" "}
+              or write{" "}
+              <a className="text-pine underline-offset-4 hover:underline" href={`mailto:${disputeEmail()}`}>
+                {disputeEmail()}
+              </a>
+            </>
+          ) : null}
+          . A correction can change a published grade when the underlying print or post was recorded wrong. It
           does not exist to renegotiate a score you dislike.
         </p>
       </LegalSection>

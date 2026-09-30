@@ -10,11 +10,13 @@ import {
   type CallSpec,
   type CohortSpec,
 } from "./demo-data";
+import { assertLiveFile, type LiveCallRecord, type LiveCohortRecord } from "./live-book";
 import { quotesForCohort, sessionFor } from "./quotes";
 import {
   CONVICTION_WEIGHT,
   EQUITY_TAPE,
   READOUTS,
+  STRONG_LINE,
   consensusDirection,
   equityTapeMove,
   gradeNote,
@@ -68,6 +70,8 @@ export type BuiltCall = {
   tickers: string[];
   levels: Level[];
   explicit: boolean;
+  sourceUrl: string;
+  toneLabel: string;
 };
 
 export type BuiltGrade = {
@@ -116,7 +120,8 @@ export type BuiltCohort = {
   wednesdayAt: Date;
   fridayAt: Date;
   isLatest: boolean;
-  dataset: "demo";
+  dataset: "demo" | "live";
+  historySlug: string;
   quotes: BuiltQuote[];
   calls: BuiltCall[];
   grades: BuiltGrade[];
@@ -147,7 +152,11 @@ function readoutNarrative(input: {
   const lean = `${Math.round(input.bullishShare * 100)}% conviction-weighted bullish`;
   if (input.status === "scheduled") {
     const closed = input.sessionReason ? ` ${input.sessionReason}` : "";
-    return `${input.whenLabel} is not published.${closed} The book is already ${lean}. No new calls are added between readouts.`;
+    const buffer =
+      (input.kind === "wednesday" || input.kind === "friday") && !input.sessionReason
+        ? " Settlement runs 45 minutes after the official close, once the daily bar is posted."
+        : "";
+    return `${input.whenLabel} is not published.${closed}${buffer} The book is already ${lean}. No new calls are added between readouts.`;
   }
   const pct = `${input.move >= 0 ? "+" : ""}${(input.move * 100).toFixed(2)}%`;
   const sessionNote = input.sessionReason ? ` ${input.sessionReason}` : "";
@@ -202,8 +211,54 @@ function buildCalls(
       tickers,
       levels,
       explicit: call.explicit,
+      sourceUrl: "",
+      toneLabel: "",
     };
   });
+}
+
+function liveCalls(spec: LiveCohortRecord, cohortId: string): BuiltCall[] {
+  return spec.calls.map((call) => ({
+    id: call.id,
+    cohortId,
+    accountId: `acct_${call.handle}`,
+    handle: call.handle,
+    postedAt: new Date(call.postedAt),
+    body: call.body,
+    direction: call.direction,
+    conviction: call.conviction,
+    primary: call.primary,
+    sentiment: call.sentiment,
+    engagement: call.engagement,
+    tickers: call.tickers,
+    levels: call.levels,
+    explicit: call.explicit,
+    sourceUrl: call.sourceUrl,
+    toneLabel: call.toneLabel,
+  }));
+}
+
+type CohortRow = {
+  slug: string;
+  historySlug: string;
+  title: string;
+  summary: string;
+  monday: CohortSpec["monday"];
+  isLatest: boolean;
+  dataset: "demo" | "live";
+  makeCalls: (cohortId: string, collectStart: Date, refs: Record<string, number>) => BuiltCall[];
+};
+
+function liveAccount(call: LiveCallRecord): BuiltAccount {
+  return {
+    id: `acct_${call.handle}`,
+    handle: call.handle,
+    displayName: call.displayName,
+    bio: call.bio,
+    posture: call.posture,
+    accent: call.accent,
+    bucket: call.bucket,
+  };
 }
 
 function consensus(calls: CallSpec[] | BuiltCall[]) {
@@ -234,10 +289,54 @@ export function buildDataset(): BuiltDataset {
     bucket: account.bucket ?? "watchlist",
   }));
 
-  const cohorts = COHORTS.map((spec) => {
+  const live = assertLiveFile();
+  const demoHandles = new Set(ACCOUNTS.map((account) => account.handle));
+  for (const cohort of live) {
+    for (const call of cohort.calls) {
+      if (demoHandles.has(call.handle)) {
+        throw new Error(`@${call.handle} is already a demo handle. Refusing to mix it into the live book.`);
+      }
+      if (!accounts.some((account) => account.handle === call.handle)) {
+        accounts.push(liveAccount(call));
+      }
+    }
+  }
+  const newestLive = live.reduce(
+    (best, cohort) => {
+      const key = cohort.monday.year * 10000 + cohort.monday.month * 100 + cohort.monday.day;
+      return key >= best.key ? { key, slug: cohort.slug } : best;
+    },
+    { key: 0, slug: "" },
+  ).slug;
+
+  const rows: CohortRow[] = [
+    ...COHORTS.map((spec) => ({
+      slug: spec.slug,
+      historySlug: spec.historySlug ?? spec.slug,
+      title: spec.title,
+      summary: spec.summary,
+      monday: spec.monday,
+      isLatest: false,
+      dataset: "demo" as const,
+      makeCalls: (cohortId: string, collectStart: Date, refs: Record<string, number>) =>
+        buildCalls(spec, cohortId, collectStart, refs),
+    })),
+    ...live.map((spec) => ({
+      slug: spec.slug,
+      historySlug: spec.historySlug,
+      title: spec.title,
+      summary: spec.summary,
+      monday: spec.monday,
+      isLatest: spec.slug === newestLive,
+      dataset: "live" as const,
+      makeCalls: (cohortId: string) => liveCalls(spec, cohortId),
+    })),
+  ];
+
+  const cohorts = rows.map((spec) => {
     const window = buildCohortWindow(spec.monday);
     const id = `cohort_${spec.slug}`;
-    const quotes: BuiltQuote[] = quotesForCohort(spec.slug, SYMBOLS).map((quote) => ({
+    const quotes: BuiltQuote[] = quotesForCohort(spec.historySlug, SYMBOLS).map((quote) => ({
       id: `${spec.slug}__${quote.symbol}`,
       cohortId: id,
       symbol: quote.symbol,
@@ -253,21 +352,21 @@ export function buildDataset(): BuiltDataset {
       for (const price of [quote.ref, quote.mondayOpen, quote.monday, quote.wednesday, quote.friday]) {
         if (price != null && price < 700) {
           throw new Error(
-            `Refusing SPY ${price} on ${spec.slug}. That is not a 2026 historical print.`,
+            `Refusing SPY ${price} on ${spec.historySlug}. That is not a 2026 historical print.`,
           );
         }
       }
     }
     const refs = Object.fromEntries(quotes.map((quote) => [quote.symbol, quote.ref]));
-    const calls = buildCalls(spec, id, window.collectStart, refs);
+    const calls = spec.makeCalls(id, window.collectStart, refs);
     const lean = consensus(calls);
     const grades: BuiltGrade[] = [];
     const readouts: BuiltReadout[] = READOUTS.map((kind) => {
       const whenLabel = {
         "monday-gap": "Monday gap, Friday regular-session close to the 9:30 AM ET open",
         monday: "Monday 12:00 PM ET weekend-noise grade",
-        wednesday: "Wednesday 12:00 PM ET update on the same weekend cohort",
-        friday: "Friday 12:00 PM ET final grade on the same weekend cohort",
+        wednesday: "Wednesday close, same weekend cohort",
+        friday: "Friday close, final grade on the same weekend cohort",
       }[kind];
       const priceOf = (symbol: string) => {
         const quote = quotes.find((item) => item.symbol === symbol);
@@ -276,8 +375,8 @@ export function buildDataset(): BuiltDataset {
       const needed = [...EQUITY_TAPE, "VIX", ...calls.map((call) => call.primary)];
       const published = needed.every((symbol) => priceOf(symbol) != null);
       const sessionKind = kind === "monday-gap" ? "monday" : kind;
-      const session = sessionFor(spec.slug, sessionKind);
-      const sessionReason = session?.session === "closed" ? session.reason : undefined;
+      const session = sessionFor(spec.historySlug, sessionKind);
+      const sessionReason = session?.reason;
       const noise = weekendNoise(calls.map((call) => call.sentiment));
 
       if (!published) {
@@ -354,8 +453,7 @@ export function buildDataset(): BuiltDataset {
           score: row.parts.score,
         })),
       );
-      const strongScores = ranked.filter((row) => row.isStrong).map((row) => row.score);
-      const strongCutoff = strongScores.length ? Math.min(...strongScores) : 0;
+      const strongCutoff = STRONG_LINE;
 
       for (const row of ranked) {
         grades.push({
@@ -416,8 +514,9 @@ export function buildDataset(): BuiltDataset {
       title: spec.title,
       summary: spec.summary,
       ...window,
-      isLatest: Boolean(spec.isLatest),
-      dataset: "demo" as const,
+      isLatest: spec.isLatest,
+      dataset: spec.dataset,
+      historySlug: spec.historySlug,
       quotes,
       calls,
       grades,

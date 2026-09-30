@@ -7,7 +7,7 @@ export default function NotFound() {
       <p className="text-xs uppercase tracking-wide text-muted">404</p>
       <h1 className="mt-2 font-serif text-4xl text-ink">That page is not on the board.</h1>
       <p className="mt-3 text-muted">The cohort, account, or call may be outside this demo.</p>
-      <Link href="/" className="mt-6 inline-block rounded-full bg-pine px-5 py-2.5 text-sm text-lime">
+      <Link href="/" className="mt-6 inline-flex min-h-11 items-center rounded-full bg-pine px-5 text-sm text-lime">
         Back to {PRODUCT_NAME}
       </Link>
     </div>

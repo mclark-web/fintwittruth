@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
+import { etYmd } from "@/lib/format";
+import { pendingClosure, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 
@@ -33,7 +35,7 @@ export default async function PendingPage() {
       <h1 className="mt-4 font-serif text-4xl text-ink">Pending settle</h1>
       <p className="mt-3 max-w-3xl text-muted">
         These horizons are not on the home tape, the weekly boards, or the leaderboards. A call joins those
-        rankings after Monday&apos;s open, Monday noon, Wednesday, or Friday settles. This page is the waiting
+        rankings after Monday&apos;s open, Monday noon, the Wednesday close, or the Friday close settles. This page is the waiting
         list, not a score.
       </p>
       {waiting.length === 0 ? (
@@ -46,11 +48,19 @@ export default async function PendingPage() {
         </p>
       ) : (
         <ul className="mt-8 grid gap-4">
-          {waiting.map(({ cohort, pending, settled }) => (
+          {waiting.map(({ cohort, pending, settled }) => {
+            const closure = pendingClosure(pending, cohort);
+            const status =
+              settled.length === 0
+                ? "No settled grade yet"
+                : closure.closed > 0 && closure.upcoming === 0
+                  ? `${settled.length} settled · ${pending.length} not graded`
+                  : `${settled.length} settled · ${pending.length} waiting`;
+            return (
             <li key={cohort.slug}>
               <article className="panel p-5">
                 <p className="text-xs uppercase tracking-wide text-muted">
-                  {settled.length === 0 ? "No settled grade yet" : `${settled.length} settled · ${pending.length} waiting`}
+                  {status}
                 </p>
                 <h2 className="mt-1 font-serif text-3xl text-ink">
                   <Link href={`/weeks/${cohort.slug}/pending`} className="hover:underline">
@@ -61,18 +71,25 @@ export default async function PendingPage() {
                 <ul className="mt-4 grid gap-2 sm:grid-cols-2">
                   {pending.map((kind) => (
                     <li key={kind} className="rounded-xl border border-line bg-sheet px-3 py-3">
-                      <p className="text-[11px] uppercase tracking-wide text-muted">{READOUT_META[kind].role}</p>
+                      <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{READOUT_META[kind].role}</p>
                       <p className="mt-1 font-serif text-xl text-ink">{READOUT_META[kind].label}</p>
                       <div className="mt-2 max-w-40">
-                        <GcTube score={0} grade="exit" variant="mini" showMeta={false} />
+                        <GcTube score={0} grade="exit" variant="mini" showMeta={false} ungraded />
                       </div>
-                      <p className="mt-2 text-sm text-muted">0% · EXIT LIQUIDITY · off the board until {READOUT_META[kind].time}</p>
+                      <p className="mt-2 text-sm text-[#9a9aa3]">
+                        {ungradedHorizonLine({
+                          kind,
+                          sessionYmd: etYmd(cohort.mondayAt),
+                          time: READOUT_META[kind].time,
+                        })}
+                      </p>
                     </li>
                   ))}
                 </ul>
               </article>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>

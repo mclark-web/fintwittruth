@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "cohorts": [
+    {
+      "slug": "2026-09-21",
+      "historySlug": "2026-09-21",
+      "title": "Verified weekend book",
+      "summary": "Public posts from Wednesday, September 16, 2026 at noon ET through Sunday, September 20 at 5pm ET. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Fictional demo posts are on the demo board. Monday noon is recorded, and Wednesday is the official September 23 close. Friday, September 25 had not reached the post-close buffer at fetch time.",
+      "monday": { "year": 2026, "month": 9, "day": 21 },
+      "calls": [
+        {
+          "id": "2026-09-21__smtraderca",
+          "handle": "smtraderca",
+          "displayName": "The Pulse Of The Market",
+          "bio": "Verified public Substack post. The card quotes the post and links the canonical URL.",
+          "posture": "Cautious pullback",
+          "accent": "#9f1239",
+          "bucket": "watchlist",
+          "postedAt": "2026-09-20T04:52:42.466Z",
+          "sourceUrl": "https://smtraderca.substack.com/p/weekly-market-review-9192026",
+          "direction": "bearish",
+          "conviction": "medium",
+          "primary": "SPY",
+          "sentiment": "panic",
+          "toneLabel": "Pullback",
+          "engagement": 0,
+          "tickers": ["SPX", "NDX"],
+          "explicit": true,
+          "levels": [],
+          "body": "I hope you have picked up the cautionary messages as you were read through this weekly review. It appears the market is preparing for additional pullback. The market internals are flashing signs of weakness. All the major indexes other than SPX and NDX are in a near term downtrend pattern.",
+          "verification": "Fetched 2026-09-22 from the canonical Substack URL. Publication post_date 2026-09-20T04:52:42.466Z (Sunday 12:52 AM ET), inside the Wednesday 12:00 PM ET through Sunday 5:00 PM ET collect window. Excerpt is contiguous public text. Graded on the SPY/QQQ/DIA tape because the post names SPX and the major indexes. No price level was stated, so none is stored."
+        },
+        {
+          "id": "2026-09-21__piggostradingdesk",
+          "handle": "piggostradingdesk",
+          "displayName": "Piggo's Trading Desk",
+          "bio": "Verified public Substack post. The card quotes the post and links the canonical URL.",
+          "posture": "Short-term pressure",
+          "accent": "#9a3412",
+          "bucket": "watchlist",
+          "postedAt": "2026-09-17T01:00:10.179Z",
+          "sourceUrl": "https://piggostradingdesk.substack.com/p/tomorrows-market-picks-september-905",
+          "direction": "bearish",
+          "conviction": "medium",
+          "primary": "SPY",
+          "sentiment": "panic",
+          "toneLabel": "Pullback",
+          "engagement": 0,
+          "tickers": [],
+          "explicit": false,
+          "levels": [],
+          "body": "Major indexes remain near elevated levels but are facing increased short-term pressure as the 10-Year Treasury Yield moves above 5%. The combination of a 5.01% Treasury yield, elevated energy prices, increased volatility, geopolitical uncertainty, and stretched valuations increases the probability of continued sector rotation, profit-taking, and short-term pullbacks rather than uninterrupted market advances.",
+          "verification": "Fetched 2026-09-22 from the canonical Substack URL. Publication post_date 2026-09-17T01:00:10.179Z (Wednesday 9:00 PM ET), inside the collect window. Excerpt is contiguous public text. The post does not name SPY, QQQ, or DIA, so ticker specificity stays at zero. Primary print for the tape grade is SPY. No stated index level is stored."
+        }
+      ]
+    }
+  ]
+}

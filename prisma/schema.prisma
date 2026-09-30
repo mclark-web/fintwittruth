@@ -67,6 +67,8 @@ model Call {
   tickersJson String
   levelsJson  String
   explicit    Boolean
+  sourceUrl   String   @default("")
+  toneLabel   String   @default("")
   cohort      Cohort   @relation(fields: [cohortId], references: [id], onDelete: Cascade)
   account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
   grades      Grade[]
