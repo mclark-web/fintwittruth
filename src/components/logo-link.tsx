@@ -31,7 +31,7 @@ export function LogoLink() {
           backgroundColor: "transparent",
         }}
       />
-      <span className="hidden text-[17px] font-semibold tracking-tight text-ink min-[480px]:inline">
+      <span className="hidden text-[17px] font-semibold tracking-tight text-ink min-[560px]:inline">
         Graded<span className="text-[#eb6505]">Calls</span>
       </span>
     </a>
