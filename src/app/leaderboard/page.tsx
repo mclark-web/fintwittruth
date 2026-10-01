@@ -161,7 +161,7 @@ export default async function LeaderboardPage() {
         </Link>{" "}
         page.
       </p>
-      <div className="mt-3">
+      <div className="mt-7">
         <PendingSettleLink href="/pending" />
       </div>
       <Board
