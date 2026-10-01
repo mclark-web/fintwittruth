@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { DisputeError, submitDispute } from "@/lib/dispute";
-import { IntakeStoreError } from "@/lib/intake-store";
+import { IntakeStoreError, isOperatorStorageMessage } from "@/lib/intake-store";
 
 export async function submitDisputeAction(formData: FormData) {
   const callId = String(formData.get("callId") ?? "");
@@ -21,7 +21,12 @@ export async function submitDisputeAction(formData: FormData) {
     redirect(`${back}&notice=${encodeURIComponent(notice)}`);
   } catch (error) {
     if (error instanceof DisputeError || error instanceof IntakeStoreError) {
-      redirect(`${back}&error=${encodeURIComponent(error.message)}`);
+      const message = error.message;
+      if (isOperatorStorageMessage(message)) {
+        console.error(message);
+        redirect(`${back}&error=${encodeURIComponent("This dispute could not be saved.")}`);
+      }
+      redirect(`${back}&error=${encodeURIComponent(message)}`);
     }
     throw error;
   }

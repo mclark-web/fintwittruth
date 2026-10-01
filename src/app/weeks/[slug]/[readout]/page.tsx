@@ -156,7 +156,7 @@ export default async function ReadoutPage({
           </h2>
         )}
         <p className="mb-4 max-w-3xl text-sm text-muted">
-          STRONG is 70% or more. WEAK is under 40%. PROVISIONAL is 40% or more and under 70%. 0% is EXIT LIQUIDITY. Watchlist and viral posts share this weekly board.
+          Watchlist and viral posts share this weekly board.
         </p>
         {pendingCount > 0 ? (
           <div className="mb-4">

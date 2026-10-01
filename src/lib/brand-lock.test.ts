@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import test from "node:test";
-import { GC_GRADE_LABEL } from "./grades";
-import { GC_FACTOR } from "./labels";
+import { GC_GRADE_LABEL, UNGRADED_HORIZON } from "./grades";
+import { GC_FACTOR, GC_SCALE_BANDS } from "./labels";
+import { UNCONFIGURED_DETAIL, UNCONFIGURED_PUBLIC } from "./intake-store";
 
 const root = join(import.meta.dirname, "..", "..");
 const hubHref = 'href="https://' + "char" + 'oof.vercel.app"';
@@ -28,7 +29,7 @@ test("the tube label is GC Scale and the pills stay uppercase", () => {
   });
 });
 
-test("user-facing copy keeps one GC expansion and none of the retired names", () => {
+test("user-facing copy does not expand the scale name and has none of the retired names", () => {
   const banned = ["cha" + "d", "chu" + "d", "char" + "oof", "ch-" + "factor"].map(
     (word) => new RegExp(word, "i"),
   );
@@ -45,11 +46,9 @@ test("user-facing copy keeps one GC expansion and none of the retired names", ()
     }
     const count = text.split(expansion).length - 1;
     expansions += count;
-    if (count > 0 && rel !== join("src", "app", "methodology", "page.tsx")) {
-      hits.push(`${rel} expands the scale name`);
-    }
+    if (count > 0) hits.push(`${rel} expands the scale name`);
   }
-  assert.equal(expansions, 1);
+  assert.equal(expansions, 0);
   assert.deepEqual(hits, []);
 
   const tube = readFileSync(join(root, "src", "app", "gc-scale.css"), "utf8");
@@ -121,4 +120,46 @@ test("the logo link href is the Hub in the same tab", () => {
   assert.equal(mark[25], 6, "mark PNG color type is RGBA");
   assert.ok(mark.length < 80_000, `mark is ${mark.length} bytes`);
   assert.equal(existsSync(join(root, "public", "gradedcalls-lockup.png")), false);
+});
+
+test("GC Scale band copy is the short legend", () => {
+  assert.equal(
+    GC_SCALE_BANDS,
+    `${GC_FACTOR}: STRONG 70%+, PROVISIONAL 40–69%, WEAK under 40%; 0% is EXIT LIQUIDITY.`,
+  );
+  assert.equal(GC_SCALE_BANDS.includes("–"), true);
+
+  const board = readFileSync(join(root, "src", "components", "fintwit-board.tsx"), "utf8");
+  assert.match(board, /GC_SCALE_BANDS/);
+  assert.doesNotMatch(board, /empty glass/);
+  assert.doesNotMatch(board, /horizontal tube fills/);
+
+  const readout = readFileSync(join(root, "src", "app", "weeks", "[slug]", "[readout]", "page.tsx"), "utf8");
+  assert.doesNotMatch(readout, /STRONG is 70% or more/);
+  assert.match(readout, /Watchlist and viral posts share this weekly board/);
+
+  const method = readFileSync(join(root, "src", "app", "methodology", "page.tsx"), "utf8");
+  assert.match(method, /EXIT LIQUIDITY at a graded 0/);
+  assert.match(method, /A 1–10 badge sits beside the fill\./);
+  assert.match(method, /UNGRADED_HORIZON/);
+  assert.equal(UNGRADED_HORIZON, "Not graded yet");
+  assert.doesNotMatch(method, /0–9 is badge 1/);
+  assert.equal(method.includes("Grade " + "Calibration"), false);
+  assert.doesNotMatch(method, /The badge runs from 1 to 10/);
+
+  const leader = readFileSync(join(root, "src", "app", "leaderboard", "page.tsx"), "utf8");
+  assert.doesNotMatch(leader, /STRONG is 70 or more/);
+  assert.match(leader, /href="\/methodology"/);
+
+  const pending = readFileSync(join(root, "src", "app", "pending", "page.tsx"), "utf8");
+  assert.match(pending, /UNGRADED_HORIZON/);
+  assert.doesNotMatch(pending, /not graded"/);
+  assert.doesNotMatch(pending, /\$\{pending\.length\} not graded/);
+
+  const watchlist = readFileSync(join(root, "src", "app", "watchlist", "page.tsx"), "utf8");
+  assert.match(watchlist, /UNCONFIGURED_PUBLIC/);
+  assert.doesNotMatch(watchlist, /loaded\.detail/);
+  assert.doesNotMatch(watchlist, /BLOB_READ_WRITE_TOKEN/);
+  assert.equal(UNCONFIGURED_PUBLIC.includes("BLOB"), false);
+  assert.equal(UNCONFIGURED_DETAIL.includes("BLOB_READ_WRITE_TOKEN"), true);
 });

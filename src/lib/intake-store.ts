@@ -21,6 +21,13 @@ export type IntakeStore = {
 export const UNCONFIGURED_DETAIL =
   "Persistent intake storage is not configured. On Vercel, create a Blob store and set BLOB_READ_WRITE_TOKEN. Locally, posts are saved to data/intake-book.json when VERCEL is unset.";
 
+/** Public copy when intake storage is not configured. Never include setup steps or env names. */
+export const UNCONFIGURED_PUBLIC = "No verified real calls yet.";
+
+export function isOperatorStorageMessage(message: string): boolean {
+  return message === UNCONFIGURED_DETAIL || message.includes("BLOB_READ_WRITE_TOKEN");
+}
+
 const BLOB_PATH = "intake/book.json";
 
 export function normalizeBook(value: unknown): IntakeBook {

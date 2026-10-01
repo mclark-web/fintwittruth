@@ -3,7 +3,7 @@ import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { etYmd } from "@/lib/format";
-import { pendingClosure, ungradedHorizonLine } from "@/lib/grades";
+import { UNGRADED_HORIZON, pendingClosure, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 
@@ -50,17 +50,23 @@ export default async function PendingPage() {
         <ul className="mt-8 grid gap-4">
           {waiting.map(({ cohort, pending, settled }) => {
             const closure = pendingClosure(pending, cohort);
-            const status =
-              settled.length === 0
-                ? "No settled grade yet"
-                : closure.closed > 0 && closure.upcoming === 0
-                  ? `${settled.length} settled · ${pending.length} not graded`
-                  : `${settled.length} settled · ${pending.length} waiting`;
+            const holidayClosed = closure.closed > 0 && closure.upcoming === 0;
             return (
             <li key={cohort.slug}>
               <article className="panel p-5">
                 <p className="text-xs uppercase tracking-wide text-muted">
-                  {status}
+                  {settled.length === 0 ? (
+                    "No settled grade yet"
+                  ) : holidayClosed ? (
+                    <>
+                      {settled.length} settled ·{" "}
+                      <span className="normal-case text-[#9a9aa3]">
+                        {pending.length} {UNGRADED_HORIZON}
+                      </span>
+                    </>
+                  ) : (
+                    `${settled.length} settled · ${pending.length} waiting`
+                  )}
                 </p>
                 <h2 className="mt-1 font-serif text-3xl text-ink">
                   <Link href={`/weeks/${cohort.slug}/pending`} className="hover:underline">
