@@ -13,4 +13,7 @@ export const READOUT_META: Record<
 /** User-facing name for the 0–100 fill. The STRONG and WEAK lines live in scoring.ts. */
 export const GC_FACTOR = "GC Scale";
 
+/** One-line band legend on the home board and week readout pages. Cutoffs stay 70 and 40. */
+export const GC_SCALE_BANDS = `${GC_FACTOR}: STRONG 70%+, PROVISIONAL 40–69%, WEAK under 40%; 0% is EXIT LIQUIDITY.`;
+
 export const DATA_MODE = process.env.NEXT_PUBLIC_DATA_MODE === "live" ? "live" : "demo";

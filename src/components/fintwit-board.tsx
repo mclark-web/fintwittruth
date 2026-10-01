@@ -4,7 +4,7 @@ import { CallCard } from "@/components/call-card";
 import { GcTube } from "@/components/gc-tube";
 import { CheckpointStrip, NoiseIndex, QuoteTape } from "@/components/market";
 import { closedHorizonNote, gcBoardGrade, gcGrade } from "@/lib/grades";
-import { GC_FACTOR } from "@/lib/labels";
+import { GC_SCALE_BANDS } from "@/lib/labels";
 import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
 
@@ -69,10 +69,7 @@ export function FinTwitBoard({
       </div>
 
       <div className="panel mt-4 grid items-center gap-5 p-4 md:grid-cols-[1.2fr_1fr]">
-        <p className="text-sm leading-relaxed text-muted">
-          {GC_FACTOR} for graded posts on this horizon. The horizontal tube fills left to right. STRONG is
-          70% or more. WEAK is under 40%. PROVISIONAL is 40% or more and under 70%. 0% is an empty glass.
-        </p>
+        <p className="text-sm leading-relaxed text-muted">{GC_SCALE_BANDS}</p>
         <GcTube
           score={calibration.fill}
           grade={boardGrade}

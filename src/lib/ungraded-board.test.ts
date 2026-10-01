@@ -150,6 +150,14 @@ test("Friday September 25 uses the official close", { skip: skipWithoutDb }, asy
   assert.doesNotMatch(html, /aria-label="0% GC Scale, EXIT LIQUIDITY"/);
 });
 
+test("the pending counter uses Not graded yet", { skip: skipWithoutDb }, async () => {
+  const { default: PendingPage } = await import("../app/pending/page");
+  const html = renderToStaticMarkup(await PendingPage());
+  assert.match(html, /2 settled · <span class="normal-case text-\[#9a9aa3\]">\s*2 Not graded yet\s*<\/span>/);
+  assert.doesNotMatch(html, /NOT GRADED/);
+  assert.doesNotMatch(html, />\s*\d+ not graded\s*</);
+});
+
 test("Labor Day Monday board tube stays ungraded and does not promise a print", { skip: skipWithoutDb }, async () => {
   const { default: FridayPage } = await import("../app/weeks/[slug]/[readout]/page");
   const { default: CohortPendingPage } = await import("../app/weeks/[slug]/pending/page");

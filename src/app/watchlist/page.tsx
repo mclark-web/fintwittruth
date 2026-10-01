@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { UNCONFIGURED_PUBLIC } from "@/lib/intake-store";
 import { loadRealCalls } from "@/lib/public-real";
 import { TRACKING_EMPTY, WATCHLIST, profileUrl } from "@/lib/watchlist";
 
@@ -29,7 +30,7 @@ export default async function WatchlistPage() {
         </Link>
       </p>
       {loaded.kind === "unconfigured" ? (
-        <p className="mt-4 max-w-3xl text-sm text-muted">{loaded.detail}</p>
+        <p className="mt-4 max-w-3xl text-sm text-muted">{UNCONFIGURED_PUBLIC}</p>
       ) : null}
       {loaded.error ? <p className="mt-4 text-sm text-bear">{loaded.error}</p> : null}
       <ul className="mt-8 grid gap-3 sm:grid-cols-2">

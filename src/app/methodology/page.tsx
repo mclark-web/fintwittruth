@@ -4,14 +4,12 @@ import { CalendarStrip } from "@/components/market";
 import { ReadoutBubble, ReferenceLine } from "@/components/score";
 import { settledReadoutKinds } from "@/lib/board";
 import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
-import { GradePill } from "@/components/gc-tube";
-import { GC_GRADE_LABEL, gcGrade } from "@/lib/grades";
+import { GC_GRADE_LABEL, UNGRADED_HORIZON, gcGrade } from "@/lib/grades";
 import { GC_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_ADJUSTMENT, PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { getCohort } from "@/lib/queries";
 import {
   STRONG_LINE,
-  WEAK_LINE,
   DIRECTION_BANDS,
   DIRECTION_MAX,
   LEVEL_MAX,
@@ -250,30 +248,10 @@ export default async function MethodologyPage() {
           {GC_FACTOR}
         </h2>
         <p className="mt-3 text-ink/80">
-          GC means Grade Calibration. The tube fill is the 0–100 score. The pill is an opinion about that past
-          call. The badge from 1 to 10 stays beside the fill.
+          {GC_FACTOR}: STRONG 70+, PROVISIONAL 40–69, WEAK under 40, EXIT LIQUIDITY at a graded 0. An ungraded
+          horizon reads <span className="text-[#9a9aa3]">{UNGRADED_HORIZON}</span>.
         </p>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-ink/80">
-          <li>
-            <GradePill grade="strong" /> is a score of {STRONG_LINE} or more. The line is the same on every
-            board. It does not move with the other calls.
-          </li>
-          <li>
-            <GradePill grade="weak" /> is a score under {WEAK_LINE}. The line is absolute.
-          </li>
-          <li>
-            <GradePill grade="provisional" /> is a score of {WEAK_LINE} or more and under {STRONG_LINE}. The
-            card still shows the fill.
-          </li>
-          <li>
-            <GradePill grade="exit" /> is a graded score of 0. The glass stays empty. A horizon that has
-            not been graded reads <span className="text-[#9a9aa3]">Not graded yet</span>.
-          </li>
-          <li>
-            The badge runs from 1 to 10. 0–9 is badge 1. 90–100 is badge 10. Each ten-point step lifts the
-            badge by one until that top band.
-          </li>
-        </ul>
+        <p className="mt-3 text-ink/80">A 1–10 badge sits beside the fill.</p>
       </section>
 
       <section className="mt-10" aria-labelledby="wni">
