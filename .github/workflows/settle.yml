@@ -22,16 +22,18 @@ jobs:
           cache: npm
       - run: npm install
       - run: npm run settle
+      - run: npm run calls:settle -- --write
+      - run: npm run calls:export
       - run: npm test
       - run: npm run accuracy
       - name: Commit settled closes
         run: |
-          if git diff --quiet -- src/lib/market-history.json; then
+          if git diff --quiet -- src/lib/market-history.json data/calls/calls.csv src/lib/live-calls.json; then
             echo "No due checkpoint changed."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/lib/market-history.json
+          git add src/lib/market-history.json data/calls/calls.csv src/lib/live-calls.json
           git commit -m "Settle due Wednesday and Friday closes from Yahoo."
           git push
