@@ -39,10 +39,15 @@ function unique(values: Iterable<string>): string[] {
   return [...new Set([...values].map((value) => value.toUpperCase()))];
 }
 
+/** Tickers and index tokens in a post, using the same cashtag and bare-word scan as the parser. */
+export function mentionedSymbols(text: string): string[] {
+  const cashtags = unique([...text.matchAll(new RegExp(CASHTAG.source, "g"))].map((match) => match[1] ?? ""));
+  const bare = unique([...text.matchAll(new RegExp(BARE.source, "g"))].map((match) => match[1] ?? ""));
+  return unique([...cashtags, ...bare]);
+}
+
 function symbolsIn(text: string): { symbols: string[]; reasons: string[] } {
-  const cashtags = unique([...text.matchAll(CASHTAG)].map((match) => match[1] ?? ""));
-  const bare = unique([...text.matchAll(BARE)].map((match) => match[1] ?? ""));
-  const symbols = unique([...cashtags, ...bare]);
+  const symbols = mentionedSymbols(text);
   const reasons: string[] = [];
   const nonVix = symbols.filter((symbol) => symbol !== "VIX");
   if (symbols.length === 0) {

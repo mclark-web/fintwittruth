@@ -86,6 +86,20 @@ Open [http://localhost:3000](http://localhost:3000).
 
 `npm install && npm run build` is enough for a production build. npm runs `prebuild` before `build`: Prisma generates the client, creates `prisma/fintwittruth.db`, and seeds it. Then `next build` prerenders the pages. A schema change on an existing demo file needs `npm run db:reset` first.
 
+## Calls ledger
+
+`data/calls/calls.csv` is the source of truth for the verified book and for each call's Monday 12:00 PM ET, Wednesday close, and Friday close grade. `npm run calls:export` rewrites `src/lib/live-calls.json` in the shape the site already reads. An unchanged CSV exports byte-identical JSON. Checkpoint columns stay in the CSV. The fictional demo book stays in `src/lib/demo-data.ts`.
+
+Weekly flow:
+
+1. Add or edit a row in `data/calls/calls.csv`. A new checkpoint stays `PENDING`. Keep the source URL and the post text.
+2. Run `npm run calls:validate`. The run fails on a duplicate id, a missing source URL, a graded row without the price at the call and the price at the checkpoint, a ticker or index the post did not name, a checkpoint date outside that cohort's Monday, Wednesday, or Friday, or a value the scorer would not produce.
+3. Run `npm run calls:export`.
+4. On Wednesday and Friday the settle workflow writes the official Yahoo close into `src/lib/market-history.json`, then runs `npm run calls:settle -- --write`. That fills a due checkpoint only when the post names exactly one whitelist symbol and that symbol is the row's primary. `npm run calls:settle` with no flag is a dry-run and does not write the CSV.
+5. Open a data pull request with the CSV and the exported JSON. If the call rows did not change, the JSON diff is empty.
+
+The ledger does not scrape X and it does not add a market-data vendor. Prints come from the Yahoo history the site already records. A post that names two indexes, or names none, stays pending until someone records the grade by hand.
+
 `DATABASE_URL` in `.env` is `file:./fintwittruth.db`. The Prisma CLI resolves that path next to `prisma/schema.prisma`. It is not a secret. Copy `.env.example` if you need a fresh env file.
 
 ## Demo data

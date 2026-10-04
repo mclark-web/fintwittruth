@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { zonedToUtc } from "./calendar";
-import { FEATURED_COHORT_SLUG, DEMO_OPEN_COHORT_SLUG, LATEST_COHORT_SLUG, SYMBOLS } from "./demo-data";
+import { ACCOUNTS, COHORTS, DEMO_OPEN_COHORT_SLUG, FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG, SYMBOLS, VIRAL_CALLS } from "./demo-data";
+import { liveFile } from "./live-book";
 import { buildDataset } from "./dataset";
 import {
   adjustedClose,
@@ -29,7 +30,8 @@ test("finished weeks publish every readout except the Labor Day Monday", () => {
   const historical = data.cohorts.filter(
     (cohort) => cohort.dataset === "demo" && cohort.slug !== DEMO_OPEN_COHORT_SLUG,
   );
-  assert.equal(historical.length, 4);
+  const finishedSpecs = COHORTS.filter((spec) => spec.slug !== DEMO_OPEN_COHORT_SLUG);
+  assert.equal(historical.length, finishedSpecs.length);
   for (const cohort of historical) {
     for (const kind of READOUTS) {
       const board = cohort.readouts.find((item) => item.kind === kind);
@@ -286,16 +288,23 @@ test("selloff calls are not STRONG on a 1%+ up Monday", () => {
 test("the verified weekend book and the fictional doom book are both graded", () => {
   const live = data.cohorts.filter((cohort) => cohort.dataset === "live");
   const demo = data.cohorts.find((cohort) => cohort.slug === DEMO_OPEN_COHORT_SLUG);
-  assert.equal(live.length, 1);
+  const liveSpecs = liveFile().cohorts;
+  assert.equal(live.length, liveSpecs.length);
   assert.ok(demo);
   assert.equal(demo.dataset, "demo");
   assert.equal(demo.isLatest, false);
   assert.equal(demo.historySlug, LATEST_COHORT_SLUG);
   assert.ok(demo.calls.some((call) => call.handle === "doomscroll"));
   assert.ok(demo.calls.every((call) => call.sourceUrl === ""));
-  assert.equal(demo.calls.length, 19);
+  const openSpec = COHORTS.find((spec) => spec.slug === DEMO_OPEN_COHORT_SLUG);
+  assert.ok(openSpec);
+  assert.equal(demo.calls.length, openSpec.calls.length + VIRAL_CALLS.length);
   const handles = new Set(data.accounts.map((account) => account.handle));
-  assert.equal(handles.size, 21);
+  const expectedHandles = new Set([
+    ...ACCOUNTS.map((account) => account.handle),
+    ...liveSpecs.flatMap((cohort) => cohort.calls.map((call) => call.handle)),
+  ]);
+  assert.equal(handles.size, expectedHandles.size);
   assert.ok(handles.has("smtraderca"));
   assert.ok(handles.has("piggostradingdesk"));
   assert.ok(handles.has("doomscroll"));

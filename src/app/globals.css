@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./gc-scale.css";
+@source not "../../scripts";
 
 @theme {
   --font-sans: var(--font-outfit), "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
