@@ -8,7 +8,7 @@ GradedCalls Analysts and GradedCalls Sports are sibling verticals. They are not 
 
 The npm package and the SQLite file stay named `fintwittruth`. That is the technical package name, not the public brand.
 
-This repository ships a labeled demo book and a small verified book. Demo handles and posts are fictional. The latest board quotes two public posts and links each source. The market prints used to grade both books are real historical Yahoo Finance prices for those evaluation dates. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing.
+This repository ships a labeled demo book and a small verified book. Demo handles and posts are fictional. The latest board (week of October 5, 2026) quotes one public Substack post and links its source. The market prints used to grade both books are real historical Yahoo Finance prices for those evaluation dates. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing.
 
 ## Evaluation calendar
 
@@ -16,7 +16,9 @@ The calendar is fixed.
 
 **Collect window:** Wednesday 12:00 PM America/New_York → Sunday 5:00 PM America/New_York.
 
-That window is one cohort. The calls do not change for the rest of the week.
+That window is one cohort. The calls do not change for the rest of the week. One call per handle per cohort; a handle can appear in later weeks. The first post inside the window that names a direction on a graded print (SPY, QQQ, DIA, SPX, NDX, ES, NQ, or an index) counts. An ambiguous direction is excluded.
+
+X search only reaches back to about October 16, 2026. The weeks of September 28, October 5, and October 12 are Substack only. The week of October 19 was read from Substack and the X watchlist. Posts that were read and left out are in `data/calls/exclusions.csv`.
 
 **Four readouts on that same cohort:**
 

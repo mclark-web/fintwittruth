@@ -170,7 +170,7 @@ export default async function HomePage({
 
       <section className="mt-10" aria-labelledby="accounts-heading">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 id="accounts-heading" className="text-2xl text-ink">
+          <h2 id="accounts-heading" className="text-2xl text-ink [text-wrap:balance]">
             Tracked accounts, by average grade
           </h2>
           <Link href="/leaderboard" className="accent-link text-sm underline-offset-4 hover:underline">
@@ -320,6 +320,7 @@ function AccountRow({ row }: { row: LeaderRow }) {
           <span className="text-sm text-muted">%</span>
         </span>
         <GradePill grade={pill} />
+        {row.callCount === 1 ? <span className="text-xs text-muted">n=1</span> : null}
         <span className="text-xs text-muted">Hit {formatRate(row.hitRate, 0)}</span>
       </span>
     </li>

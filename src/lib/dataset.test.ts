@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { zonedToUtc } from "./calendar";
 import { ACCOUNTS, COHORTS, DEMO_OPEN_COHORT_SLUG, FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG, SYMBOLS, VIRAL_CALLS } from "./demo-data";
-import { cashOpenAfterCollect, liveFile } from "./live-book";
+import { liveFile } from "./live-book";
 import { buildDataset } from "./dataset";
 import {
   adjustedClose,
@@ -64,33 +64,30 @@ test("every demo post sits inside the Wednesday-to-Sunday collect window", () =>
   for (const cohort of data.cohorts) {
     for (const call of cohort.calls) {
       assert.ok(call.postedAt >= cohort.collectStart, `${call.id} is before the collect open`);
-      if (cohort.dataset === "demo") {
-        assert.ok(call.postedAt <= cohort.collectEnd, `${call.id} is after Sunday 5:00 PM ET`);
-      } else {
-        assert.ok(
-          call.postedAt < cashOpenAfterCollect(cohort.collectEnd),
-          `${call.id} is at or after the Monday 9:30 AM ET cash open`,
-        );
-      }
+      assert.ok(call.postedAt <= cohort.collectEnd, `${call.id} is after Sunday 5:00 PM ET`);
     }
   }
 });
 
-test("the open week publishes Monday and leaves Wednesday and Friday ungraded", () => {
-  const open = data.cohorts.find((cohort) => cohort.slug === "2026-10-19");
-  assert.ok(open);
-  assert.equal(open.isLatest, true);
-  assert.equal(open.dataset, "live");
-  assert.ok(open.calls.length > 0);
-  assert.equal(open.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
-  assert.equal(open.readouts.find((item) => item.kind === "monday")?.status, "published");
-  assert.equal(open.readouts.find((item) => item.kind === "wednesday")?.status, "scheduled");
-  assert.equal(open.readouts.find((item) => item.kind === "friday")?.status, "scheduled");
-  assert.match(open.readouts.find((item) => item.kind === "wednesday")?.narrative ?? "", /is not published/);
-  assert.match(open.readouts.find((item) => item.kind === "friday")?.narrative ?? "", /is not published/);
-  assert.equal(open.grades.filter((grade) => grade.readout === "wednesday").length, 0);
-  assert.equal(open.grades.filter((grade) => grade.readout === "friday").length, 0);
-  assert.equal(open.grades.filter((grade) => grade.readout === "monday").length, open.calls.length);
+test("the latest live week publishes Monday, Wednesday, and Friday", () => {
+  const prior = data.cohorts.find((cohort) => cohort.slug === "2026-09-28");
+  assert.ok(prior);
+  assert.match(prior.summary, /Wednesday, September 23, 2026 at 12:00 PM ET through Sunday, September 27 at 5:00 PM ET/);
+  assert.match(prior.summary, /X watchlist not covered this week; Substack only/);
+  assert.doesNotMatch(prior.summary, /after the cash close/);
+  const latest = data.cohorts.find((cohort) => cohort.slug === "2026-10-05");
+  assert.ok(latest);
+  assert.equal(latest.isLatest, true);
+  assert.equal(latest.dataset, "live");
+  assert.equal(latest.calls.length, 1);
+  assert.match(latest.summary, /Wednesday, September 30, 2026 at 12:00 PM ET through Sunday, October 4 at 5:00 PM ET/);
+  assert.match(latest.summary, /X watchlist not covered this week; Substack only/);
+  assert.doesNotMatch(latest.summary, /after the cash close/);
+  assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
+  assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
+  assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
+  assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "published");
+  assert.equal(latest.grades.length, latest.calls.length * 4);
 });
 
 test("watchlist and viral posts share the weekly board", () => {

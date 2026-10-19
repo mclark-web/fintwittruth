@@ -2,7 +2,7 @@
   "source": "Yahoo Finance",
   "endpoint": "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}",
   "vixSymbol": "^VIX",
-  "fetchedAt": "2026-10-19T18:50:10.223Z",
+  "fetchedAt": "2026-10-19T19:29:44.258Z",
   "currency": "USD",
   "adjustment": "Weekend reference is the prior Friday regular-session close (Yahoo close) for SPY, QQQ, DIA, and VIX. That close is stored next to Yahoo adjclose for audit. Grades measure against the session close, not retrospectively dividend-rewritten adjclose, because the Monday open and the Monday 12:00 PM ET 5-minute open are not dividend-adjusted. Monday gap is Friday session close versus the regular-session daily open. Monday noon is the open of the 5-minute bar stamped 12:00 America/New_York. Wednesday and Friday grades use Yahoo's daily close, which is the official regular-session close: 4:00 PM ET, or 1:00 PM ET on an early-close day. A holiday has no equity daily bar and stays ungraded. No prior close is copied in.",
   "closedMarketRule": "A closed cash session has no open, no Monday noon print, and no official close. The readout stays ungraded. No prior close is copied in to stand for the missing session. A Yahoo VIX bar on an equity holiday is ignored.",

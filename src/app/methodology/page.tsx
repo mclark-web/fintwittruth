@@ -81,7 +81,9 @@ export default async function MethodologyPage() {
             <dt className="font-medium text-ink">Collect window</dt>
             <dd className="mt-1 text-sm text-muted">
               Wednesday 12:00 PM America/New_York through Sunday 5:00 PM America/New_York. The cohort does not
-              grow after Sunday.
+              grow after Sunday. One call per handle per cohort; a handle can appear in later weeks. The first
+              post inside the window that names a direction on a graded print (SPY, QQQ, DIA, SPX, NDX, ES, NQ, or
+              an index) counts. An ambiguous direction is excluded.
             </dd>
           </div>
           <div className="panel p-4">

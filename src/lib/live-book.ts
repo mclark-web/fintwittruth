@@ -72,14 +72,6 @@ export function assertLiveFile(data: LiveFile = liveFile()): LiveCohortRecord[] 
   return data.cohorts;
 }
 
-/**
- * Monday 9:30 AM ET. The cohort calendar still closes the book at Sunday 5:00 PM ET.
- * A post can land after that close and still belong to the week until the cash open.
- */
-export function cashOpenAfterCollect(collectEnd: Date): Date {
-  return new Date(collectEnd.getTime() + (16 * 60 + 30) * 60 * 1000);
-}
-
 export function assertLiveCall(
   call: LiveCallRecord,
   window: { collectStart: Date; collectEnd: Date },
@@ -117,10 +109,9 @@ export function assertLiveCall(
   if (Number.isNaN(postedAt.getTime())) {
     throw new Error(`Call ${call.id} postedAt is not a timestamp. Refusing to invent one.`);
   }
-  const cashOpen = cashOpenAfterCollect(window.collectEnd);
-  if (postedAt < window.collectStart || postedAt >= cashOpen) {
+  if (postedAt < window.collectStart || postedAt > window.collectEnd) {
     throw new Error(
-      `Call ${call.id} at ${call.postedAt} is outside Wednesday 12:00 PM ET through the Monday 9:30 AM ET cash open.`,
+      `Call ${call.id} at ${call.postedAt} is outside the Wednesday 12:00 PM ET to Sunday 5:00 PM ET collect window.`,
     );
   }
   if (!call.verification.trim()) {

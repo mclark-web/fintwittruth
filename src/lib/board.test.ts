@@ -29,12 +29,6 @@ test("a scheduled readout contributes nothing to the primary board", () => {
   }
   assert.deepEqual(settledReadoutKinds(latest.readouts), ["monday-gap", "monday", "wednesday", "friday"]);
   assert.deepEqual(pendingReadoutKinds(latest.readouts), []);
-  const open = data.cohorts.find((cohort) => cohort.slug === "2026-10-19");
-  assert.ok(open);
-  assert.equal(open.isLatest, true);
-  assert.equal(open.readouts.find((item) => item.kind === "friday")?.status, "scheduled");
-  assert.deepEqual(pendingReadoutKinds(open.readouts), ["wednesday", "friday"]);
-  assert.deepEqual(settledReadoutKinds(open.readouts), ["monday-gap", "monday"]);
 });
 
 test("Labor Day Monday stays off the primary board", () => {

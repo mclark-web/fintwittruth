@@ -95,13 +95,6 @@ test("the verified book round-trips through the CSV and the scorer", () => {
   for (const row of rows) {
     assert.ok(row.source_url.startsWith("https://"));
     for (const kind of CHECKPOINTS) {
-      const openWeek = row.cohort_slug === "2026-10-19" && kind !== "monday";
-      if (openWeek) {
-        assert.equal(row[`${kind}_status`], "PENDING");
-        assert.equal(row[`${kind}_price`], "");
-        assert.equal(row[`${kind}_grade`], "");
-        continue;
-      }
       assert.equal(row[`${kind}_status`], "GRADED");
       assert.ok(Number(row.ref_price) > 0);
       assert.ok(Number(row[`${kind}_price`]) > 0);
