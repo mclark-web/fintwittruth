@@ -23,7 +23,7 @@ export function TrackedAccount({
         </Link>
       </p>
       <header className="mt-4">
-        <p className="text-xs uppercase tracking-wide text-[#c9c9cf]">Tracked X account</p>
+        <p className="text-xs uppercase tracking-wide text-[#c9c9cf]">Tracked account</p>
         <h1 className="mt-2 font-serif text-4xl text-ink">{name}</h1>
         <p className="mt-2 text-muted">
           {xProfile ? (

@@ -31,7 +31,7 @@ export function CallCard({
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <Avatar name={call.displayName} />
-          <div className="min-w-0">
+          <div className="min-w-0 [overflow-wrap:anywhere]">
             <Link href={`/accounts/${call.handle}`} className="font-medium text-ink hover:underline">
               {call.displayName} <span className="font-normal text-muted">@{call.handle}</span>
             </Link>
@@ -56,7 +56,9 @@ export function CallCard({
       <p className={`mt-3 text-[15px] leading-relaxed text-ink ${clampQuote ? "line-clamp-2" : ""}`}>“{call.body}”</p>
       <p className="mt-3 flex flex-wrap items-center gap-2">
         <DirectionChip direction={call.direction} />
-        <span className="font-mono text-xs text-[#c9c9cf]">{call.primary}</span>
+        <span className="font-mono text-xs text-[#c9c9cf]">
+          {call.tickers.length > 0 ? call.tickers.join(", ") : "No ticker named"}
+        </span>
       </p>
       <ul className="checkpoint-bubbles mt-3">
         {CARD_CHECKPOINTS.map((kind) => (

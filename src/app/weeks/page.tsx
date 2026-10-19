@@ -23,7 +23,7 @@ export default async function WeeksPage() {
         not been graded stays off the ranking. Fictional weeks live on the demo board.
       </p>
       <p className="mt-3 text-sm">
-        <Link href="/demo" className="accent-link underline-offset-4 hover:underline">
+        <Link href="/demo" className="accent-link hit-44 underline-offset-4 hover:underline">
           Demo board
         </Link>
       </p>

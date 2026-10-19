@@ -42,7 +42,7 @@ export default function TermsPage() {
           The posts in that window are one cohort. The cohort does not grow after Sunday.
         </p>
         <p>
-          Readouts on those same posts: Monday at 9:30 AM America/New_York (the gap, from Friday&apos;s regular-session)
+          Readouts on those same posts: Monday at 9:30 AM America/New_York (the gap from Friday&apos;s regular-session
           close to the regular-session open), Monday at 12:00 PM America/New_York, then the Wednesday and Friday
           official closes at 4:00 PM America/New_York (1:00 PM on an early-close day). Wednesday at 12:00 PM also
           opens the next collect window. That is a new cohort. The Wednesday close still belongs to the book that

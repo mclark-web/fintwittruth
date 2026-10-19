@@ -7,7 +7,7 @@ import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
 import { formatScore } from "@/lib/format";
 import { GC_GRADE_LABEL, UNGRADED_HORIZON, gcGrade } from "@/lib/grades";
 import { GC_FACTOR, READOUT_META } from "@/lib/labels";
-import { PRICE_ADJUSTMENT, PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
+import { PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { getCohort } from "@/lib/queries";
 import {
   STRONG_LINE,
@@ -87,8 +87,8 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Weekend reference</dt>
             <dd className="mt-1 text-sm text-muted">
-              There is no Sunday cash print. The reference is the prior Friday regular-session close for SPY,
-              QQQ, DIA, and the Friday VIX close. Equity index futures are shut from Friday 5:00 PM ET until
+              There is no Sunday cash print. The reference is the prior trading-week close (Friday, or Thursday
+              when Friday is a market holiday) for SPY, QQQ, DIA, and that day&apos;s VIX close. Equity index futures are shut from Friday 5:00 PM ET until
               Sunday 6:00 PM ET, so Sunday 5:00 PM only ends the book. Yahoo adjclose is stored for audit and is
               not used against the unadjusted open, the Monday noon bar, or the official close.
             </dd>
@@ -392,7 +392,11 @@ export default async function MethodologyPage() {
           Prints are recorded {PRICE_SOURCE} chart data. The seed refuses a missing quote and will not invent a
           level to fill a hole.
         </p>
-        <p className="mt-3 text-ink/80">{PRICE_ADJUSTMENT}</p>
+        <p className="mt-3 text-ink/80">
+          Weekend reference is the prior trading-week close (Friday, or Thursday when Friday is a market holiday)
+          for SPY, QQQ, DIA, and VIX. That close is stored next to Yahoo adjclose for audit. Grades measure against
+          the session close, not a dividend-rewritten adjclose. A holiday has no equity daily bar and stays ungraded.
+        </p>
         <p className="mt-3 text-ink/80">
           The series is committed in <span className="font-mono text-xs">src/lib/market-history.json</span> and
           was fetched {PRICE_FETCHED_AT}. VIX is the Yahoo symbol ^VIX. Monday, September 7, 2026 was Labor Day.

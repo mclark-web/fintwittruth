@@ -86,10 +86,10 @@ export default async function HomePage({
       <div className="home-hero">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#c9c9cf]">GradedCalls FinTwit</p>
-          <h1 className="home-title">Weekend market calls from FinTwit writers, graded against the prior Friday close.</h1>
+          <h1 className="home-title">Weekend market calls from FinTwit writers, graded against the prior trading-week close (Friday, or Thursday when Friday is a market holiday).</h1>
           <p className="mt-3 max-w-[52ch] text-sm leading-relaxed text-muted">
             A call is a public bullish or bearish post about a ticker or index. We grade it at Monday noon,
-            Wednesday close, and Friday close against that prior Friday close.
+            Wednesday close, and Friday close against that prior trading-week close.
           </p>
           <p className="mt-3 text-sm text-ink">
             {asOf ? `As of ${formatAsOf(asOf)} · ${calls.length} call${calls.length === 1 ? "" : "s"}` : "As of — · 0 calls"}

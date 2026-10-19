@@ -17,7 +17,7 @@ type WatchFile = {
 
 const HANDLE = /^[A-Za-z0-9_]{1,15}$/;
 
-/** X profile for a handle that is already on the verified watchlist. Unknown handles get no URL. */
+/** Plain x.com link for a handle listed in watchlist.json. A missing handle gets no URL. */
 export function profileUrl(handle: string): string {
   return findWatchAccount(handle)?.profileUrl ?? "";
 }
@@ -43,7 +43,7 @@ export const WATCHLIST = loadWatchlist();
 
 export type RosterSource = {
   handle: string;
-  /** Canonical post URL from the call book. Used when the writer is not a verified X account. */
+  /** Canonical post URL from the call book. Used when the writer is not listed in watchlist.json. */
   sourceUrl?: string;
 };
 
@@ -62,10 +62,10 @@ export function trackedRoster(extra: Iterable<string | RosterSource> = []): Watc
     const key = handle.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    const verified = findWatchAccount(handle);
+    const listed = findWatchAccount(handle);
     rows.push({
       handle,
-      profileUrl: verified?.profileUrl || (sourceUrl.startsWith("https://") ? sourceUrl : ""),
+      profileUrl: listed?.profileUrl || (sourceUrl.startsWith("https://") ? sourceUrl : ""),
     });
   }
   return rows;
