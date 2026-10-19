@@ -4,15 +4,17 @@ import { join } from "node:path";
 import test from "node:test";
 import { buildCohortWindow, parseCalendarDay } from "./calendar";
 import {
+  checkedWeekRows,
   closedPendingFromSlugs,
   emptyWeeksFromSlugs,
   futureWeekFromSlugs,
   newestRealWeekSlug,
   parseCheckedWeekRows,
   parseCheckedWeeks,
+  resolveLiveWeek,
 } from "./empty-weeks";
 import { formatScopeWhen } from "./format";
-import { GRADED_PRINT_LIST, OCT19_X_SCOPE, X_SEARCH_START, emptyWeekSearchLine } from "./search-scope";
+import { GRADED_PRINT_LIST, OCT19_X_SCOPE, X_SEARCH_START, emptyWeekSearchLine, methodologySourceLead } from "./search-scope";
 
 test("empty weeks come from the collect calendar and skip weeks that have calls", () => {
   const now = new Date("2026-10-20T16:00:00Z");
@@ -75,12 +77,18 @@ test("a closed week with no calls and no checked-empty row is being graded", () 
 
 test("an empty week names recorded coverage and does not assume X for a later week", () => {
   const beforeWindow = buildCohortWindow(parseCalendarDay("2026-10-12"));
-  const before = emptyWeekSearchLine(beforeWindow);
+  const recorded = checkedWeekRows();
+  const oct12 = recorded.find((row) => row.slug === "2026-10-12");
+  assert.equal(oct12?.coverage, "substack");
+  const before = emptyWeekSearchLine(beforeWindow, oct12?.coverage ?? "");
   assert.equal(formatScopeWhen(X_SEARCH_START), "Friday, October 16 at 10:22 AM ET");
   assert.equal(formatScopeWhen(beforeWindow.collectEnd), "Sunday, October 11 at 5:00 PM ET");
   assert.match(before, /^Searched Substack from Wednesday, October 7 at 12:00 PM ET through Sunday, October 11 at 5:00 PM ET\./);
   assert.match(before, /X was not searched\./);
   assert.doesNotMatch(before, /X was searched|EDT|EST|Sun, Oct/);
+  const assumed = emptyWeekSearchLine(beforeWindow);
+  assert.match(assumed, /No search coverage is recorded for this week\./);
+  assert.doesNotMatch(assumed, /Searched Substack|X was not searched/);
   for (const name of ["SPX", "NDX", "ES", "NQ", "the S&P 500", "the Nasdaq 100", "the Dow"]) {
     assert.ok(before.includes(name), name);
   }
@@ -88,10 +96,12 @@ test("an empty week names recorded coverage and does not assume X for a later we
   assert.match(before, /This is not a 0% grade\.$/);
 
   const overlapWindow = buildCohortWindow(parseCalendarDay("2026-10-19"));
+  const oct19 = recorded.find((row) => row.slug === "2026-10-19");
+  assert.equal(oct19?.coverage, "substack+x-from-2026-10-16T14:22:00.000Z");
   const uncovered = emptyWeekSearchLine(overlapWindow);
   assert.match(uncovered, /No search coverage is recorded for this week\./);
   assert.doesNotMatch(uncovered, /X was searched|EDT|EST/);
-  const overlap = emptyWeekSearchLine(overlapWindow, "substack+x-from-2026-10-16T14:22:00.000Z");
+  const overlap = emptyWeekSearchLine(overlapWindow, oct19?.coverage ?? "");
   assert.match(
     overlap,
     /X was searched only from Friday, October 16 at 10:22 AM ET through Sunday, October 18 at 5:00 PM ET\./,
@@ -113,6 +123,18 @@ test("an empty week names recorded coverage and does not assume X for a later we
   assert.doesNotMatch(covered, /EDT|EST/);
 });
 
+test("at Sunday November 1 5:01 PM ET, /weeks/2026-11-02 returns 200 in the closed state", () => {
+  const now = new Date("2026-11-01T22:01:00.000Z");
+  assert.equal(formatScopeWhen(now), "Sunday, November 1 at 5:01 PM ET");
+  const page = resolveLiveWeek("2026-11-02", now);
+  assert.equal(page.status, 200);
+  if (page.status !== 200) return;
+  assert.equal(page.kind, "closed");
+  assert.equal(page.week.slug, "2026-11-02");
+  assert.equal(resolveLiveWeek("2026-11-03", now).status, 404);
+  assert.equal(resolveLiveWeek("not-a-week", now).status, 404);
+});
+
 test("empty-week pages share one search line, and a future week revalidates", () => {
   const root = join(process.cwd(), "src");
   const week = readFileSync(join(root, "app/weeks/[slug]/page.tsx"), "utf8");
@@ -124,8 +146,10 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   const home = readFileSync(join(root, "app/page.tsx"), "utf8");
   const css = readFileSync(join(root, "app/globals.css"), "utf8");
   assert.match(week, /No qualifying calls this week/);
-  assert.match(week, /emptyWeekSearchLine\(empty\.window, empty\.coverage\)/);
-  assert.match(week, /Closed, being graded/);
+  assert.match(week, /emptyWeekSearchLine\(resolved\.week\.window, resolved\.week\.coverage\)/);
+  assert.match(week, /Closed, not graded yet/);
+  assert.match(week, /export const dynamicParams = true/);
+  assert.doesNotMatch(week, /formatWhen/);
   assert.match(week, /\{OCT19_X_SCOPE\}/);
   assert.match(week, /export const revalidate = 60/);
   assert.match(week, /This week has not closed yet/);
@@ -134,13 +158,19 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   assert.doesNotMatch(week, /so this week has no grade/);
   assert.match(index, /No qualifying calls/);
   assert.match(index, /emptyWeekSearchLine\(row\.week\.window, row\.week\.coverage\)/);
-  assert.match(index, /Closed, being graded/);
+  assert.match(index, /Closed, not graded yet/);
+  assert.doesNotMatch(index, /formatWhen|EDT/);
   assert.match(index, /export const revalidate = 60/);
   assert.match(index, /This week has not closed yet/);
   assert.match(index, /\[text-wrap:balance\]/);
   assert.doesNotMatch(index, /so this week has no grade/);
-  assert.match(methodology, /For the week of October 19, 2026: \{OCT19_X_SCOPE\}/);
-  assert.match(methodology, /September 28, October 5, and October 12 are Substack\s+only \(X not searched\)/);
+  assert.match(methodology, /\{methodologySourceLead\(checkedWeekRows\(\)\)\} \{OCT19_X_SCOPE\}/);
+  const lead = methodologySourceLead(checkedWeekRows());
+  assert.equal(
+    lead,
+    "The weeks of September 28, October 5, and October 12 are Substack only (X not searched). For the week of October 19, 2026, Substack covers the whole Wednesday noon to Sunday 5:00 PM ET window.",
+  );
+  assert.equal(lead.split("For the week of October 19").length - 1, 1);
   assert.match(methodology, /\{GRADED_PRINT_LIST\}/);
   assert.match(sitemap, /export const revalidate = 60/);
   assert.doesNotMatch(sitemap, /futureLiveWeek/);

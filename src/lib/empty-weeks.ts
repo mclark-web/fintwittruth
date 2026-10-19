@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { addCalendarDays, buildCohortWindow, calendarDayString, parseCalendarDay } from "./calendar";
+import { addCalendarDays, buildCohortWindow, calendarDayString, parseCalendarDay, zonedToUtc } from "./calendar";
 import { liveFile } from "./live-book";
 
 export type EmptyWeek = {
@@ -155,4 +155,53 @@ export function closedPendingFromSlugs(callSlugs: string[], checkedSlugs: string
 export function closedPendingLiveWeeks(now: Date = new Date()): EmptyWeek[] {
   const callSlugs = liveFile().cohorts.map((cohort) => cohort.slug);
   return closedPendingFromSlugs(callSlugs, checkedWeekSlugs(), now);
+}
+
+/** A readout Monday on the collect calendar. Other slugs are not week pages. */
+export function isCollectMonday(slug: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(slug)) return false;
+  const [year, month, day] = slug.split("-").map(Number);
+  if (!year || !month || !day) return false;
+  const utc = new Date(Date.UTC(year, month - 1, day));
+  if (utc.getUTCFullYear() !== year || utc.getUTCMonth() + 1 !== month || utc.getUTCDate() !== day) return false;
+  const noon = zonedToUtc(year, month, day, 12, 0);
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short" }).format(noon);
+  return weekday === "Mon";
+}
+
+export type ResolvedWeek =
+  | { status: 200; kind: "future" | "closed" | "empty"; week: EmptyWeek }
+  | { status: 404 };
+
+/**
+ * Closed and still-open weeks that have no cohort page.
+ * A slug that is not a collect Monday is 404. A collect Monday outside the recorded span is 404.
+ */
+export function resolveWeekSlug(
+  slug: string,
+  callSlugs: string[],
+  checkedSlugs: string[],
+  now: Date,
+  coverageBySlug: ReadonlyMap<string, string> = new Map(),
+): ResolvedWeek {
+  if (!isCollectMonday(slug)) return { status: 404 };
+  const future = futureWeekFromSlugs(callSlugs, checkedSlugs, now);
+  if (future?.slug === slug) return { status: 200, kind: "future", week: future };
+  const empty = emptyWeeksFromSlugs(callSlugs, checkedSlugs, now, coverageBySlug).find((week) => week.slug === slug);
+  if (empty) return { status: 200, kind: "empty", week: empty };
+  const closed = closedPendingFromSlugs(callSlugs, checkedSlugs, now).find((week) => week.slug === slug);
+  if (closed) return { status: 200, kind: "closed", week: closed };
+  return { status: 404 };
+}
+
+export function resolveLiveWeek(slug: string, now: Date = new Date()): ResolvedWeek {
+  const callSlugs = liveFile().cohorts.map((cohort) => cohort.slug);
+  const rows = checkedWeekRows();
+  return resolveWeekSlug(
+    slug,
+    callSlugs,
+    rows.map((row) => row.slug),
+    now,
+    coverageMap(rows),
+  );
 }

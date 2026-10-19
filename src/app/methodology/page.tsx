@@ -8,8 +8,9 @@ import { formatEtStamp, formatScore } from "@/lib/format";
 import { GC_GRADE_LABEL, UNGRADED_HORIZON, gcGrade } from "@/lib/grades";
 import { GC_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
+import { checkedWeekRows } from "@/lib/empty-weeks";
 import { getCohort } from "@/lib/queries";
-import { GRADED_PRINT_LIST, OCT19_X_SCOPE } from "@/lib/search-scope";
+import { GRADED_PRINT_LIST, OCT19_X_SCOPE, methodologySourceLead } from "@/lib/search-scope";
 import {
   STRONG_LINE,
   DIRECTION_BANDS,
@@ -84,9 +85,7 @@ export default async function MethodologyPage() {
               Wednesday 12:00 PM America/New_York through Sunday 5:00 PM America/New_York. The cohort does not
               grow after Sunday. One call per handle per cohort; a handle can appear in later weeks. The first
               forward-looking post covering the week that names a direction on a graded print ({GRADED_PRINT_LIST}) counts.
-              An ambiguous direction is excluded. The weeks of September 28, October 5, and October 12 are Substack
-              only (X not searched). For the week of October 19, Substack covers the whole Wednesday noon to Sunday
-              5:00 PM ET window. For the week of October 19, 2026: {OCT19_X_SCOPE}
+              An ambiguous direction is excluded. {methodologySourceLead(checkedWeekRows())} {OCT19_X_SCOPE}
             </dd>
           </div>
           <div className="panel p-4">

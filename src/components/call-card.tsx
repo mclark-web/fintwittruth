@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { disputePath } from "@/lib/dispute";
-import { formatPrice, formatScore, formatSignedPct, formatWhen } from "@/lib/format";
+import { formatPrice, formatScore, formatScopeWhen, formatSignedPct } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { predictedReadout } from "@/lib/prints";
@@ -36,7 +36,7 @@ export function CallCard({
               {call.displayName} <span className="font-normal text-muted">@{call.handle}</span>
             </Link>
             <p className="mt-0.5 text-xs text-[#c9c9cf]">
-              {formatWhen(call.postedAt)}
+              {formatScopeWhen(call.postedAt)}
               {call.dataset === "demo" ? " · DEMO" : " · verified"}
             </p>
           </div>

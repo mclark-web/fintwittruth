@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { closedPendingLiveWeeks, emptyLiveWeeks, futureLiveWeek } from "@/lib/empty-weeks";
-import { etYmd, formatScopeWhen, formatScore, formatShortDay, formatWhen } from "@/lib/format";
+import { etYmd, formatScopeWhen, formatScore, formatShortDay } from "@/lib/format";
 import { emptyWeekSearchLine } from "@/lib/search-scope";
 import { gcBoardGrade, LABOR_DAY_UNGRADED_LINE, UNGRADED_HORIZON, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
@@ -34,7 +34,7 @@ export default async function WeeksPage() {
       <h1 className="font-serif text-4xl text-ink">Weeks</h1>
       <p className="mt-3 max-w-2xl text-muted">
         The latest week is first. A week that has not closed yet has nothing to grade. A week that has closed and
-        has no calls loaded yet says it is being graded. A number is the average grade at that checkpoint. A
+        has no calls loaded yet says it is not graded yet. A number is the average grade at that checkpoint. A
         checkpoint that has not been graded stays off the ranking. Fictional weeks live on the demo board.
       </p>
       <p className="mt-3 text-sm">
@@ -59,7 +59,7 @@ export default async function WeeksPage() {
                   The collect window is still open, so there is nothing to grade yet.
                 </p>
                 <p className="mt-2 text-xs text-muted">
-                  {formatWhen(row.week.window.collectStart)} → {formatWhen(row.week.window.collectEnd)}
+                  {formatScopeWhen(row.week.window.collectStart)} through {formatScopeWhen(row.week.window.collectEnd)}
                 </p>
               </article>
             </li>
@@ -71,11 +71,11 @@ export default async function WeeksPage() {
                 </p>
                 <h2 className="mt-1 font-serif text-3xl text-ink [text-wrap:balance]">
                   <Link href={`/weeks/${row.week.slug}`} className="hover:underline">
-                    Closed, being graded
+                    Closed, not graded yet
                   </Link>
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm text-muted">
-                  Calls for this week are not loaded yet, so there is nothing to grade.
+                  Calls for this week are not loaded yet, so there is no grade yet.
                 </p>
                 <p className="mt-2 text-xs text-muted">
                   {formatScopeWhen(row.week.window.collectStart)} through {formatScopeWhen(row.week.window.collectEnd)}
@@ -119,7 +119,7 @@ export default async function WeeksPage() {
                     </h2>
                     <p className="mt-2 max-w-2xl text-sm text-muted">{row.cohort.summary}</p>
                     <p className="mt-2 text-xs text-muted">
-                      {formatWhen(row.cohort.collectStart)} → {formatWhen(row.cohort.collectEnd)}
+                      {formatScopeWhen(row.cohort.collectStart)} through {formatScopeWhen(row.cohort.collectEnd)}
                     </p>
                   </div>
                 </div>

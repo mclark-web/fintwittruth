@@ -38,18 +38,50 @@ export function parseWeekCoverage(value: string): WeekCoverage | null {
   return { substack: true, x: "from", xFrom };
 }
 
+function monthDay(slug: string): string {
+  const [year, month, day] = slug.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(Date.UTC(year ?? 0, (month ?? 1) - 1, day ?? 1, 16)));
+}
+
+/** Methodology lead built from checked-weeks.csv. The October 19 phrase appears once. */
+export function methodologySourceLead(rows: { slug: string; coverage: string }[]): string {
+  const substack = rows
+    .filter((row) => row.coverage === "substack")
+    .map((row) => row.slug)
+    .sort()
+    .map(monthDay);
+  const partial = rows.find((row) => parseWeekCoverage(row.coverage)?.x === "from");
+  const list =
+    substack.length <= 1
+      ? substack.join("")
+      : substack.length === 2
+        ? `${substack[0]} and ${substack[1]}`
+        : `${substack.slice(0, -1).join(", ")}, and ${substack.at(-1)}`;
+  const parts: string[] = [];
+  if (list) parts.push(`The weeks of ${list} are Substack only (X not searched).`);
+  if (partial) {
+    const year = partial.slug.slice(0, 4);
+    parts.push(
+      `For the week of ${monthDay(partial.slug)}, ${year}, Substack covers the whole Wednesday noon to Sunday 5:00 PM ET window.`,
+    );
+  }
+  return parts.join(" ");
+}
+
 /**
  * One sentence for an empty week: which sources were searched, how far back each reached,
  * and the full graded-print list. Coverage comes from checked-weeks.csv.
- * A blank record does not claim X was searched. A window that ended before X search began
- * is Substack only, because that search did not reach it.
+ * A blank record does not claim a source was searched.
  */
 export function emptyWeekSearchLine(window: CohortWindow, coverage = ""): string {
   const start = formatScopeWhen(window.collectStart);
   const end = formatScopeWhen(window.collectEnd);
   const tail = `No post read named a direction on ${GRADED_PRINT_LIST}, so there is nothing to grade. This is not a 0% grade.`;
-  const recorded = parseWeekCoverage(coverage);
-  const reach = recorded ?? (window.collectEnd <= X_SEARCH_START ? { substack: true, x: "none" as const } : null);
+  const reach = parseWeekCoverage(coverage);
   if (!reach) {
     return `No search coverage is recorded for this week. ${tail}`;
   }

@@ -4,15 +4,16 @@ const TIME_ZONE = "America/New_York";
 
 export function formatWhen(date: Date | string): string {
   const value = typeof date === "string" ? new Date(date) : date;
-  return new Intl.DateTimeFormat("en-US", {
+  const formatted = new Intl.DateTimeFormat("en-US", {
     timeZone: TIME_ZONE,
     weekday: "short",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZoneName: "short",
+    hourCycle: "h12",
   }).format(value);
+  return `${formatted} ET`;
 }
 
 /**

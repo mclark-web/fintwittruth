@@ -117,8 +117,8 @@ export default async function HomePage({
           {pendingWeeks.length ? (
             <p className="mt-1 text-xs text-muted">
               {pendingWeeks.length === 1
-                ? `Week of ${formatShortDay(pendingWeeks[0]!.window.mondayAt)} has closed and is being graded.`
-                : `Weeks of ${pendingWeeks.map((week) => formatShortDay(week.window.mondayAt)).join(" and ")} have closed and are being graded.`}
+                ? `Week of ${formatShortDay(pendingWeeks[0]!.window.mondayAt)} has closed and is not graded yet.`
+                : `Weeks of ${pendingWeeks.map((week) => formatShortDay(week.window.mondayAt)).join(" and ")} have closed and are not graded yet.`}
               {latest ? ` Week of ${formatAsOf(latest.mondayAt)} is the latest week with calls loaded.` : ""}
             </p>
           ) : emptyWeeks.length ? (
