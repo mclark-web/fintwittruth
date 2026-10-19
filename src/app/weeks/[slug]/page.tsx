@@ -11,9 +11,10 @@ import { emptyLiveWeeks, futureLiveWeek } from "@/lib/empty-weeks";
 import { formatShortDay, formatWhen } from "@/lib/format";
 import { gradedSymbols } from "@/lib/prints";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
+import { OCT19_X_SCOPE, emptyWeekSearchLine } from "@/lib/search-scope";
 
-const OCT19_X_SCOPE =
-  "X was checked only from Friday, October 16 at 10:22 AM ET through Sunday, October 18 at 5:00 PM ET. X posts from Wednesday noon through Friday 10:22 AM ET were out of scope and were not searched. For this week, first means the first forward-looking post inside that searched range.";
+/** Re-read the clock so a future week stops saying it is open after Sunday 5:00 PM ET. */
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   const slugs = await listCohortSlugs();
@@ -75,11 +76,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
       <div className="mx-auto max-w-3xl px-4 py-10">
         <p className="text-xs uppercase tracking-wide text-muted">Week of {formatShortDay(empty.window.mondayAt)}</p>
         <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance]">No qualifying calls this week</h1>
-        <p className="mt-3 text-muted">
-          Searched {formatWhen(empty.window.collectStart)} through {formatWhen(empty.window.collectEnd)} for a
-          forward-looking post covering the week that names a direction on SPY, QQQ, DIA, the S&P 500, the Nasdaq 100,
-          or the Dow. No post read in that search named one, so there is nothing to grade. This is not a 0% grade.
-        </p>
+        <p className="mt-3 text-muted">{emptyWeekSearchLine(empty.window)}</p>
         <p className="mt-4 text-sm">
           <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">
             All weeks

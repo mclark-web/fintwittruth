@@ -3,6 +3,7 @@ import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { emptyLiveWeeks, futureLiveWeek } from "@/lib/empty-weeks";
 import { etYmd, formatScore, formatShortDay, formatWhen } from "@/lib/format";
+import { emptyWeekSearchLine } from "@/lib/search-scope";
 import { gcBoardGrade, LABOR_DAY_UNGRADED_LINE, UNGRADED_HORIZON, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohortList } from "@/lib/queries";
@@ -13,6 +14,9 @@ export const metadata: Metadata = {
   description:
     "Verified GradedCalls FinTwit weeks, with Monday noon, Wednesday close, and Friday close grades on the same calls.",
 };
+
+/** Re-read the clock so a future week stops saying it is open after Sunday 5:00 PM ET. */
+export const revalidate = 60;
 
 export default async function WeeksPage() {
   const cohorts = (await getCohortList()).filter((cohort) => cohort.dataset === "live");
@@ -68,10 +72,7 @@ export default async function WeeksPage() {
                     No qualifying calls
                   </Link>
                 </h2>
-                <p className="mt-2 max-w-2xl text-sm text-muted">
-                  Searched {formatWhen(row.week.window.collectStart)} through {formatWhen(row.week.window.collectEnd)}{" "}
-                  for a direction on a graded print. No post read in that search named one, so this week has no grade.
-                </p>
+                <p className="mt-2 max-w-2xl text-sm text-muted">{emptyWeekSearchLine(row.week.window)}</p>
                 <p className="mt-2 text-xs text-muted">
                   {formatWhen(row.week.window.collectStart)} → {formatWhen(row.week.window.collectEnd)}
                 </p>

@@ -9,6 +9,7 @@ import { GC_GRADE_LABEL, UNGRADED_HORIZON, gcGrade } from "@/lib/grades";
 import { GC_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { getCohort } from "@/lib/queries";
+import { GRADED_PRINT_LIST, OCT19_X_SCOPE } from "@/lib/search-scope";
 import {
   STRONG_LINE,
   DIRECTION_BANDS,
@@ -82,12 +83,8 @@ export default async function MethodologyPage() {
             <dd className="mt-1 text-sm text-muted">
               Wednesday 12:00 PM America/New_York through Sunday 5:00 PM America/New_York. The cohort does not
               grow after Sunday. One call per handle per cohort; a handle can appear in later weeks. The first
-              forward-looking post covering the week that names a direction on a graded print (SPY, QQQ, DIA, SPX,
-              NDX, ES, NQ, the S&P 500, the Nasdaq 100, or the Dow) counts. An ambiguous direction is excluded.
-              X search for the week of October 19, 2026 only reaches back to Friday, October 16, 10:22 AM ET.
-              Substack covers that whole window. X posts from Wednesday noon through Friday, October 16 at 10:22 AM
-              ET were out of scope and were not searched. For that week, first means the first forward-looking post
-              inside the searched range.
+              forward-looking post covering the week that names a direction on a graded print ({GRADED_PRINT_LIST}) counts.
+              An ambiguous direction is excluded. Substack covers that whole window. {OCT19_X_SCOPE}
             </dd>
           </div>
           <div className="panel p-4">
