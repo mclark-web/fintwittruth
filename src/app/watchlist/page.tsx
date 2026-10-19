@@ -2,18 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { UNCONFIGURED_PUBLIC } from "@/lib/intake-store";
 import { loadRealCalls } from "@/lib/public-real";
-import { profileUrl, trackedRoster } from "@/lib/watchlist";
+import { trackedRoster } from "@/lib/watchlist";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Watchlist",
-  description: "Real X accounts tracked by GradedCalls FinTwit. No grade until a post is confirmed.",
+  description: "Accounts tracked by GradedCalls FinTwit. No grade until a post is confirmed.",
 };
 
 export default async function WatchlistPage() {
   const loaded = await loadRealCalls();
-  let cohorts: { calls: { handle: string; grades: Record<string, unknown> }[] }[] = [];
+  let cohorts: { calls: { handle: string; sourceUrl: string; grades: Record<string, unknown> }[] }[] = [];
   try {
     const { getLiveCohorts } = await import("@/lib/queries");
     cohorts = await getLiveCohorts();
@@ -31,9 +31,12 @@ export default async function WatchlistPage() {
   for (const call of loaded.calls) {
     if (Object.keys(call.grades).length > 0) gradedHandles.add(call.handle.toLowerCase());
   }
-  const roster = trackedRoster(
-    cohorts.flatMap((cohort) => cohort.calls.map((call) => call.handle)),
-  );
+  const roster = trackedRoster([
+    ...cohorts.flatMap((cohort) =>
+      cohort.calls.map((call) => ({ handle: call.handle, sourceUrl: call.sourceUrl })),
+    ),
+    ...loaded.calls.map((call) => ({ handle: call.handle, sourceUrl: call.sourceUrl })),
+  ]);
   const gradedCount = roster.filter((account) => gradedHandles.has(account.handle.toLowerCase())).length;
   const intakeNote = loaded.kind === "unconfigured" && cohorts.every((cohort) => cohort.calls.length === 0) ? UNCONFIGURED_PUBLIC : null;
 
@@ -66,11 +69,13 @@ export default async function WatchlistPage() {
                   @{account.handle}
                 </Link>
               </h2>
-              <p className="mt-2 text-sm">
-                <a href={profileUrl(account.handle)} className="accent-link underline-offset-4 hover:underline">
-                  {account.profileUrl}
-                </a>
-              </p>
+              {account.profileUrl ? (
+                <p className="mt-2 text-sm">
+                  <a href={account.profileUrl} className="accent-link underline-offset-4 hover:underline">
+                    {account.profileUrl}
+                  </a>
+                </p>
+              ) : null}
             </li>
           );
         })}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { disputePath } from "@/lib/dispute";
-import { formatPrice, formatSignedPct, formatWhen } from "@/lib/format";
+import { formatPrice, formatScore, formatSignedPct, formatWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { predictedReadout } from "@/lib/prints";
@@ -44,7 +44,7 @@ export function CallCard({
         {grade && pill ? (
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="font-mono text-2xl text-ink">
-              {Math.floor(grade.score)}
+              {formatScore(grade.score)}
               <span className="text-sm text-muted">%</span>
             </span>
             <GradePill grade={pill} />
@@ -71,7 +71,7 @@ export function CallCard({
             Source
           </a>
         ) : null}
-        <Link href={`/calls/${call.id}`} className="accent-link underline-offset-4 hover:underline">
+        <Link href={`/calls/${call.id}`} className="accent-link hit-44 underline-offset-4 hover:underline">
           Call detail
         </Link>
         {call.dataset !== "demo" && call.sourceUrl && grade ? (
@@ -100,6 +100,7 @@ function CheckpointBubble({
     return (
       <span className="checkpoint-bubble">
         <span>{meta.short}</span>
+        <span className="sr-only">, </span>
         <span className="text-[#9a9aa3]">Not graded yet</span>
       </span>
     );
@@ -108,6 +109,7 @@ function CheckpointBubble({
   return (
     <span className={`checkpoint-bubble checkpoint-bubble-${tone}`}>
       <span className="checkpoint-when">{meta.short}</span>
+      <span className="sr-only">, </span>
       <span>
         {print.symbol} (${formatPrice(print.price)}) {formatSignedPct(print.move)}
       </span>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { gcGrade } from "@/lib/grades";
-import { formatPrice, formatSignedPct, initials, moveArrow } from "@/lib/format";
+import { formatPrice, formatScore, formatSignedPct, initials, moveArrow } from "@/lib/format";
 import { predictedReadout, referencePrint } from "@/lib/prints";
 import type { GradeView, QuoteView } from "@/lib/queries";
 import { READOUTS, type Direction, type ReadoutKind } from "@/lib/scoring";
@@ -37,7 +37,7 @@ export function ScoreMark({
     return (
       <div className="flex flex-col items-end gap-1.5">
         <span className="font-mono text-2xl text-ink">
-          {Math.floor(score)}
+          {formatScore(score)}
           <span className="text-sm text-muted">%</span>
         </span>
         <GradePill grade={grade} />
@@ -171,7 +171,7 @@ export function Evolution({
                 <ReportOutTitle kind={kind} quotes={quotes} primary={primary} direction={direction} />
               </span>
               <span className="mt-1 flex items-center justify-between gap-2">
-                <span className="font-mono text-sm">{Math.floor(grade.score)}%</span>
+                <span className="font-mono text-sm">{formatScore(grade.score)}%</span>
                 <GradePill grade={pill} />
               </span>
             </Link>

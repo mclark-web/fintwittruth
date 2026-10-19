@@ -30,7 +30,7 @@ export default function TermsPage() {
       <LegalSection id="service" title="What the service is">
         <p>
           GradedCalls FinTwit publishes a weekly scoreboard. It collects one cohort of bullish and bearish calls,
-          then grades that same cohort at the Monday open, at Monday noon, and at the Wednesday and Friday closes. It is a
+          then grades those same posts at the Monday open, at Monday noon, and at the Wednesday and Friday closes. It is a
           reading of public commentary against recorded market prints. It is not a broker, a signal service, or
           a feed sold by the post.
         </p>
@@ -42,7 +42,7 @@ export default function TermsPage() {
           The posts in that window are one cohort. The cohort does not grow after Sunday.
         </p>
         <p>
-          Readouts on that same cohort: Monday at 9:30 AM America/New_York (the gap, from Friday&apos;s regular-session
+          Readouts on those same posts: Monday at 9:30 AM America/New_York (the gap, from Friday&apos;s regular-session)
           close to the regular-session open), Monday at 12:00 PM America/New_York, then the Wednesday and Friday
           official closes at 4:00 PM America/New_York (1:00 PM on an early-close day). Wednesday at 12:00 PM also
           opens the next collect window. That is a new cohort. The Wednesday close still belongs to the book that

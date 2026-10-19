@@ -4,6 +4,7 @@ import { CalendarStrip } from "@/components/market";
 import { ReadoutBubble, ReferenceLine } from "@/components/score";
 import { settledReadoutKinds } from "@/lib/board";
 import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
+import { formatScore } from "@/lib/format";
 import { GC_GRADE_LABEL, UNGRADED_HORIZON, gcGrade } from "@/lib/grades";
 import { GC_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_ADJUSTMENT, PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
@@ -320,7 +321,7 @@ export default async function MethodologyPage() {
                             direction={call.direction}
                           />
                         ) : null}
-                        <p className="font-mono text-sm">{grade ? `${Math.floor(grade.score)}%` : "Not graded yet"}</p>
+                        <p className="font-mono text-sm">{grade ? `${formatScore(grade.score)}%` : "Not graded yet"}</p>
                         {grade ? (
                           <p className="text-xs text-muted">{GC_GRADE_LABEL[gcGrade(grade)]}</p>
                         ) : null}
@@ -368,7 +369,7 @@ export default async function MethodologyPage() {
                               direction={call.direction}
                             />
                           ) : null}
-                          {grade ? `${Math.floor(grade.score)}%` : "Not graded yet"}
+                          {grade ? `${formatScore(grade.score)}%` : "Not graded yet"}
                           {grade ? (
                             <span className="mt-1 block text-xs text-muted">{GC_GRADE_LABEL[gcGrade(grade)]}</span>
                           ) : null}

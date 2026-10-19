@@ -1,3 +1,4 @@
+import { formatScore } from "@/lib/format";
 import { gcFill, GC_GRADE_LABEL, UNGRADED_HORIZON, UNGRADED_HORIZON_ARIA, type GcGrade } from "@/lib/grades";
 import { GC_FACTOR } from "@/lib/labels";
 
@@ -55,17 +56,18 @@ export function GcTube({
 }) {
   const empty = ungraded || grade === "exit" || gcFill(score) <= 0;
   const fill = empty ? 0 : gcFill(score);
-  const shown = Math.floor(fill);
+  const pct = formatScore(fill);
+  const width = fill > 0 && fill < 1 ? fill : Math.floor(fill);
   const rich = variant !== "mini" && variant !== "inline";
   const label = ungraded
     ? UNGRADED_HORIZON_ARIA
-    : `${shown}% ${GC_FACTOR}, ${GC_GRADE_LABEL[empty ? "exit" : grade]}`;
+    : `${pct}% ${GC_FACTOR}, ${GC_GRADE_LABEL[empty ? "exit" : grade]}`;
 
   return (
     <div
-      className={`gc-scale is-${variant}${empty ? " is-empty" : ""}${shown >= 100 ? " is-full" : ""}`}
+      className={`gc-scale is-${variant}${empty ? " is-empty" : ""}${width >= 100 ? " is-full" : ""}`}
       style={{
-        ["--gc-fill" as string]: `${shown}%`,
+        ["--gc-fill" as string]: `${width}%`,
         width: variant === "mini" ? 128 : undefined,
       }}
       role="img"
@@ -88,7 +90,7 @@ export function GcTube({
         >
           <div className="gc-label">{GC_FACTOR}</div>
           <div className="gc-pct" style={compactMeta ? { fontSize: 18 } : undefined}>
-            {ungraded ? "—" : `${shown}%`}
+            {ungraded ? "—" : `${pct}%`}
           </div>
           {ungraded ? (
             <span className="text-xs text-[#9a9aa3]">{UNGRADED_HORIZON}</span>

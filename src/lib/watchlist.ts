@@ -17,8 +17,9 @@ type WatchFile = {
 
 const HANDLE = /^[A-Za-z0-9_]{1,15}$/;
 
+/** X profile for a handle that is already on the verified watchlist. Unknown handles get no URL. */
 export function profileUrl(handle: string): string {
-  return `https://x.com/${handle}`;
+  return findWatchAccount(handle)?.profileUrl ?? "";
 }
 
 export function loadWatchlist(data: WatchFile = file as WatchFile): WatchAccount[] {
@@ -34,27 +35,38 @@ export function loadWatchlist(data: WatchFile = file as WatchFile): WatchAccount
     const key = handle.toLowerCase();
     if (seen.has(key)) throw new Error(`Watchlist handle @${handle} is listed twice.`);
     seen.add(key);
-    return { handle, profileUrl: profileUrl(handle) };
+    return { handle, profileUrl: `https://x.com/${handle}` };
   });
 }
 
 export const WATCHLIST = loadWatchlist();
 
+export type RosterSource = {
+  handle: string;
+  /** Canonical post URL from the call book. Used when the writer is not a verified X account. */
+  sourceUrl?: string;
+};
+
 /** Watchlist file plus any live handle that already has a call. Home and /watchlist share this list. */
-export function trackedRoster(extraHandles: Iterable<string> = []): WatchAccount[] {
+export function trackedRoster(extra: Iterable<string | RosterSource> = []): WatchAccount[] {
   const rows: WatchAccount[] = [];
   const seen = new Set<string>();
   for (const account of WATCHLIST) {
     seen.add(account.handle.toLowerCase());
     rows.push(account);
   }
-  for (const handle of extraHandles) {
-    const trimmed = handle.trim();
-    if (!trimmed) continue;
-    const key = trimmed.toLowerCase();
+  for (const item of extra) {
+    const handle = (typeof item === "string" ? item : item.handle).trim();
+    const sourceUrl = typeof item === "string" ? "" : (item.sourceUrl?.trim() ?? "");
+    if (!handle) continue;
+    const key = handle.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    rows.push({ handle: trimmed, profileUrl: profileUrl(trimmed) });
+    const verified = findWatchAccount(handle);
+    rows.push({
+      handle,
+      profileUrl: verified?.profileUrl || (sourceUrl.startsWith("https://") ? sourceUrl : ""),
+    });
   }
   return rows;
 }

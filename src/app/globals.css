@@ -153,6 +153,7 @@ a.btn {
   letter-spacing: -0.03em;
   line-height: 1.25;
   color: var(--color-ink);
+  text-wrap: balance;
 }
 
 .lane-grid {

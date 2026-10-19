@@ -65,7 +65,7 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                 </div>
               </dl>
               <p className="mt-2 font-mono text-xs text-muted">
-                Best {Math.floor(row.bestScore)}% · worst {Math.floor(row.worstScore)}%
+                Best {formatScore(row.bestScore)}% · worst {formatScore(row.worstScore)}%
               </p>
             </li>
           ))
@@ -124,7 +124,7 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                 <td className="px-4 py-3 font-mono">{formatRate(row.weakRate, 0)}</td>
                 <td className="px-4 py-3 font-mono">{row.callCount}</td>
                 <td className="px-4 py-3 font-mono text-xs">
-                  {Math.floor(row.bestScore)}% · {Math.floor(row.worstScore)}%
+                  {formatScore(row.bestScore)}% · {formatScore(row.worstScore)}%
                 </td>
               </tr>
             ))}

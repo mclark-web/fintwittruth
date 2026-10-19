@@ -137,7 +137,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                 <h2 className="font-serif text-2xl text-ink">Not graded yet</h2>
                 <p className="mt-2 text-sm text-muted">
                   A call is graded once its post URL is confirmed.{" "}
-                  <Link href="/methodology" className="accent-link underline-offset-4 hover:underline">
+                  <Link href="/methodology" className="accent-link hit-44 underline-offset-4 hover:underline">
                     How grading works
                   </Link>
                 </p>
@@ -163,7 +163,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       </header>
       <p className="mt-4 max-w-3xl text-sm text-muted">
         {row
-          ? `The number is the average of the furthest graded checkpoint on each call. Hit is the share of graded calls that were right. Best ${Math.floor(row.bestScore)}%. Worst ${Math.floor(row.worstScore)}%.`
+          ? `The number is the average of the furthest graded checkpoint on each call. Hit is the share of graded calls that were right. Best ${formatScore(row.bestScore)}%. Worst ${formatScore(row.worstScore)}%.`
           : "This handle has no graded call, so it is not ranked."}
       </p>
       {row && pendingCount > 0 ? (

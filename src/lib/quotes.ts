@@ -142,6 +142,11 @@ function sessionPrice(
   return sessionClose(symbol, spec.date);
 }
 
+/** Recorded weekend reference date for a cohort, when the price file has one. */
+export function cohortReferenceDate(slug: string): string | null {
+  return file.cohorts[slug]?.referenceDate ?? null;
+}
+
 /** Quotes for one cohort. Every number comes from market-history.json. */
 export function quotesForCohort(slug: string, symbols: readonly string[]): CohortQuotePrint[] {
   const cohort = file.cohorts[slug];

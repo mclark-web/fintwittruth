@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
-import { formatShortDay, formatWhen } from "@/lib/format";
-import { etYmd } from "@/lib/format";
+import { etYmd, formatScore, formatShortDay, formatWhen } from "@/lib/format";
 import { gcBoardGrade, LABOR_DAY_UNGRADED_LINE, UNGRADED_HORIZON, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohortList } from "@/lib/queries";
@@ -83,7 +82,7 @@ export default async function WeeksPage() {
                           />
                         </span>
                         <span className={`mt-2 block font-mono text-2xl ${settled ? "text-ink" : "text-[#9a9aa3]"}`}>
-                          {settled && graded ? `${Math.round(graded.fill)}%` : UNGRADED_HORIZON}
+                          {settled && graded ? `${formatScore(graded.fill)}%` : UNGRADED_HORIZON}
                         </span>
                         <span className="mt-1 block text-xs text-muted">
                           {settled

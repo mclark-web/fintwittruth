@@ -3,12 +3,13 @@ import { CallCard } from "@/components/call-card";
 import { GradePill, GcTube } from "@/components/gc-tube";
 import { NoiseIndex, QuoteTape } from "@/components/market";
 import { Avatar } from "@/components/score";
-import { formatAsOf, formatCheckpointStamp, formatRate, formatScore, formatWeekday, priorFridayClose } from "@/lib/format";
+import { formatAsOf, formatCheckpointStamp, formatRate, formatScore, formatWeekday, referenceCloseDay } from "@/lib/format";
 import { gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_SCALE_BANDS } from "@/lib/labels";
 import { bestWorst } from "@/lib/lanes";
 import { gradedSymbols } from "@/lib/prints";
 import { getLatestCohort, getLeaderboard, getLiveCohorts, type CallView, type CohortView, type LeaderRow } from "@/lib/queries";
+import { cohortReferenceDate } from "@/lib/quotes";
 import { EQUITY_TAPE, type ReadoutKind } from "@/lib/scoring";
 import { trackedRoster } from "@/lib/watchlist";
 
@@ -33,8 +34,8 @@ function toggleHref(query: HomeQuery, key: keyof HomeQuery, value: string) {
 
 function priceMoveLabel(cohort: CohortView, kind: ReadoutKind): string {
   const at = cohort.readouts[kind].at;
-  const friday = priorFridayClose(cohort.mondayAt);
-  return `${formatCheckpointStamp(at)} vs ${formatWeekday(friday)} close`;
+  const close = referenceCloseDay(cohort.mondayAt, cohortReferenceDate(cohort.slug));
+  return `${formatCheckpointStamp(at)} vs ${formatWeekday(close)} close`;
 }
 
 function headlineKind(calls: CallView[]): ReadoutKind {
@@ -67,7 +68,9 @@ export default async function HomePage({
         : latest.mondayAt
     : null;
   const rankedHandles = new Set(ranked.map((row) => row.handle.toLowerCase()));
-  const roster = trackedRoster(live.flatMap((cohort) => cohort.calls.map((call) => call.handle)));
+  const roster = trackedRoster(
+    live.flatMap((cohort) => cohort.calls.map((call) => ({ handle: call.handle, sourceUrl: call.sourceUrl }))),
+  );
   const ungraded = roster.filter((account) => !rankedHandles.has(account.handle.toLowerCase()));
   const filtered = graded.filter((call) => {
     if (query.side === "bullish" || query.side === "bearish") {
@@ -156,9 +159,11 @@ export default async function HomePage({
             {graded.length} graded {graded.length === 1 ? "call" : "calls"} this weekend. Too few to split into best and worst.
           </p>
           <div className="mt-4 flex flex-col gap-3.5">
-            {graded.map((call) => (
-              <CallCard key={call.id} call={call} readout={readout} quotes={latest.quotes} />
-            ))}
+            {filtered.length === 0 ? (
+              <p className="text-sm text-muted">No calls match this filter.</p>
+            ) : (
+              filtered.map((call) => <CallCard key={call.id} call={call} readout={readout} quotes={latest.quotes} />)
+            )}
           </div>
         </section>
       ) : null}
@@ -201,7 +206,7 @@ export default async function HomePage({
           <li>3. 70% and up is STRONG, 40–69% is PROVISIONAL, and under 40% is WEAK.</li>
         </ol>
         <p className="mt-3 text-sm">
-          <Link href="/methodology" className="accent-link underline-offset-4 hover:underline">
+          <Link href="/methodology" className="accent-link hit-44 underline-offset-4 hover:underline">
             How grading works
           </Link>
         </p>
@@ -248,15 +253,6 @@ export default async function HomePage({
               Index only
             </Link>
           </div>
-          <div className="mt-2 flex flex-col gap-3">
-            {filtered.length === 0 ? (
-              <p className="text-sm text-muted">No calls match this filter.</p>
-            ) : (
-              filtered.map((call) =>
-                latest ? <CallCard key={call.id} call={call} readout={readout} quotes={latest.quotes} /> : null,
-              )
-            )}
-          </div>
         </div>
       </details>
     </div>
@@ -287,7 +283,7 @@ function Lane({
       {calls.length === 0 ? (
         <p className="mt-4 text-sm text-muted">
           {empty}{" "}
-          <Link href="/weeks" className="accent-link underline-offset-4 hover:underline">
+          <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">
             All weeks
           </Link>
         </p>

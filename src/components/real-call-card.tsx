@@ -10,6 +10,7 @@ import { profileUrl } from "@/lib/watchlist";
 
 export function RealCallCard({ call }: { call: RealCallView }) {
   const settled = READOUTS.filter((kind) => call.grades[kind] != null);
+  const xProfile = profileUrl(call.handle);
   return (
     <article className="panel p-5">
       <p className="text-xs uppercase tracking-wide text-[#c9c9cf]">{call.label}</p>
@@ -55,9 +56,11 @@ export function RealCallCard({ call }: { call: RealCallView }) {
         <a href={call.sourceUrl} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
           Original post
         </a>
-        <a href={profileUrl(call.handle)} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
-          Profile on X
-        </a>
+        {xProfile ? (
+          <a href={xProfile} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
+            Profile on X
+          </a>
+        ) : null}
         <Link href={`/real/${call.id}`} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
           Call detail
         </Link>
