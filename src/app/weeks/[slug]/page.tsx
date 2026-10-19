@@ -7,14 +7,20 @@ import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "
 import { GcTube } from "@/components/gc-tube";
 import { mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
-import { emptyLiveWeeks } from "@/lib/empty-weeks";
+import { emptyLiveWeeks, futureLiveWeek } from "@/lib/empty-weeks";
 import { formatShortDay, formatWhen } from "@/lib/format";
 import { gradedSymbols } from "@/lib/prints";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
 
+const OCT19_X_SCOPE =
+  "X was checked only from Friday, October 16 at 10:22 AM ET through Sunday, October 18 at 5:00 PM ET. X posts from Wednesday noon through Friday 10:22 AM ET were out of scope and were not searched. For this week, first means the first forward-looking post inside that searched range.";
+
 export async function generateStaticParams() {
   const slugs = await listCohortSlugs();
-  return [...slugs, ...emptyLiveWeeks().map((week) => week.slug)].map((slug) => ({ slug }));
+  const future = futureLiveWeek();
+  return [...slugs, ...emptyLiveWeeks().map((week) => week.slug), ...(future ? [future.slug] : [])].map((slug) => ({
+    slug,
+  }));
 }
 
 export const dynamicParams = false;
@@ -28,7 +34,10 @@ export async function generateMetadata({
   const cohort = await getCohort(slug);
   if (!cohort) {
     const empty = emptyLiveWeeks().find((week) => week.slug === slug);
-    return empty ? { title: `Week of ${formatShortDay(empty.window.mondayAt)}: no qualifying calls` } : { title: "Week" };
+    if (empty) return { title: `Week of ${formatShortDay(empty.window.mondayAt)}: no qualifying calls` };
+    const future = futureLiveWeek();
+    if (future?.slug === slug) return { title: `Week of ${formatShortDay(future.window.mondayAt)}: not closed yet` };
+    return { title: "Week" };
   }
   return {
     title: cohort.title,
@@ -42,14 +51,34 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
   const cohort = await getCohort(slug);
   if (!cohort) {
     const empty = emptyLiveWeeks().find((week) => week.slug === slug);
+    const future = futureLiveWeek();
+    if (!empty && future?.slug !== slug) notFound();
+    if (!empty && future) {
+      return (
+        <div className="mx-auto max-w-3xl px-4 py-10">
+          <p className="text-xs uppercase tracking-wide text-muted">Week of {formatShortDay(future.window.mondayAt)}</p>
+          <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance]">This week has not closed yet</h1>
+          <p className="mt-3 text-muted">
+            Collect window: {formatWhen(future.window.collectStart)} → {formatWhen(future.window.collectEnd)}. The book
+            closes Sunday at 5:00 PM ET, so there is nothing to grade yet.
+          </p>
+          <p className="mt-4 text-sm">
+            <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">
+              All weeks
+            </Link>
+          </p>
+        </div>
+      );
+    }
     if (!empty) notFound();
     return (
       <div className="mx-auto max-w-3xl px-4 py-10">
         <p className="text-xs uppercase tracking-wide text-muted">Week of {formatShortDay(empty.window.mondayAt)}</p>
         <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance]">No qualifying calls this week</h1>
         <p className="mt-3 text-muted">
-          Collect window: {formatWhen(empty.window.collectStart)} → {formatWhen(empty.window.collectEnd)}. No post
-          read in that window named a direction on a graded print, so there is nothing to grade. This is not a 0% grade.
+          Searched {formatWhen(empty.window.collectStart)} through {formatWhen(empty.window.collectEnd)} for a
+          forward-looking post covering the week that names a direction on SPY, QQQ, DIA, the S&P 500, the Nasdaq 100,
+          or the Dow. No post read in that search named one, so there is nothing to grade. This is not a 0% grade.
         </p>
         <p className="mt-4 text-sm">
           <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">
@@ -86,7 +115,12 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         {cohort.isLatest ? " · latest" : ""}
       </p>
       <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance] sm:text-5xl">{cohort.title}</h1>
-      <p className="mt-3 max-w-3xl text-lg text-ink/80">{cohort.summary}</p>
+      {cohort.slug === "2026-10-19" ? (
+        <p className="mt-3 max-w-3xl text-lg text-ink/80">{OCT19_X_SCOPE}</p>
+      ) : null}
+      <p className="mt-3 max-w-3xl text-lg text-ink/80">
+        {cohort.slug === "2026-10-19" ? cohort.summary.replace(OCT19_X_SCOPE, "").replace(/\s+/g, " ").trim() : cohort.summary}
+      </p>
       <div className="mt-3">
         <CohortWindow
           collectStart={cohort.collectStart}

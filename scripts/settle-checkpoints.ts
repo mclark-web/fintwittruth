@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import {
   SETTLE_BUFFER_MINUTES,
   addCalendarDays,
@@ -60,6 +61,12 @@ type Print = { close: number; adjClose: number };
 
 function sortNumbers(record: Record<string, number>): Record<string, number> {
   return Object.fromEntries(Object.entries(record).sort(([a], [b]) => a.localeCompare(b)));
+}
+
+/** Fill a missing adjusted close. A stored value stays, even when Yahoo's adjclose has moved. */
+export function adjCloseIfMissing(stored: number | null | undefined, incoming: number): number | null {
+  if (stored == null) return incoming;
+  return null;
 }
 
 async function loadCloses(symbol: string, dates: string[]): Promise<Map<string, Print | null>> {
@@ -158,8 +165,9 @@ async function main() {
         changed = true;
       }
       const storedAdj = series.adjClose[job.ymd];
-      if (storedAdj == null || !pricesAgree(storedAdj, bar.adjClose)) {
-        series.adjClose[job.ymd] = bar.adjClose;
+      const nextAdj = adjCloseIfMissing(storedAdj, bar.adjClose);
+      if (nextAdj != null) {
+        series.adjClose[job.ymd] = nextAdj;
         changed = true;
       }
       console.log(`ok ${symbol} ${job.ymd} official close ${bar.close}`);
@@ -202,7 +210,10 @@ async function main() {
   }
 }
 
-main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : error);
-  process.exit(1);
-});
+const isDirectRun = process.argv[1] != null && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isDirectRun) {
+  main().catch((error: unknown) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exit(1);
+  });
+}

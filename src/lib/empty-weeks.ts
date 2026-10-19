@@ -68,3 +68,22 @@ export function emptyLiveWeeks(now: Date = new Date()): EmptyWeek[] {
   const callSlugs = liveFile().cohorts.map((cohort) => cohort.slug);
   return emptyWeeksFromSlugs(callSlugs, checkedWeekSlugs(), now);
 }
+
+/**
+ * The next readout Monday after the last recorded week, while its collect window is still open.
+ * A closed week with no calls is an empty week, not a future week.
+ */
+export function futureWeekFromSlugs(callSlugs: string[], checkedSlugs: string[], now: Date): EmptyWeek | null {
+  const anchors = [...callSlugs, ...checkedSlugs].filter((slug) => /^\d{4}-\d{2}-\d{2}$/.test(slug)).sort();
+  const last = anchors.at(-1);
+  if (!last) return null;
+  const next = addCalendarDays(parseCalendarDay(last), 7);
+  const window = buildCohortWindow(next);
+  if (window.collectEnd <= now) return null;
+  return { slug: calendarDayString(next), window };
+}
+
+export function futureLiveWeek(now: Date = new Date()): EmptyWeek | null {
+  const callSlugs = liveFile().cohorts.map((cohort) => cohort.slug);
+  return futureWeekFromSlugs(callSlugs, checkedWeekSlugs(), now);
+}

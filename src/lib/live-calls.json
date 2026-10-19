@@ -195,7 +195,7 @@
       "slug": "2026-10-19",
       "historySlug": "2026-10-19",
       "title": "Verified weekend book",
-      "summary": "Public posts from Wednesday, October 14, 2026 at 12:00 PM ET through Sunday, October 18 at 5:00 PM ET. Substack covers that window. X is verified only from about Friday, October 16, 10:22 AM ET through Sunday, October 18 at 5:00 PM ET; Wednesday noon through Friday 10:22 AM ET was not fully verified. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, October 21 and Friday, October 23 are not graded yet.",
+      "summary": "Public posts from Wednesday, October 14, 2026 at 12:00 PM ET through Sunday, October 18 at 5:00 PM ET. Substack covers that window. X was checked only from Friday, October 16 at 10:22 AM ET through Sunday, October 18 at 5:00 PM ET. X posts from Wednesday noon through Friday 10:22 AM ET were out of scope and were not searched. For this week, first means the first forward-looking post inside that searched range. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, October 21 and Friday, October 23 are not graded yet.",
       "monday": { "year": 2026, "month": 10, "day": 19 },
       "calls": [
         {
@@ -228,7 +228,7 @@
           "posture": "Bought calls",
           "accent": "#0f766e",
           "bucket": "watchlist",
-          "postedAt": "2026-10-16T17:21:55.235Z",
+          "postedAt": "2026-10-16T17:21:55.000Z",
           "sourceUrl": "https://x.com/TraderJonesy/status/2111145626633113606",
           "direction": "bullish",
           "conviction": "medium",

@@ -84,9 +84,10 @@ export default async function MethodologyPage() {
               grow after Sunday. One call per handle per cohort; a handle can appear in later weeks. The first
               forward-looking post covering the week that names a direction on a graded print (SPY, QQQ, DIA, SPX,
               NDX, ES, NQ, the S&P 500, the Nasdaq 100, or the Dow) counts. An ambiguous direction is excluded.
-              X search for the week of October 19, 2026 only reaches back to about Friday, October 16, 10:22 AM ET.
-              Substack covers that whole window. X posts from Wednesday noon through that Friday morning were not
-              fully verified.
+              X search for the week of October 19, 2026 only reaches back to Friday, October 16, 10:22 AM ET.
+              Substack covers that whole window. X posts from Wednesday noon through Friday, October 16 at 10:22 AM
+              ET were out of scope and were not searched. For that week, first means the first forward-looking post
+              inside the searched range.
             </dd>
           </div>
           <div className="panel p-4">

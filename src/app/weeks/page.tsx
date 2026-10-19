@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
-import { emptyLiveWeeks } from "@/lib/empty-weeks";
+import { emptyLiveWeeks, futureLiveWeek } from "@/lib/empty-weeks";
 import { etYmd, formatScore, formatShortDay, formatWhen } from "@/lib/format";
 import { gcBoardGrade, LABOR_DAY_UNGRADED_LINE, UNGRADED_HORIZON, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
@@ -17,7 +17,9 @@ export const metadata: Metadata = {
 export default async function WeeksPage() {
   const cohorts = (await getCohortList()).filter((cohort) => cohort.dataset === "live");
   const emptyWeeks = emptyLiveWeeks();
+  const future = futureLiveWeek();
   const rows = [
+    ...(future ? [{ kind: "future" as const, at: future.window.mondayAt.getTime(), week: future }] : []),
     ...emptyWeeks.map((week) => ({ kind: "empty" as const, at: week.window.mondayAt.getTime(), week })),
     ...cohorts.map((cohort) => ({ kind: "cohort" as const, at: cohort.mondayAt.getTime(), cohort })),
   ].sort((a, b) => b.at - a.at);
@@ -25,8 +27,9 @@ export default async function WeeksPage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-serif text-4xl text-ink">Weeks</h1>
       <p className="mt-3 max-w-2xl text-muted">
-        The latest real week is first. A number is the average grade at that checkpoint. A checkpoint that has
-        not been graded stays off the ranking. Fictional weeks live on the demo board.
+        The latest week is first. A week that has not closed yet has nothing to grade. A number is the average
+        grade at that checkpoint. A checkpoint that has not been graded stays off the ranking. Fictional weeks live
+        on the demo board.
       </p>
       <p className="mt-3 text-sm">
         <Link href="/demo" className="accent-link hit-44 underline-offset-4 hover:underline">
@@ -35,7 +38,26 @@ export default async function WeeksPage() {
       </p>
       <ul className="mt-8 grid gap-4">
         {rows.map((row) =>
-          row.kind === "empty" ? (
+          row.kind === "future" ? (
+            <li key={row.week.slug}>
+              <article className="panel p-5">
+                <p className="text-xs uppercase tracking-wide text-muted">
+                  Week of {formatShortDay(row.week.window.mondayAt)}
+                </p>
+                <h2 className="mt-1 font-serif text-3xl text-ink [text-wrap:balance]">
+                  <Link href={`/weeks/${row.week.slug}`} className="hover:underline">
+                    This week has not closed yet
+                  </Link>
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm text-muted">
+                  The collect window is still open, so there is nothing to grade yet.
+                </p>
+                <p className="mt-2 text-xs text-muted">
+                  {formatWhen(row.week.window.collectStart)} → {formatWhen(row.week.window.collectEnd)}
+                </p>
+              </article>
+            </li>
+          ) : row.kind === "empty" ? (
             <li key={row.week.slug}>
               <article className="panel p-5">
                 <p className="text-xs uppercase tracking-wide text-muted">
@@ -47,7 +69,8 @@ export default async function WeeksPage() {
                   </Link>
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm text-muted">
-                  No post read in this window named a direction on a graded print, so this week has no grade.
+                  Searched {formatWhen(row.week.window.collectStart)} through {formatWhen(row.week.window.collectEnd)}{" "}
+                  for a direction on a graded print. No post read in that search named one, so this week has no grade.
                 </p>
                 <p className="mt-2 text-xs text-muted">
                   {formatWhen(row.week.window.collectStart)} → {formatWhen(row.week.window.collectEnd)}

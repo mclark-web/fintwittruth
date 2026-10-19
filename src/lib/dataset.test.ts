@@ -89,6 +89,9 @@ test("the latest live week publishes Monday and leaves Wednesday and Friday sche
   assert.equal(latest.calls.length, 2);
   assert.match(latest.summary, /Wednesday, October 14, 2026 at 12:00 PM ET through Sunday, October 18 at 5:00 PM ET/);
   assert.match(latest.summary, /10:22 AM ET/);
+  assert.match(latest.summary, /out of scope and were not searched/);
+  assert.match(latest.summary, /first means the first forward-looking post inside that searched range/);
+  assert.doesNotMatch(latest.summary, /not fully verified/);
   assert.doesNotMatch(latest.summary, /after the cash close/);
   assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");

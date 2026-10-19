@@ -29,6 +29,12 @@
 }
 
 @layer base {
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
   html {
     color-scheme: dark;
     scroll-behavior: smooth;
