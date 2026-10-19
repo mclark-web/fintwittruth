@@ -3,7 +3,7 @@ import { CallCard } from "@/components/call-card";
 import { GradePill, GcTube } from "@/components/gc-tube";
 import { NoiseIndex, QuoteTape } from "@/components/market";
 import { Avatar } from "@/components/score";
-import { emptyLiveWeeks } from "@/lib/empty-weeks";
+import { closedPendingLiveWeeks, emptyLiveWeeks } from "@/lib/empty-weeks";
 import { formatAsOf, formatCheckpointStamp, formatRate, formatScore, formatShortDay, formatWeekday, referenceCloseDay } from "@/lib/format";
 import { gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_SCALE_BANDS } from "@/lib/labels";
@@ -82,6 +82,7 @@ export default async function HomePage({
   });
   const filterOn = Boolean(query.side || query.index);
   const emptyWeeks = emptyLiveWeeks();
+  const pendingWeeks = closedPendingLiveWeeks();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-7">
@@ -113,7 +114,14 @@ export default async function HomePage({
           <p className="mt-1 text-xs text-muted">
             {latest ? `Week of ${formatAsOf(latest.mondayAt)} · n=${graded.length}` : "No graded weekend yet"}
           </p>
-          {emptyWeeks.length ? (
+          {pendingWeeks.length ? (
+            <p className="mt-1 text-xs text-muted">
+              {pendingWeeks.length === 1
+                ? `Week of ${formatShortDay(pendingWeeks[0]!.window.mondayAt)} has closed and is being graded.`
+                : `Weeks of ${pendingWeeks.map((week) => formatShortDay(week.window.mondayAt)).join(" and ")} have closed and are being graded.`}
+              {latest ? ` Week of ${formatAsOf(latest.mondayAt)} is the latest week with calls loaded.` : ""}
+            </p>
+          ) : emptyWeeks.length ? (
             <p className="mt-1 text-xs text-muted">
               No qualifying calls in the week{emptyWeeks.length === 1 ? "" : "s"} of{" "}
               {emptyWeeks.map((week) => formatShortDay(week.window.mondayAt)).join(" and ")}, so nothing to grade.

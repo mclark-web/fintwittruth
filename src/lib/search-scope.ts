@@ -1,5 +1,5 @@
 import type { CohortWindow } from "./calendar";
-import { formatWhen } from "./format";
+import { formatScopeWhen } from "./format";
 
 /** Graded prints in the written selection rule, in that order. */
 export const GRADED_PRINT_LIST =
@@ -16,19 +16,51 @@ export const OCT19_X_SCOPE =
   "X was checked only from Friday, October 16 at 10:22 AM ET through Sunday, October 18 at 5:00 PM ET. X posts from Wednesday noon through Friday 10:22 AM ET were out of scope and were not searched. For this week, first means the first forward-looking post inside that searched range.";
 
 /**
- * One sentence for an empty week: which sources were searched, how far back each reached,
- * and the full graded-print list. The same string is rendered on the week page and the index.
+ * Recorded search coverage from checked-weeks.csv.
+ * `substack` — Substack for the whole window, X not searched.
+ * `substack+x` — both sources for the whole window.
+ * `substack+x-from-<ISO>` — Substack for the whole window, X only from that instant through the end.
  */
-export function emptyWeekSearchLine(window: CohortWindow): string {
-  const start = formatWhen(window.collectStart);
-  const end = formatWhen(window.collectEnd);
-  const substack = `Searched Substack from ${start} through ${end}.`;
+export type WeekCoverage = {
+  substack: boolean;
+  x: "none" | "full" | "from";
+  xFrom?: Date;
+};
+
+export function parseWeekCoverage(value: string): WeekCoverage | null {
+  const text = value.trim();
+  if (text === "substack") return { substack: true, x: "none" };
+  if (text === "substack+x") return { substack: true, x: "full" };
+  const from = /^substack\+x-from-(\S+)$/.exec(text);
+  if (!from) return null;
+  const xFrom = new Date(from[1] ?? "");
+  if (Number.isNaN(xFrom.getTime())) return null;
+  return { substack: true, x: "from", xFrom };
+}
+
+/**
+ * One sentence for an empty week: which sources were searched, how far back each reached,
+ * and the full graded-print list. Coverage comes from checked-weeks.csv.
+ * A blank record does not claim X was searched. A window that ended before X search began
+ * is Substack only, because that search did not reach it.
+ */
+export function emptyWeekSearchLine(window: CohortWindow, coverage = ""): string {
+  const start = formatScopeWhen(window.collectStart);
+  const end = formatScopeWhen(window.collectEnd);
   const tail = `No post read named a direction on ${GRADED_PRINT_LIST}, so there is nothing to grade. This is not a 0% grade.`;
-  if (window.collectEnd <= X_SEARCH_START) {
-    return `${substack} X was not searched. ${tail}`;
+  const recorded = parseWeekCoverage(coverage);
+  const reach = recorded ?? (window.collectEnd <= X_SEARCH_START ? { substack: true, x: "none" as const } : null);
+  if (!reach) {
+    return `No search coverage is recorded for this week. ${tail}`;
   }
-  if (window.collectStart < X_SEARCH_START) {
-    return `${substack} X was searched only from Friday, October 16 at 10:22 AM ET through ${end}. ${tail}`;
-  }
-  return `${substack} X was searched from ${start} through ${end}. ${tail}`;
+  const substack = reach.substack
+    ? `Searched Substack from ${start} through ${end}.`
+    : "Substack was not searched.";
+  const x =
+    reach.x === "none"
+      ? "X was not searched."
+      : reach.x === "full"
+        ? `X was searched from ${start} through ${end}.`
+        : `X was searched only from ${formatScopeWhen(reach.xFrom ?? X_SEARCH_START)} through ${end}.`;
+  return `${substack} ${x} ${tail}`;
 }

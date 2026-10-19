@@ -84,7 +84,9 @@ export default async function MethodologyPage() {
               Wednesday 12:00 PM America/New_York through Sunday 5:00 PM America/New_York. The cohort does not
               grow after Sunday. One call per handle per cohort; a handle can appear in later weeks. The first
               forward-looking post covering the week that names a direction on a graded print ({GRADED_PRINT_LIST}) counts.
-              An ambiguous direction is excluded. Substack covers that whole window. {OCT19_X_SCOPE}
+              An ambiguous direction is excluded. The weeks of September 28, October 5, and October 12 are Substack
+              only (X not searched). For the week of October 19, Substack covers the whole Wednesday noon to Sunday
+              5:00 PM ET window. For the week of October 19, 2026: {OCT19_X_SCOPE}
             </dd>
           </div>
           <div className="panel p-4">

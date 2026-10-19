@@ -15,6 +15,25 @@ export function formatWhen(date: Date | string): string {
   }).format(value);
 }
 
+/**
+ * Same clock style as the October 19 scope sentence: "Friday, October 16 at 10:22 AM ET".
+ * The zone is written ET. It does not switch to EDT or EST.
+ */
+export function formatScopeWhen(date: Date | string): string {
+  const value = typeof date === "string" ? new Date(date) : date;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hourCycle: "h12",
+  }).formatToParts(value);
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${get("weekday")}, ${get("month")} ${get("day")} at ${get("hour")}:${get("minute")} ${get("dayPeriod")} ET`;
+}
+
 /** Clock in Eastern Time with the zone written ET, plus the calendar date. */
 export function formatEtStamp(date: Date | string): string {
   const value = typeof date === "string" ? new Date(date) : date;

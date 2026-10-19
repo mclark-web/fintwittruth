@@ -7,8 +7,8 @@ import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "
 import { GcTube } from "@/components/gc-tube";
 import { mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
-import { emptyLiveWeeks, futureLiveWeek } from "@/lib/empty-weeks";
-import { formatShortDay, formatWhen } from "@/lib/format";
+import { closedPendingLiveWeeks, emptyLiveWeeks, futureLiveWeek } from "@/lib/empty-weeks";
+import { formatScopeWhen, formatShortDay, formatWhen } from "@/lib/format";
 import { gradedSymbols } from "@/lib/prints";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
 import { OCT19_X_SCOPE, emptyWeekSearchLine } from "@/lib/search-scope";
@@ -19,7 +19,12 @@ export const revalidate = 60;
 export async function generateStaticParams() {
   const slugs = await listCohortSlugs();
   const future = futureLiveWeek();
-  return [...slugs, ...emptyLiveWeeks().map((week) => week.slug), ...(future ? [future.slug] : [])].map((slug) => ({
+  return [
+    ...slugs,
+    ...emptyLiveWeeks().map((week) => week.slug),
+    ...closedPendingLiveWeeks().map((week) => week.slug),
+    ...(future ? [future.slug] : []),
+  ].map((slug) => ({
     slug,
   }));
 }
@@ -38,6 +43,8 @@ export async function generateMetadata({
     if (empty) return { title: `Week of ${formatShortDay(empty.window.mondayAt)}: no qualifying calls` };
     const future = futureLiveWeek();
     if (future?.slug === slug) return { title: `Week of ${formatShortDay(future.window.mondayAt)}: not closed yet` };
+    const pending = closedPendingLiveWeeks().find((week) => week.slug === slug);
+    if (pending) return { title: `Week of ${formatShortDay(pending.window.mondayAt)}: closed, being graded` };
     return { title: "Week" };
   }
   return {
@@ -53,8 +60,9 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
   if (!cohort) {
     const empty = emptyLiveWeeks().find((week) => week.slug === slug);
     const future = futureLiveWeek();
-    if (!empty && future?.slug !== slug) notFound();
-    if (!empty && future) {
+    const pending = closedPendingLiveWeeks().find((week) => week.slug === slug);
+    if (!empty && future?.slug !== slug && !pending) notFound();
+    if (!empty && future?.slug === slug) {
       return (
         <div className="mx-auto max-w-3xl px-4 py-10">
           <p className="text-xs uppercase tracking-wide text-muted">Week of {formatShortDay(future.window.mondayAt)}</p>
@@ -71,12 +79,29 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         </div>
       );
     }
+    if (pending) {
+      return (
+        <div className="mx-auto max-w-3xl px-4 py-10">
+          <p className="text-xs uppercase tracking-wide text-muted">Week of {formatShortDay(pending.window.mondayAt)}</p>
+          <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance]">Closed, being graded</h1>
+          <p className="mt-3 text-muted">
+            Collect window: {formatScopeWhen(pending.window.collectStart)} through {formatScopeWhen(pending.window.collectEnd)}.
+            Calls for this week are not loaded yet, so there is nothing to grade.
+          </p>
+          <p className="mt-4 text-sm">
+            <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">
+              All weeks
+            </Link>
+          </p>
+        </div>
+      );
+    }
     if (!empty) notFound();
     return (
       <div className="mx-auto max-w-3xl px-4 py-10">
         <p className="text-xs uppercase tracking-wide text-muted">Week of {formatShortDay(empty.window.mondayAt)}</p>
         <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance]">No qualifying calls this week</h1>
-        <p className="mt-3 text-muted">{emptyWeekSearchLine(empty.window)}</p>
+        <p className="mt-3 text-muted">{emptyWeekSearchLine(empty.window, empty.coverage)}</p>
         <p className="mt-4 text-sm">
           <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">
             All weeks

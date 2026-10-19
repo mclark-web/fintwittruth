@@ -1,13 +1,15 @@
 import type { MetadataRoute } from "next";
-import { emptyLiveWeeks, futureLiveWeek } from "@/lib/empty-weeks";
+import { emptyLiveWeeks } from "@/lib/empty-weeks";
 import { getLiveCohorts } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
 import { WATCHLIST } from "@/lib/watchlist";
 
+/** Re-read the clock so a week drops out of "unclosed" without a rebuild. Unclosed weeks are not listed. */
+export const revalidate = 60;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = "https://fintwittruth.vercel.app";
   const live = await getLiveCohorts();
-  const future = futureLiveWeek();
   const handles = new Set<string>(WATCHLIST.map((account) => account.handle));
   for (const cohort of live) {
     for (const call of cohort.calls) handles.add(call.handle);
@@ -24,7 +26,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/terms` },
     { url: `${base}/donate` },
     ...emptyLiveWeeks().map((week) => ({ url: `${base}/weeks/${week.slug}` })),
-    ...(future ? [{ url: `${base}/weeks/${future.slug}` }] : []),
     ...live.flatMap((cohort) => [
       { url: `${base}/weeks/${cohort.slug}` },
       { url: `${base}/weeks/${cohort.slug}/pending` },
