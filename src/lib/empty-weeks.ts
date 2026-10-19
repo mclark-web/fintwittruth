@@ -112,17 +112,21 @@ export function emptyLiveWeeks(now: Date = new Date()): EmptyWeek[] {
 }
 
 /**
- * The next readout Monday after the last recorded week, while its collect window is still open.
- * Once that window closes and the week has no calls, it is closed-pending, not a future week.
+ * The first Monday after the last recorded week whose collect window is still open.
+ * Mondays in between, once their windows have closed and they have no calls, are closed-pending.
  */
 export function futureWeekFromSlugs(callSlugs: string[], checkedSlugs: string[], now: Date): EmptyWeek | null {
   const anchors = [...callSlugs, ...checkedSlugs].filter((slug) => /^\d{4}-\d{2}-\d{2}$/.test(slug)).sort();
   const last = anchors.at(-1);
   if (!last) return null;
-  const next = addCalendarDays(parseCalendarDay(last), 7);
-  const window = buildCohortWindow(next);
-  if (window.collectEnd <= now) return null;
-  return { slug: calendarDayString(next), window, coverage: "" };
+  // Step past closed Mondays. The open week is the first one whose collect window has not closed.
+  let next = addCalendarDays(parseCalendarDay(last), 7);
+  for (let i = 0; i < 104; i += 1) {
+    const window = buildCohortWindow(next);
+    if (window.collectEnd > now) return { slug: calendarDayString(next), window, coverage: "" };
+    next = addCalendarDays(next, 7);
+  }
+  return null;
 }
 
 export function futureLiveWeek(now: Date = new Date()): EmptyWeek | null {

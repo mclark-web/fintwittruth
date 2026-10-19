@@ -75,7 +75,7 @@ export function methodologySourceLead(rows: { slug: string; coverage: string }[]
 /**
  * One sentence for an empty week: which sources were searched, how far back each reached,
  * and the full graded-print list. Coverage comes from checked-weeks.csv.
- * A blank record does not claim a source was searched.
+ * A blank record says no sources were searched. It does not claim any post was read.
  */
 export function emptyWeekSearchLine(window: CohortWindow, coverage = ""): string {
   const start = formatScopeWhen(window.collectStart);
@@ -83,7 +83,7 @@ export function emptyWeekSearchLine(window: CohortWindow, coverage = ""): string
   const tail = `No post read named a direction on ${GRADED_PRINT_LIST}, so there is nothing to grade. This is not a 0% grade.`;
   const reach = parseWeekCoverage(coverage);
   if (!reach) {
-    return `No search coverage is recorded for this week. ${tail}`;
+    return "No sources were searched for this week, so there is nothing to grade. This is not a 0% grade.";
   }
   const substack = reach.substack
     ? `Searched Substack from ${start} through ${end}.`

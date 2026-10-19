@@ -8,6 +8,7 @@ import {
   closedPendingFromSlugs,
   emptyWeeksFromSlugs,
   futureWeekFromSlugs,
+  resolveWeekSlug,
   newestRealWeekSlug,
   parseCheckedWeekRows,
   parseCheckedWeeks,
@@ -55,11 +56,12 @@ test("a checked empty week counts for freshness and stays off the list once it h
 test("the next Monday is a future week only while its collect window is open", () => {
   const open = futureWeekFromSlugs(["2026-10-19"], [], new Date("2026-10-19T20:00:00Z"));
   assert.equal(open?.slug, "2026-10-26");
-  const closed = futureWeekFromSlugs(["2026-10-19"], [], new Date("2026-10-26T16:00:00Z"));
-  assert.equal(closed, null);
+  const rolled = futureWeekFromSlugs(["2026-10-19"], [], new Date("2026-10-26T16:00:00Z"));
+  assert.equal(rolled?.slug, "2026-11-02");
+  assert.equal(resolveWeekSlug("2026-11-02", ["2026-10-19"], [], new Date("2026-11-01T21:59:00Z")).status, 200);
 });
 
-test("a closed week with no calls and no checked-empty row is being graded", () => {
+test("a closed week with no calls and no checked-empty row is not graded yet", () => {
   assert.deepEqual(closedPendingFromSlugs(["2026-10-19"], [], new Date("2026-10-19T20:00:00Z")), []);
   assert.deepEqual(
     closedPendingFromSlugs(["2026-10-19"], [], new Date("2026-10-26T16:00:00Z")).map((week) => week.slug),
@@ -87,8 +89,8 @@ test("an empty week names recorded coverage and does not assume X for a later we
   assert.match(before, /X was not searched\./);
   assert.doesNotMatch(before, /X was searched|EDT|EST|Sun, Oct/);
   const assumed = emptyWeekSearchLine(beforeWindow);
-  assert.match(assumed, /No search coverage is recorded for this week\./);
-  assert.doesNotMatch(assumed, /Searched Substack|X was not searched/);
+  assert.match(assumed, /No sources were searched for this week, so there is nothing to grade\. This is not a 0% grade\./);
+  assert.doesNotMatch(assumed, /Searched Substack|X was not searched|No post read|were read/);
   for (const name of ["SPX", "NDX", "ES", "NQ", "the S&P 500", "the Nasdaq 100", "the Dow"]) {
     assert.ok(before.includes(name), name);
   }
@@ -99,8 +101,8 @@ test("an empty week names recorded coverage and does not assume X for a later we
   const oct19 = recorded.find((row) => row.slug === "2026-10-19");
   assert.equal(oct19?.coverage, "substack+x-from-2026-10-16T14:22:00.000Z");
   const uncovered = emptyWeekSearchLine(overlapWindow);
-  assert.match(uncovered, /No search coverage is recorded for this week\./);
-  assert.doesNotMatch(uncovered, /X was searched|EDT|EST/);
+  assert.match(uncovered, /No sources were searched for this week/);
+  assert.doesNotMatch(uncovered, /X was searched|No post read|were read|EDT|EST/);
   const overlap = emptyWeekSearchLine(overlapWindow, oct19?.coverage ?? "");
   assert.match(
     overlap,
@@ -114,13 +116,32 @@ test("an empty week names recorded coverage and does not assume X for a later we
 
   const laterWindow = buildCohortWindow(parseCalendarDay("2026-11-02"));
   const later = emptyWeekSearchLine(laterWindow);
-  assert.match(later, /No search coverage is recorded for this week\./);
-  assert.doesNotMatch(later, /X was searched/);
+  assert.match(later, /No sources were searched for this week/);
+  assert.doesNotMatch(later, /X was searched|No post read|were read/);
   const start = formatScopeWhen(laterWindow.collectStart);
   const end = formatScopeWhen(laterWindow.collectEnd);
   const covered = emptyWeekSearchLine(laterWindow, "substack+x");
   assert.ok(covered.includes(`Searched Substack from ${start} through ${end}. X was searched from ${start} through ${end}.`));
   assert.doesNotMatch(covered, /EDT|EST/);
+});
+
+test("the open week steps to the first Monday whose collect window is still open", () => {
+  const beforeClose = new Date("2026-10-25T20:57:00.000Z");
+  assert.equal(formatScopeWhen(beforeClose), "Sunday, October 25 at 4:57 PM ET");
+  const stillOpen = resolveLiveWeek("2026-10-26", beforeClose);
+  assert.equal(stillOpen.status, 200);
+  if (stillOpen.status === 200) assert.equal(stillOpen.kind, "future");
+  assert.equal(resolveLiveWeek("2026-11-02", beforeClose).status, 404);
+
+  const justClosed = new Date("2026-10-25T21:01:00.000Z");
+  assert.equal(formatScopeWhen(justClosed), "Sunday, October 25 at 5:01 PM ET");
+  const closed = resolveLiveWeek("2026-10-26", justClosed);
+  assert.equal(closed.status, 200);
+  if (closed.status === 200) assert.equal(closed.kind, "closed");
+  const rolled = resolveLiveWeek("2026-11-02", justClosed);
+  assert.equal(rolled.status, 200);
+  if (rolled.status === 200) assert.equal(rolled.kind, "future");
+  assert.equal(resolveLiveWeek("2026-11-09", justClosed).status, 404);
 });
 
 test("at Sunday November 1 5:01 PM ET, /weeks/2026-11-02 returns 200 in the closed state", () => {
@@ -133,6 +154,10 @@ test("at Sunday November 1 5:01 PM ET, /weeks/2026-11-02 returns 200 in the clos
   assert.equal(page.week.slug, "2026-11-02");
   assert.equal(resolveLiveWeek("2026-11-03", now).status, 404);
   assert.equal(resolveLiveWeek("not-a-week", now).status, 404);
+  const nextOpen = resolveLiveWeek("2026-11-09", now);
+  assert.equal(nextOpen.status, 200);
+  if (nextOpen.status === 200) assert.equal(nextOpen.kind, "future");
+  assert.equal(resolveLiveWeek("2026-11-16", now).status, 404);
 });
 
 test("empty-week pages share one search line, and a future week revalidates", () => {

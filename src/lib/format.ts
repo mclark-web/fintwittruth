@@ -2,20 +2,6 @@ import { addCalendarDays, calendarDayString, marketHoliday, parseCalendarDay, zo
 
 const TIME_ZONE = "America/New_York";
 
-export function formatWhen(date: Date | string): string {
-  const value = typeof date === "string" ? new Date(date) : date;
-  const formatted = new Intl.DateTimeFormat("en-US", {
-    timeZone: TIME_ZONE,
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hourCycle: "h12",
-  }).format(value);
-  return `${formatted} ET`;
-}
-
 /**
  * Same clock style as the October 19 scope sentence: "Friday, October 16 at 10:22 AM ET".
  * The zone is written ET. It does not switch to EDT or EST.
@@ -138,22 +124,6 @@ export function formatScore(score: number, _digits = 0): string {
   if (!Number.isFinite(score) || score <= 0) return "0";
   if (score < 1) return "<1";
   return String(Math.floor(score));
-}
-
-/** "Mon Sep 21, 12:00 PM ET". The zone label stays ET. */
-export function formatCheckpointStamp(date: Date | string): string {
-  const value = typeof date === "string" ? new Date(date) : date;
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: TIME_ZONE,
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).formatToParts(value);
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
-  return `${get("weekday")} ${get("month")} ${get("day")}, ${get("hour")}:${get("minute")} ${get("dayPeriod")} ET`;
 }
 
 /** "Fri Sep 18". */

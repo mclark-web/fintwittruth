@@ -4,7 +4,7 @@ import { GradePill, GcTube } from "@/components/gc-tube";
 import { NoiseIndex, QuoteTape } from "@/components/market";
 import { Avatar } from "@/components/score";
 import { closedPendingLiveWeeks, emptyLiveWeeks } from "@/lib/empty-weeks";
-import { formatAsOf, formatCheckpointStamp, formatRate, formatScore, formatShortDay, formatWeekday, referenceCloseDay } from "@/lib/format";
+import { formatAsOf, formatDay, formatRate, formatScore, formatScopeWhen, formatShortDay, referenceCloseDay } from "@/lib/format";
 import { gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_SCALE_BANDS } from "@/lib/labels";
 import { bestWorst } from "@/lib/lanes";
@@ -36,7 +36,7 @@ function toggleHref(query: HomeQuery, key: keyof HomeQuery, value: string) {
 function priceMoveLabel(cohort: CohortView, kind: ReadoutKind): string {
   const at = cohort.readouts[kind].at;
   const close = referenceCloseDay(cohort.mondayAt, cohortReferenceDate(cohort.slug));
-  return `${formatCheckpointStamp(at)} vs ${formatWeekday(close)} close`;
+  return `${formatScopeWhen(at)} vs ${formatDay(close)} close`;
 }
 
 function headlineKind(calls: CallView[]): ReadoutKind {

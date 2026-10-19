@@ -5,7 +5,7 @@ import { NothingGraded } from "@/components/board-state";
 import { PricePath, PriceSource, TapeMark } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ReadoutBubble, ReferenceLine, ScoreMark } from "@/components/score";
 import { disputePath } from "@/lib/dispute";
-import { etYmd, formatPct, formatWhen } from "@/lib/format";
+import { etYmd, formatPct, formatScopeWhen } from "@/lib/format";
 import { pendingClosure, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { settledGradeKinds } from "@/lib/board";
@@ -129,7 +129,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
             {call.tickers.length > 0 ? `Named tickers: ${call.tickers.join(", ")}` : "No ticker named"}
           </p>
           <p className="mt-2 text-sm text-muted">Graded on the SPY, QQQ, and DIA average, plus VIX.</p>
-          <p className="mt-3 text-xs text-muted">Posted {formatWhen(call.postedAt)} inside the collect window.</p>
+          <p className="mt-3 text-xs text-muted">Posted {formatScopeWhen(call.postedAt)} inside the collect window.</p>
           {call.sourceUrl ? (
             <p className="mt-2 text-sm">
               <a href={call.sourceUrl} className="hit-44 text-pine underline-offset-4 hover:underline">
