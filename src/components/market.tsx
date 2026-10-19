@@ -169,13 +169,17 @@ export function QuoteTape({
   kind,
   variant = "grid",
   caption = "Market move used for grading",
+  symbols,
 }: {
   quotes: QuoteView[];
   kind: ReadoutKind | "latest";
   variant?: "grid" | "scoreboard";
   caption?: string;
+  symbols?: readonly string[];
 }) {
-  const ordered = [...quotes].sort((a, b) => {
+  const allowed = symbols ? new Set(symbols) : null;
+  const visible = allowed ? quotes.filter((quote) => allowed.has(quote.symbol)) : quotes;
+  const ordered = [...visible].sort((a, b) => {
     const left = TILE_ORDER.indexOf(a.symbol);
     const right = TILE_ORDER.indexOf(b.symbol);
     return (left === -1 ? 99 : left) - (right === -1 ? 99 : right) || a.symbol.localeCompare(b.symbol);

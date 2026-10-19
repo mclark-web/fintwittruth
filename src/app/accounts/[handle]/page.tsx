@@ -116,15 +116,15 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                   <dd className="font-mono text-xl">{formatScore(row.avgScore, 0)}%</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">Hit</dt>
-                  <dd className="font-mono text-xl">Hit {formatRate(row.hitRate, 0)}</dd>
+                  <dt className="text-xs text-muted">Hit</dt>
+                  <dd className="font-mono text-xl">{formatRate(row.hitRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">STRONG</dt>
+                  <dt className="text-xs text-muted">STRONG rate</dt>
                   <dd className="font-mono text-xl">{formatRate(row.strongRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">WEAK</dt>
+                  <dt className="text-xs text-muted">WEAK rate</dt>
                   <dd className="font-mono text-xl">{formatRate(row.weakRate, 0)}</dd>
                 </div>
                 <div>
@@ -163,7 +163,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       </header>
       <p className="mt-4 max-w-3xl text-sm text-muted">
         {row
-          ? `The number is the average of the furthest graded checkpoint on each call. Hit is the share of graded calls that were right. Best ${Math.round(row.bestScore)}%. Worst ${Math.round(row.worstScore)}%.`
+          ? `The number is the average of the furthest graded checkpoint on each call. Hit is the share of graded calls that were right. Best ${Math.floor(row.bestScore)}%. Worst ${Math.floor(row.worstScore)}%.`
           : "This handle has no graded call, so it is not ranked."}
       </p>
       {row && pendingCount > 0 ? (

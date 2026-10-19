@@ -44,7 +44,7 @@ export function CallCard({
         {grade && pill ? (
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="font-mono text-2xl text-ink">
-              {Math.round(grade.score)}
+              {Math.floor(grade.score)}
               <span className="text-sm text-muted">%</span>
             </span>
             <GradePill grade={pill} />

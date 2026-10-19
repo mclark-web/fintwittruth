@@ -55,16 +55,14 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Named watchlist</dt>
             <dd className="mt-1 text-sm text-muted">
-              Standing demo accounts. Their posts are in every cohort and are ranked against other watchlist
-              accounts.
+              Accounts we follow. A post joins the rank after it is verified and graded.
             </dd>
           </div>
           <div className="panel p-4">
             <dt className="font-medium text-ink">Viral doom and hype</dt>
             <dd className="mt-1 text-sm text-muted">
-              A keyword-and-engagement style bucket for crash, war, sell-the-open, and melt-up spikes. In this
-              demo the posts and engagement counts are fictional. They are ranked on their own leaderboard and
-              still sit on the weekly board with the watchlist.
+              Crash, war, sell-the-open, and melt-up posts. Fictional examples stay on the demo board. A
+              verified post is ranked with the accounts we follow.
             </dd>
           </div>
         </dl>
@@ -151,11 +149,11 @@ export default async function MethodologyPage() {
 
       <section className="mt-10" aria-labelledby="score">
         <h2 id="score" className="font-serif text-3xl text-ink">
-          The 0–100 score
+          How the percentage is built
         </h2>
         <p className="mt-3 text-ink/80">
-          Every published grade shows the full score and a 1–10 badge. Parts add to 100: direction{" "}
-          {DIRECTION_MAX}, levels {LEVEL_MAX}, specificity {SPECIFICITY_MAX}, VIX {VIX_MAX}.
+          The board shows one GC Scale percent. Parts add to that percent: direction {DIRECTION_MAX}, levels{" "}
+          {LEVEL_MAX}, specificity {SPECIFICITY_MAX}, VIX {VIX_MAX}.
         </p>
         <h3 className="mt-6 font-medium text-ink">Direction versus the equity tape</h3>
         <p className="mt-1 text-sm text-muted">
@@ -251,7 +249,6 @@ export default async function MethodologyPage() {
           {GC_FACTOR}: STRONG 70+, PROVISIONAL 40–69, WEAK under 40, EXIT LIQUIDITY at a graded 0. An ungraded
           horizon reads <span className="text-[#9a9aa3]">{UNGRADED_HORIZON}</span>.
         </p>
-        <p className="mt-3 text-ink/80">A 1–10 badge sits beside the fill.</p>
       </section>
 
       <section className="mt-10" aria-labelledby="wni">
@@ -323,11 +320,9 @@ export default async function MethodologyPage() {
                             direction={call.direction}
                           />
                         ) : null}
-                        <p className="font-mono text-sm">{grade ? `${grade.score}/100` : "Not graded yet"}</p>
+                        <p className="font-mono text-sm">{grade ? `${Math.floor(grade.score)}%` : "Not graded yet"}</p>
                         {grade ? (
-                          <p className="text-xs text-muted">
-                            Badge {grade.badge}/10 · {GC_GRADE_LABEL[gcGrade(grade)]}
-                          </p>
+                          <p className="text-xs text-muted">{GC_GRADE_LABEL[gcGrade(grade)]}</p>
                         ) : null}
                       </div>
                     );
@@ -373,11 +368,9 @@ export default async function MethodologyPage() {
                               direction={call.direction}
                             />
                           ) : null}
-                          {grade ? `${grade.score}/100` : "Not graded yet"}
+                          {grade ? `${Math.floor(grade.score)}%` : "Not graded yet"}
                           {grade ? (
-                            <span className="mt-1 block text-xs text-muted">
-                              Badge {grade.badge}/10 · {GC_GRADE_LABEL[gcGrade(grade)]}
-                            </span>
+                            <span className="mt-1 block text-xs text-muted">{GC_GRADE_LABEL[gcGrade(grade)]}</span>
                           ) : null}
                         </td>
                       );
@@ -408,7 +401,7 @@ export default async function MethodologyPage() {
           GradedCalls FinTwit does not scrape X and does not draw a price when a print is missing.
         </p>
         <p className="mt-4 text-sm text-muted">
-          Scores describe how demo posts lined up with those recorded prints. They are not investment advice.
+          Scores describe how posts lined up with those recorded prints. They are not investment advice.
           GradedCalls FinTwit is not affiliated with Yahoo Finance.{" "}
           <Link href="/disclaimer" className="text-pine underline-offset-4 hover:underline">
             Read the disclaimer

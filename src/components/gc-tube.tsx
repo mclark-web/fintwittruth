@@ -55,7 +55,7 @@ export function GcTube({
 }) {
   const empty = ungraded || grade === "exit" || gcFill(score) <= 0;
   const fill = empty ? 0 : gcFill(score);
-  const shown = Math.round(fill);
+  const shown = Math.floor(fill);
   const rich = variant !== "mini" && variant !== "inline";
   const label = ungraded
     ? UNGRADED_HORIZON_ARIA

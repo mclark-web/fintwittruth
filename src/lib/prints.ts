@@ -4,6 +4,16 @@ import { EQUITY_TAPE, type Direction, type ReadoutKind } from "./scoring";
 /** Board order for the index tape. Scoring still equal-weights SPY, QQQ, and DIA. */
 export const TAPE_DISPLAY = ["SPY", "DIA", "QQQ", "VIX"] as const;
 
+/** Tape symbols plus the tickers a call actually grades. Names that are not priced stay off the caption. */
+export function gradedSymbols(calls: { primary?: string; tickers?: string[] }[]): string[] {
+  const symbols = new Set<string>(TAPE_DISPLAY);
+  for (const call of calls) {
+    if (call.primary) symbols.add(call.primary);
+    for (const ticker of call.tickers ?? []) symbols.add(ticker);
+  }
+  return [...symbols];
+}
+
 export type PriceQuote = {
   symbol: string;
   /** Friday regular-session close. Reference for the signed move on a readout bubble. */

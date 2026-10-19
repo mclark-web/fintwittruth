@@ -21,7 +21,6 @@ export function ScoreMark({
   isWeak,
   rank,
   peerCount,
-  digits = 0,
   variant = "stack",
 }: {
   score: number;
@@ -38,7 +37,7 @@ export function ScoreMark({
     return (
       <div className="flex flex-col items-end gap-1.5">
         <span className="font-mono text-2xl text-ink">
-          {digits > 0 ? score.toFixed(digits) : Math.round(score)}
+          {Math.floor(score)}
           <span className="text-sm text-muted">%</span>
         </span>
         <GradePill grade={grade} />
@@ -172,7 +171,7 @@ export function Evolution({
                 <ReportOutTitle kind={kind} quotes={quotes} primary={primary} direction={direction} />
               </span>
               <span className="mt-1 flex items-center justify-between gap-2">
-                <span className="font-mono text-sm">{Math.round(grade.score)}%</span>
+                <span className="font-mono text-sm">{Math.floor(grade.score)}%</span>
                 <GradePill grade={pill} />
               </span>
             </Link>

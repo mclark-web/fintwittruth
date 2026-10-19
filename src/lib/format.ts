@@ -91,8 +91,48 @@ export function formatPrice(value: number): string {
   });
 }
 
+/**
+ * GC percent for display. Floors so 39.5 reads 39 and stays in the WEAK band.
+ * The grade itself still uses the unfloored score.
+ */
 export function formatScore(score: number, digits = 0): string {
-  return score.toFixed(digits);
+  if (!Number.isFinite(score)) return digits > 0 ? (0).toFixed(digits) : "0";
+  const floored = Math.floor(score);
+  return digits > 0 ? floored.toFixed(digits) : String(floored);
+}
+
+/** "Mon Sep 21, 12:00 PM ET". The zone label stays ET. */
+export function formatCheckpointStamp(date: Date | string): string {
+  const value = typeof date === "string" ? new Date(date) : date;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).formatToParts(value);
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${get("weekday")} ${get("month")} ${get("day")}, ${get("hour")}:${get("minute")} ${get("dayPeriod")} ET`;
+}
+
+/** "Fri Sep 18". */
+export function formatWeekday(date: Date | string): string {
+  const value = typeof date === "string" ? new Date(date) : date;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).formatToParts(value);
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${get("weekday")} ${get("month")} ${get("day")}`;
+}
+
+/** Noon on the Monday of the week, back three calendar days, is the prior Friday close's day. */
+export function priorFridayClose(mondayAt: Date): Date {
+  return new Date(mondayAt.getTime() - 3 * 24 * 60 * 60 * 1000);
 }
 
 export function initials(name: string): string {

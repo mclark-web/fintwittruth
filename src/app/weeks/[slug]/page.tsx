@@ -7,6 +7,7 @@ import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "
 import { GcTube } from "@/components/gc-tube";
 import { mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
+import { gradedSymbols } from "@/lib/prints";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
 
 export async function generateStaticParams() {
@@ -72,7 +73,9 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
       </div>
       <div className="mt-6 space-y-4">
         {tapeKinds.length > 0 ? (
-          tapeKinds.map((kind) => <QuoteTape key={kind} quotes={cohort.quotes} kind={kind} />)
+          tapeKinds.map((kind) => (
+            <QuoteTape key={kind} quotes={cohort.quotes} kind={kind} symbols={gradedSymbols(cohort.calls)} />
+          ))
         ) : (
           closedMonday ? (
             <p className="text-sm text-[#9a9aa3]">{closedMonday}</p>

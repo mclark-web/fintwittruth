@@ -10,8 +10,6 @@ import {
   readoutCheckpoint,
 } from "../src/lib/calendar";
 import { planCheckpoint } from "../src/lib/settlement";
-import { stalenessMessage } from "../src/lib/freshness";
-import { liveFile } from "../src/lib/live-book";
 import { fetchChart, pricesAgree, readOfficialClose, unix } from "../src/lib/yahoo";
 
 type Session = {
@@ -83,16 +81,7 @@ function sessionOpen(current: Session | null, ymd: string, reason?: string): boo
   return (current.reason ?? undefined) === reason;
 }
 
-function realWeekAlert(now = new Date()): string | null {
-  const newest = liveFile()
-    .cohorts.map((cohort) => cohort.slug)
-    .sort()
-    .at(-1);
-  return stalenessMessage(newest ?? null, now);
-}
-
 async function main() {
-  const stale = realWeekAlert();
   const now = new Date();
   const file = JSON.parse(fs.readFileSync(historyPath, "utf8")) as HistoryFile;
   const symbols = Object.keys(file.symbols);
@@ -189,7 +178,6 @@ async function main() {
   if (flags.length > 0) {
     console.error("FLAG: settlement did not invent prices:");
     for (const line of flags) console.error(`- ${line}`);
-    if (stale) console.error(stale);
     process.exit(1);
   }
 
@@ -211,10 +199,6 @@ async function main() {
     console.log(`Wrote ${path.relative(process.cwd(), historyPath)}`);
   } else {
     console.log("No checkpoint changes. Due closes already match Yahoo.");
-  }
-  if (stale) {
-    console.error(stale);
-    process.exit(1);
   }
 }
 

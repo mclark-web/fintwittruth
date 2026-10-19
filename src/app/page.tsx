@@ -3,13 +3,14 @@ import { CallCard } from "@/components/call-card";
 import { GradePill, GcTube } from "@/components/gc-tube";
 import { NoiseIndex, QuoteTape } from "@/components/market";
 import { Avatar } from "@/components/score";
-import { formatAsOf, formatRate, formatScore } from "@/lib/format";
+import { formatAsOf, formatCheckpointStamp, formatRate, formatScore, formatWeekday, priorFridayClose } from "@/lib/format";
 import { gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_SCALE_BANDS } from "@/lib/labels";
 import { bestWorst } from "@/lib/lanes";
-import { getLatestCohort, getLeaderboard, type CallView, type LeaderRow } from "@/lib/queries";
+import { gradedSymbols } from "@/lib/prints";
+import { getLatestCohort, getLeaderboard, getLiveCohorts, type CallView, type CohortView, type LeaderRow } from "@/lib/queries";
 import { EQUITY_TAPE, type ReadoutKind } from "@/lib/scoring";
-import { WATCHLIST } from "@/lib/watchlist";
+import { trackedRoster } from "@/lib/watchlist";
 
 const INDEX = new Set<string>([...EQUITY_TAPE, "VIX"]);
 
@@ -30,6 +31,12 @@ function toggleHref(query: HomeQuery, key: keyof HomeQuery, value: string) {
   return text ? `/?${text}` : "/";
 }
 
+function priceMoveLabel(cohort: CohortView, kind: ReadoutKind): string {
+  const at = cohort.readouts[kind].at;
+  const friday = priorFridayClose(cohort.mondayAt);
+  return `${formatCheckpointStamp(at)} vs ${formatWeekday(friday)} close`;
+}
+
 function headlineKind(calls: CallView[]): ReadoutKind {
   if (calls.some((call) => call.grades.monday)) return "monday";
   if (calls.some((call) => call.grades.wednesday)) return "wednesday";
@@ -42,7 +49,11 @@ export default async function HomePage({
   searchParams: Promise<HomeQuery>;
 }) {
   const query = await searchParams;
-  const [latest, ranked] = await Promise.all([getLatestCohort(), getLeaderboard("watchlist", "live")]);
+  const [latest, ranked, live] = await Promise.all([
+    getLatestCohort(),
+    getLeaderboard("watchlist", "live"),
+    getLiveCohorts(),
+  ]);
   const calls = latest?.calls ?? [];
   const readout = headlineKind(calls);
   const graded = calls.filter((call) => call.grades[readout] != null);
@@ -56,7 +67,8 @@ export default async function HomePage({
         : latest.mondayAt
     : null;
   const rankedHandles = new Set(ranked.map((row) => row.handle.toLowerCase()));
-  const ungraded = WATCHLIST.filter((account) => !rankedHandles.has(account.handle.toLowerCase()));
+  const roster = trackedRoster(live.flatMap((cohort) => cohort.calls.map((call) => call.handle)));
+  const ungraded = roster.filter((account) => !rankedHandles.has(account.handle.toLowerCase()));
   const filtered = graded.filter((call) => {
     if (query.side === "bullish" || query.side === "bearish") {
       if (call.direction !== query.side) return false;
@@ -71,20 +83,20 @@ export default async function HomePage({
       <div className="home-hero">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#c9c9cf]">GradedCalls FinTwit</p>
-          <h1 className="home-title">Weekend market calls from X, graded against Monday&apos;s market.</h1>
+          <h1 className="home-title">Weekend market calls from FinTwit writers, graded against the prior Friday close.</h1>
           <p className="mt-3 max-w-[52ch] text-sm leading-relaxed text-muted">
             A call is a public bullish or bearish post about a ticker or index. We grade it at Monday noon,
-            Wednesday close, and Friday close against the price when it was posted.
+            Wednesday close, and Friday close against that prior Friday close.
           </p>
           <p className="mt-3 text-sm text-ink">
             {asOf ? `As of ${formatAsOf(asOf)} · ${calls.length} call${calls.length === 1 ? "" : "s"}` : "As of — · 0 calls"}
           </p>
-          <p className="mt-2 text-sm">
-            <Link href="/methodology" className="accent-link underline-offset-4 hover:underline">
+          <p className="mt-1 flex flex-wrap items-center text-sm">
+            <Link href="/methodology" className="accent-link hit-44 underline-offset-4 hover:underline">
               How grading works
             </Link>
-            <span className="text-muted"> · </span>
-            <Link href="/weeks" className="accent-link underline-offset-4 hover:underline">
+            <span className="px-2 text-muted" aria-hidden="true">·</span>
+            <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">
               All weeks
             </Link>
           </p>
@@ -135,6 +147,22 @@ export default async function HomePage({
         />
       </section>
 
+      {!lanes.ready && graded.length > 0 && latest ? (
+        <section className="mt-8" aria-labelledby="graded-calls">
+          <h2 id="graded-calls" className="text-2xl text-ink">
+            Graded calls
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            {graded.length} graded {graded.length === 1 ? "call" : "calls"} this weekend. Too few to split into best and worst.
+          </p>
+          <div className="mt-4 flex flex-col gap-3.5">
+            {graded.map((call) => (
+              <CallCard key={call.id} call={call} readout={readout} quotes={latest.quotes} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="mt-10" aria-labelledby="accounts-heading">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 id="accounts-heading" className="text-2xl text-ink">
@@ -145,16 +173,16 @@ export default async function HomePage({
           </Link>
         </div>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          Live data only. Hit is the share of graded calls that were right. An account with no graded call reads Not graded yet.
+          {roster.length} accounts, live data only. Hit is the share of graded calls that were right. An account with no graded call reads Not graded yet.
         </p>
         <ol className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
           {ranked.map((row) => (
             <AccountRow key={row.handle} row={row} />
           ))}
           {ungraded.map((account) => (
-            <li key={account.handle} className="grid gap-1 px-4 py-3 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-3">
+            <li key={account.handle} className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-3 px-4 py-1">
               <span className="font-mono text-sm text-muted">—</span>
-              <Link href={`/accounts/${account.handle}`} className="min-w-0 font-medium hover:underline">
+              <Link href={`/accounts/${account.handle}`} className="min-w-0 justify-self-start justify-start font-medium hover:underline">
                 @{account.handle}
               </Link>
               <span className="text-sm text-[#9a9aa3]">Not graded yet</span>
@@ -183,12 +211,18 @@ export default async function HomePage({
         <summary className="cursor-pointer text-sm font-semibold text-ink">Prices, noise, and filters</summary>
         <div className="mt-4">
           <h3 className="text-sm font-semibold text-ink">Market move used for grading</h3>
-          {latest && asOf ? (
-            <p className="mt-1 text-xs text-muted">Prices as of {formatAsOf(asOf)}.</p>
+          {latest ? (
+            <p className="mt-1 text-xs text-muted">{priceMoveLabel(latest, readout)}</p>
           ) : null}
           {latest ? (
             <div className="mt-3">
-              <QuoteTape quotes={latest.quotes} kind={readout} variant="scoreboard" caption="Market move used for grading" />
+              <QuoteTape
+                quotes={latest.quotes}
+                kind={readout}
+                variant="scoreboard"
+                caption="Market move used for grading"
+                symbols={gradedSymbols(calls)}
+              />
             </div>
           ) : (
             <p className="mt-2 text-sm text-muted">No prices are on the board yet.</p>
@@ -275,7 +309,7 @@ type HomeQuotes = NonNullable<Awaited<ReturnType<typeof getLatestCohort>>>["quot
 function AccountRow({ row }: { row: LeaderRow }) {
   const pill = gcGrade({ score: row.avgScore, isStrong: row.isStrong, isWeak: row.isWeak });
   return (
-    <li className="grid gap-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-3">
+    <li className="grid grid-cols-[1.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-y-0">
       <span className="font-mono text-sm text-muted">{row.peerRank}</span>
       <Link href={`/accounts/${row.handle}`} className="flex min-w-0 items-center gap-3 hover:underline">
         <Avatar name={row.displayName} />
@@ -284,7 +318,7 @@ function AccountRow({ row }: { row: LeaderRow }) {
           <span className="block text-sm text-muted">@{row.handle}</span>
         </span>
       </Link>
-      <span className="flex flex-wrap items-center gap-2 sm:justify-end">
+      <span className="col-start-2 flex flex-wrap items-center gap-2 sm:col-start-auto sm:justify-end">
         <span className="font-mono text-2xl text-ink">
           {formatScore(row.avgScore, 0)}
           <span className="text-sm text-muted">%</span>

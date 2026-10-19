@@ -5,6 +5,7 @@ import { GcTube } from "@/components/gc-tube";
 import { NoiseIndex, QuoteTape } from "@/components/market";
 import { closedHorizonNote, gcBoardGrade } from "@/lib/grades";
 import { GC_SCALE_BANDS } from "@/lib/labels";
+import { gradedSymbols } from "@/lib/prints";
 import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
 
@@ -108,7 +109,7 @@ export function FinTwitBoard({
       <details className="panel mt-4 p-4">
         <summary className="cursor-pointer text-sm font-semibold text-ink">Market move used for grading</summary>
         <div className="mt-3">
-          <QuoteTape quotes={quotes} kind={readout} variant="scoreboard" caption="Market move used for grading" />
+          <QuoteTape quotes={quotes} kind={readout} variant="scoreboard" caption="Market move used for grading" symbols={gradedSymbols(calls)} />
         </div>
       </details>
     </div>

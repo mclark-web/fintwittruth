@@ -49,7 +49,7 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
               <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <dt className="text-xs text-[#9a9aa3]">Hit</dt>
-                  <dd className="font-mono">Hit {formatRate(row.hitRate, 0)}</dd>
+                  <dd className="font-mono">{formatRate(row.hitRate, 0)}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-[#9a9aa3]">STRONG rate</dt>
@@ -65,7 +65,7 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                 </div>
               </dl>
               <p className="mt-2 font-mono text-xs text-muted">
-                Best {Math.round(row.bestScore)}% · worst {Math.round(row.worstScore)}%
+                Best {Math.floor(row.bestScore)}% · worst {Math.floor(row.worstScore)}%
               </p>
             </li>
           ))
@@ -119,12 +119,12 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                     })}
                   />
                 </td>
-                <td className="px-4 py-3 font-mono">Hit {formatRate(row.hitRate, 0)}</td>
+                <td className="px-4 py-3 font-mono">{formatRate(row.hitRate, 0)}</td>
                 <td className="px-4 py-3 font-mono">{formatRate(row.strongRate, 0)}</td>
                 <td className="px-4 py-3 font-mono">{formatRate(row.weakRate, 0)}</td>
                 <td className="px-4 py-3 font-mono">{row.callCount}</td>
                 <td className="px-4 py-3 font-mono text-xs">
-                  {Math.round(row.bestScore)}% · {Math.round(row.worstScore)}%
+                  {Math.floor(row.bestScore)}% · {Math.floor(row.worstScore)}%
                 </td>
               </tr>
             ))}

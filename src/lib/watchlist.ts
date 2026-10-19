@@ -40,6 +40,25 @@ export function loadWatchlist(data: WatchFile = file as WatchFile): WatchAccount
 
 export const WATCHLIST = loadWatchlist();
 
+/** Watchlist file plus any live handle that already has a call. Home and /watchlist share this list. */
+export function trackedRoster(extraHandles: Iterable<string> = []): WatchAccount[] {
+  const rows: WatchAccount[] = [];
+  const seen = new Set<string>();
+  for (const account of WATCHLIST) {
+    seen.add(account.handle.toLowerCase());
+    rows.push(account);
+  }
+  for (const handle of extraHandles) {
+    const trimmed = handle.trim();
+    if (!trimmed) continue;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    rows.push({ handle: trimmed, profileUrl: profileUrl(trimmed) });
+  }
+  return rows;
+}
+
 export function findWatchAccount(handle: string): WatchAccount | undefined {
   const key = handle.toLowerCase();
   return WATCHLIST.find((account) => account.handle.toLowerCase() === key);

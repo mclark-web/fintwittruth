@@ -19,6 +19,11 @@ export async function generateStaticParams() {
 
 export const dynamicParams = false;
 
+function tickersUsed(call: { primary: string; tickers: string[] }, quotes: { symbol: string }[]): string[] {
+  const quoted = new Set(quotes.map((quote) => quote.symbol));
+  return [...new Set([call.primary, ...call.tickers].filter((ticker) => quoted.has(ticker)))];
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -119,11 +124,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           <div className="mt-4">
             <LevelList levels={call.levels} />
           </div>
-          {call.tickers.length > 0 ? (
-            <p className="mt-3 text-sm text-muted">Named tickers: {call.tickers.join(", ")}</p>
-          ) : (
-            <p className="mt-3 text-sm text-muted">No ticker named. Specificity stays at the floor.</p>
-          )}
+          <p className="mt-3 text-sm text-muted">Tickers used: {tickersUsed(call, cohort.quotes).join(", ")}</p>
           <p className="mt-3 text-xs text-muted">Posted {formatWhen(call.postedAt)} inside the collect window.</p>
           {call.sourceUrl ? (
             <p className="mt-2 text-sm">

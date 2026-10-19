@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { UNCONFIGURED_PUBLIC } from "@/lib/intake-store";
 import { loadRealCalls } from "@/lib/public-real";
-import { WATCHLIST, profileUrl } from "@/lib/watchlist";
+import { profileUrl, trackedRoster } from "@/lib/watchlist";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +31,10 @@ export default async function WatchlistPage() {
   for (const call of loaded.calls) {
     if (Object.keys(call.grades).length > 0) gradedHandles.add(call.handle.toLowerCase());
   }
-  const gradedCount = WATCHLIST.filter((account) => gradedHandles.has(account.handle.toLowerCase())).length;
+  const roster = trackedRoster(
+    cohorts.flatMap((cohort) => cohort.calls.map((call) => call.handle)),
+  );
+  const gradedCount = roster.filter((account) => gradedHandles.has(account.handle.toLowerCase())).length;
   const intakeNote = loaded.kind === "unconfigured" && cohorts.every((cohort) => cohort.calls.length === 0) ? UNCONFIGURED_PUBLIC : null;
 
   return (
@@ -39,7 +42,7 @@ export default async function WatchlistPage() {
       <p className="text-xs uppercase tracking-wide text-[#c9c9cf]">Real accounts</p>
       <h1 className="mt-2 font-serif text-4xl text-ink">Watchlist</h1>
       <p className="mt-3 max-w-3xl text-muted">
-        {WATCHLIST.length} accounts tracked.{" "}
+        {roster.length} accounts tracked.{" "}
         {gradedCount === 0
           ? "None has a verified, graded call yet."
           : `${gradedCount} ${gradedCount === 1 ? "has" : "have"} a verified, graded call.`}{" "}
@@ -53,7 +56,7 @@ export default async function WatchlistPage() {
       {intakeNote ? <p className="mt-4 max-w-3xl text-sm text-muted">{intakeNote}</p> : null}
       {loaded.error ? <p className="mt-4 text-sm text-bear">{loaded.error}</p> : null}
       <ul className="mt-8 grid gap-3 sm:grid-cols-2">
-        {WATCHLIST.map((account) => {
+        {roster.map((account) => {
           const graded = gradedHandles.has(account.handle.toLowerCase());
           return (
             <li key={account.handle} className="panel p-4">
