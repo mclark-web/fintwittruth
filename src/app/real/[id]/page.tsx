@@ -64,6 +64,7 @@ export default async function RealCallPage({ params }: { params: Promise<{ id: s
   const call = loaded.calls.find((item) => item.id === id);
   if (!call) notFound();
   const settled = READOUTS.filter((kind) => call.grades[kind] != null);
+  const xProfile = profileUrl(call.handle);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -80,9 +81,13 @@ export default async function RealCallPage({ params }: { params: Promise<{ id: s
         <p className="text-xs uppercase tracking-wide text-pine">{call.label}</p>
         <h1 className="mt-2 font-serif text-3xl text-ink">{call.authorName}</h1>
         <p className="mt-1 text-sm text-muted">
-          <a href={profileUrl(call.handle)} className="text-pine underline-offset-4 hover:underline">
-            @{call.handle}
-          </a>
+          {xProfile ? (
+            <a href={xProfile} className="text-pine underline-offset-4 hover:underline">
+              @{call.handle}
+            </a>
+          ) : (
+            <span>@{call.handle}</span>
+          )}
           {" · "}
           {formatWhen(call.postedAt)}
           {call.cohortSlug ? ` · readout week ${call.cohortSlug}` : ""}

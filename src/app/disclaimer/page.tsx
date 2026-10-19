@@ -60,7 +60,7 @@ export default function DisclaimerPage() {
       <LegalSection id="calendar" title="One cohort, four readouts">
         <p>
           The calendar is fixed. Posts are collected from Wednesday at 12:00 PM America/New_York through Sunday
-          at 5:00 PM America/New_York. That same cohort is graded on the Monday regular-session open, at Monday
+          at 5:00 PM America/New_York. Those same posts are graded on the Monday regular-session open, at Monday
           12:00 PM America/New_York, and at the Wednesday and Friday official closes (4:00 PM ET, or 1:00 PM ET
           on an early close). Wednesday at noon also opens the next collect window. That new window is a different
           cohort. The Wednesday close still belongs to the book that closed the previous Sunday.

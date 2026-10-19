@@ -1,55 +1,21 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { NAV_NAME, PRODUCT_NAME, SIBLING_NAMES, UMBRELLA_NAME } from "@/lib/brand";
-import { DATA_MODE } from "@/lib/labels";
 import { getLatestCohort } from "@/lib/queries";
 import { LogoLink } from "./logo-link";
 import { NavLinks } from "./nav-links";
 
-export function DemoBanner() {
-  if (DATA_MODE !== "demo") return null;
-  return (
-    <div className="site-banner relative border-b border-pine/30 bg-pine/10 text-orange-soft">
-      <p className="mx-auto max-w-6xl px-4 pt-2 pb-3 text-center text-sm tracking-wide text-ink">
-        Demo weeks are fictional accounts. The latest board quotes verified public posts and links each source. Market prints are historical Yahoo Finance prices. Not investment advice. Not affiliated with X or Yahoo.{" "}
-        <Link href="/demo" className="font-medium text-pine underline-offset-4 hover:underline">
-          Fictional doom and melt-up book
-        </Link>
-      </p>
-    </div>
-  );
-}
-
 export async function SiteHeader() {
   const latest = await getLatestCohort();
   const latestHref = latest ? `/weeks/${latest.slug}` : "/weeks";
-  const gradeHref = latest
-    ? latest.readouts.monday.status === "published"
-      ? `/weeks/${latest.slug}/monday`
-      : latest.readouts["monday-gap"].status === "published"
-        ? `/weeks/${latest.slug}/monday-gap`
-        : latestHref
-    : "/weeks";
-  const tools = (
-    <>
-      <Link href="/weeks" className="btn header-tool">
-        Weekend filter
-      </Link>
-      <Link href={gradeHref} className="btn btn-primary header-tool">
-        Grade feed
-      </Link>
-    </>
-  );
   return (
     <header className="site-header sticky top-0 z-20 border-b border-line bg-[#0b0c0e]/95 backdrop-blur-md">
-      <div className="header-bar mx-auto grid max-w-6xl grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 px-4 sm:px-7 lg:h-14 lg:max-h-14 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+      <div className="header-bar mx-auto flex h-14 max-w-6xl items-center gap-x-3 px-4 sm:px-7">
         <LogoLink />
-        <div className="flex h-14 min-w-0 items-center">
+        <div className="flex h-14 min-w-0 flex-1 items-center">
           <Suspense fallback={<span className="block h-11 min-w-0 flex-1" aria-hidden />}>
             <NavLinks latestHref={latestHref} />
           </Suspense>
         </div>
-        <div className="header-tools col-span-2 flex gap-2 pb-2 lg:col-span-1 lg:h-14 lg:items-center lg:pb-0">{tools}</div>
       </div>
     </header>
   );
@@ -58,28 +24,15 @@ export async function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-line">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-muted sm:flex-row sm:items-start sm:justify-between">
-        <div className="max-w-xl space-y-2">
-          <p>
-            {PRODUCT_NAME} grades a weekly book of calls. It is not a broker, a signal service, or a feed from X.
-            Grades are not for sale.
-          </p>
-          <p>
-            A {UMBRELLA_NAME} vertical, with {SIBLING_NAMES[0]} and {SIBLING_NAMES[1]}. {NAV_NAME} is this board.
-          </p>
-        </div>
-        <nav aria-label="Footer" className="footer-nav flex flex-wrap gap-x-4 gap-y-3">
-          <Link href="/" className="hit-44 hover:text-[#ee9a44]">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-6 text-sm text-muted sm:px-7">
+        <p>Not investment advice. Prices: Yahoo Finance. Fictional examples live on the demo board.</p>
+        <p className="text-sm text-[#c9c9cf]">Not affiliated with X or Yahoo.</p>
+        <nav aria-label="Footer" className="footer-nav flex flex-wrap gap-x-4 gap-y-1">
+          <a href="https://charoof.vercel.app" className="hit-44 hover:text-[#ee9a44]" aria-label="GradedCalls Hub">
             Hub
-          </Link>
-          <Link href="/watchlist" className="hit-44 hover:text-[#ee9a44]">
-            Watchlist
-          </Link>
-          <Link href="/methodology" className="hit-44 hover:text-[#ee9a44]">
-            Method
-          </Link>
-          <Link href="/pending" className="hit-44 hover:text-[#ee9a44]">
-            Pending settle
+          </a>
+          <Link href="/demo" className="hit-44 hover:text-[#ee9a44]">
+            Demo board
           </Link>
           <Link href="/disclaimer" className="hit-44 hover:text-[#ee9a44]">
             Disclaimer

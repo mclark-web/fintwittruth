@@ -19,15 +19,15 @@ function linkClass(active: boolean) {
 export function NavLinks({ latestHref }: { latestHref: string }) {
   const pathname = usePathname();
   const items: Item[] = [
-    { href: "/", label: "Hub", match: (path: string) => path === "/" },
+    { href: "/", label: "Board", match: (path: string) => path === "/" },
     {
       href: latestHref,
       label: "FinTwit",
       match: (path: string) => path === "/weeks" || path.startsWith("/weeks/") || path.startsWith("/calls/") || path.startsWith("/accounts/"),
     },
     { href: "/watchlist", label: "Watchlist", match: (path: string) => path === "/watchlist" || path.startsWith("/real") },
-    { href: "/leaderboard", label: "Leaderboard", match: (path: string) => path === "/leaderboard" || path.startsWith("/leaderboard/") },
     { href: "/methodology", label: "Method", match: (path: string) => path === "/methodology" },
+    { href: "/leaderboard", label: "Leaderboard", match: (path: string) => path === "/leaderboard" || path.startsWith("/leaderboard/") },
   ];
   const wrapRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(items.length);
@@ -79,8 +79,14 @@ export function NavLinks({ latestHref }: { latestHref: string }) {
     setOpen(false);
   }, [pathname]);
 
-  const shown = items.slice(0, visibleCount);
-  const extra = items.slice(visibleCount);
+  let shown = items.slice(0, visibleCount);
+  let extra = items.slice(visibleCount);
+  const method = items.find((item) => item.label === "Method");
+  if (method && !shown.includes(method)) {
+    const evicted = shown.length > 0 ? shown[shown.length - 1] : null;
+    shown = evicted ? [...shown.slice(0, -1), method] : [method];
+    extra = items.filter((item) => !shown.includes(item));
+  }
 
   return (
     <div ref={wrapRef} className="relative min-w-0 flex-1">

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { gcGrade } from "@/lib/grades";
-import { formatPrice, formatSignedPct, initials, moveArrow } from "@/lib/format";
+import { formatPrice, formatScore, formatSignedPct, initials, moveArrow } from "@/lib/format";
 import { predictedReadout, referencePrint } from "@/lib/prints";
 import type { GradeView, QuoteView } from "@/lib/queries";
 import { READOUTS, type Direction, type ReadoutKind } from "@/lib/scoring";
@@ -17,12 +17,10 @@ export function Avatar({ name }: { name: string; accent?: string }) {
 
 export function ScoreMark({
   score,
-  badge,
   isStrong,
   isWeak,
   rank,
   peerCount,
-  digits = 0,
   variant = "stack",
 }: {
   score: number;
@@ -38,20 +36,19 @@ export function ScoreMark({
   if (variant === "mini") {
     return (
       <div className="flex flex-col items-end gap-1.5">
+        <span className="font-mono text-2xl text-ink">
+          {formatScore(score)}
+          <span className="text-sm text-muted">%</span>
+        </span>
         <GradePill grade={grade} />
-        <GcTube score={score} grade={grade} variant="mini" showMeta={false} />
       </div>
     );
   }
   return (
     <div className="min-w-44">
       <GcTube score={score} grade={grade} variant="sidebar" />
-      <p className="mt-2 font-mono text-xs text-muted">
-        Badge {badge}/10
-        {digits > 0 ? ` · ${score.toFixed(digits)}/100` : ` · ${Math.round(score)}/100`}
-      </p>
       {rank && peerCount ? (
-        <p className="mt-1 text-xs text-muted">
+        <p className="mt-2 text-xs text-muted">
           Rank {rank} of {peerCount}
         </p>
       ) : null}
@@ -174,7 +171,7 @@ export function Evolution({
                 <ReportOutTitle kind={kind} quotes={quotes} primary={primary} direction={direction} />
               </span>
               <span className="mt-1 flex items-center justify-between gap-2">
-                <span className="font-mono text-sm">{Math.round(grade.score)}%</span>
+                <span className="font-mono text-sm">{formatScore(grade.score)}%</span>
                 <GradePill grade={pill} />
               </span>
             </Link>

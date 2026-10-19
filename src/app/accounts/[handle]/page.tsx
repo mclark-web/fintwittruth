@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
-import { GradePill } from "@/components/gc-tube";
+import { CallCard } from "@/components/call-card";
 import { RealCallCard } from "@/components/real-call-card";
-import { Avatar, DirectionChip, ReferenceLine, ReportOutTitle, ScoreMark } from "@/components/score";
+import { Avatar, ScoreMark } from "@/components/score";
 import { TrackedAccount } from "@/components/tracked-account";
-import { cohortClockDates, gcGrade, pendingClosure } from "@/lib/grades";
-import { callHasSettledGrade, settledGradeKinds } from "@/lib/board";
-import { formatPct, formatScore } from "@/lib/format";
+import { cohortClockDates, pendingClosure } from "@/lib/grades";
+import { callHasSettledGrade } from "@/lib/board";
+import { formatRate, formatScore } from "@/lib/format";
 import { loadRealCallsForHandle } from "@/lib/public-real";
 import { getAccount, listHandles } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
-import { TRACKING_EMPTY, WATCHLIST, findWatchAccount, profileUrl } from "@/lib/watchlist";
+import { WATCHLIST, findWatchAccount, profileUrl } from "@/lib/watchlist";
 
 function horizonState(slug: string, calls: { grades: Partial<Record<(typeof READOUTS)[number], unknown>> }[]) {
   const missing = READOUTS.filter((kind) => calls.some((call) => call.grades[kind] == null));
@@ -22,7 +22,7 @@ function horizonState(slug: string, calls: { grades: Partial<Record<(typeof READ
   const note =
     closure && closure.closed > 0 && closure.upcoming === 0
       ? "Settled grades only. Closed sessions are not on this card."
-      : "Settled grades only. Horizons still waiting on the tape are not on this card.";
+      : "Graded checkpoints only. A checkpoint with no grade yet is not on this card.";
   return { missing, closure, note };
 }
 
@@ -45,9 +45,11 @@ export async function generateMetadata({
   const account = await getAccount(handle);
   const watched = findWatchAccount(handle);
   if (!account) return { title: watched ? `@${watched.handle}` : "Account" };
+  const demoOnly = account.calls.length > 0 && account.calls.every((call) => call.dataset === "demo");
   return {
     title: `@${account.handle}`,
     description: account.bio,
+    robots: demoOnly ? { index: false, follow: false } : undefined,
   };
 }
 
@@ -98,7 +100,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
               {watched ? (
                 <>
                   {" · "}
-                  <a href={profileUrl(account.handle)} className="text-pine underline-offset-4 hover:underline">
+                  <a href={profileUrl(account.handle)} className="accent-link underline-offset-4 hover:underline">
                     Profile on X
                   </a>
                 </>
@@ -110,20 +112,20 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
             {row ? (
               <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-5">
                 <div>
-                  <dt className="text-xs uppercase text-muted">Average</dt>
-                  <dd className="font-mono text-xl">{formatScore(row.avgScore, 1)}/100</dd>
+                  <dt className="text-xs uppercase text-muted">Average grade</dt>
+                  <dd className="font-mono text-xl">{formatScore(row.avgScore, 0)}%</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">Hit rate</dt>
-                  <dd className="font-mono text-xl">{formatPct(row.hitRate, 0)}</dd>
+                  <dt className="text-xs text-muted">Hit</dt>
+                  <dd className="font-mono text-xl">{formatRate(row.hitRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">STRONG rate</dt>
-                  <dd className="font-mono text-xl">{formatPct(row.strongRate, 0)}</dd>
+                  <dt className="text-xs text-muted">STRONG rate</dt>
+                  <dd className="font-mono text-xl">{formatRate(row.strongRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase text-muted">WEAK rate</dt>
-                  <dd className="font-mono text-xl">{formatPct(row.weakRate, 0)}</dd>
+                  <dt className="text-xs text-muted">WEAK rate</dt>
+                  <dd className="font-mono text-xl">{formatRate(row.weakRate, 0)}</dd>
                 </div>
                 <div>
                   <dt className="text-xs uppercase text-muted">Graded calls</dt>
@@ -132,7 +134,13 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
               </dl>
             ) : watched && gradedReal.length === 0 ? (
               <div className="panel mt-4 p-5">
-                <h2 className="font-serif text-2xl text-ink">{TRACKING_EMPTY}</h2>
+                <h2 className="font-serif text-2xl text-ink">Not graded yet</h2>
+                <p className="mt-2 text-sm text-muted">
+                  A call is graded once its post URL is confirmed.{" "}
+                  <Link href="/methodology" className="accent-link hit-44 underline-offset-4 hover:underline">
+                    How grading works
+                  </Link>
+                </p>
               </div>
             ) : (
               <div className="mt-4">
@@ -155,8 +163,8 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       </header>
       <p className="mt-4 max-w-3xl text-sm text-muted">
         {row
-          ? `The card score is the rounded average of the furthest settled grade on each call. Hit rate, STRONG rate, and WEAK rate use settled grades only. Best settled grade ${row.bestScore}/100. Worst ${row.worstScore}/100.`
-          : "This handle has no settled grade, so it is not ranked."}
+          ? `The number is the average of the furthest graded checkpoint on each call. Hit is the share of graded calls that were right. Best ${formatScore(row.bestScore)}%. Worst ${formatScore(row.worstScore)}%.`
+          : "This handle has no graded call, so it is not ranked."}
       </p>
       {row && pendingCount > 0 ? (
         <div className="mt-3">
@@ -187,46 +195,20 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
             </h2>
             <p className="text-sm text-muted">{horizon.note}</p>
             <ul className="mt-3 grid gap-3">
-              {calls.map((call) => (
-                <li key={call.id} className="panel p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <DirectionChip direction={call.direction} />
-                    <span className="font-mono text-xs text-pine">{call.primary}</span>
-                  </div>
-                  <p className="mt-3 text-ink">
-                    <Link href={`/calls/${call.id}`} className="hover:underline">
-                      {call.body}
-                    </Link>
-                  </p>
-                  <ReferenceLine quotes={account.quotesBySlug[slug]} primary={call.primary} />
-                  <ol className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                    {settledGradeKinds(call.grades).map((kind) => {
-                      const grade = call.grades[kind];
-                      if (!grade) return null;
-                      return (
-                        <li key={kind} className="rounded-xl bg-sheet px-3 py-2">
-                          <Link href={`/weeks/${slug}/${kind}`} className="block text-xs text-[#9a9aa3] hover:underline">
-                            <ReportOutTitle
-                              kind={kind}
-                              quotes={account.quotesBySlug[slug]}
-                              primary={call.primary}
-                              direction={call.direction}
-                            />
-                          </Link>
-                          <p className="font-mono text-2xl">
-                            {grade.score}
-                            <span className="text-sm text-muted">/100</span>
-                          </p>
-                          <p className="text-xs text-muted">Badge {grade.badge}/10</p>
-                          <span className="mt-1 inline-flex">
-                            <GradePill grade={gcGrade(grade)} />
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ol>
-                </li>
-              ))}
+              {calls.map((call) => {
+                const readout = call.grades.monday
+                  ? "monday"
+                  : call.grades.friday
+                    ? "friday"
+                    : call.grades.wednesday
+                      ? "wednesday"
+                      : "monday-gap";
+                return (
+                  <li key={call.id}>
+                    <CallCard call={call} readout={readout} quotes={account.quotesBySlug[slug]} />
+                  </li>
+                );
+              })}
             </ul>
             {horizon.missing.length > 0 ? (
               <div className="mt-3">

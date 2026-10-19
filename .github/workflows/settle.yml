@@ -37,3 +37,6 @@ jobs:
           git add src/lib/market-history.json data/calls/calls.csv src/lib/live-calls.json
           git commit -m "Settle due Wednesday and Friday closes from Yahoo."
           git push
+      - name: Alert when the newest real week is more than 7 days old
+        if: always()
+        run: npx tsx scripts/check-freshness.ts

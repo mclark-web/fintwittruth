@@ -48,10 +48,16 @@ test("the public watchlist hides the blob setup line", async () => {
   try {
     const { default: WatchlistPage } = await import("../app/watchlist/page");
     const html = renderToStaticMarkup(await WatchlistPage());
-    assert.match(html, new RegExp(UNCONFIGURED_PUBLIC));
     assert.doesNotMatch(html, /BLOB_READ_WRITE_TOKEN/);
     assert.doesNotMatch(html, /Persistent intake storage/);
     assert.doesNotMatch(html, /create a Blob store/);
+    assert.match(html, /Not graded yet/);
+    const claimsNone = html.includes(UNCONFIGURED_PUBLIC);
+    const showsGraded = html.includes(">Graded call<");
+    assert.equal(claimsNone && showsGraded, false);
+    if (!showsGraded && !html.includes("verified, graded call")) {
+      assert.match(html, new RegExp(UNCONFIGURED_PUBLIC));
+    }
   } finally {
     if (previousVercel === undefined) delete process.env.VERCEL;
     else process.env.VERCEL = previousVercel;

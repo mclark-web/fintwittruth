@@ -47,7 +47,7 @@ export function marketHolidayName(ymd: string): string | null {
 export function mondayTapeClosedLine(mondayAt: Date | string): string | null {
   const name = marketHolidayName(etYmd(mondayAt));
   if (!name) return null;
-  return `Market closed (${name}) · no Monday tape`;
+  return `Market closed (${name}) · no Monday prices`;
 }
 
 export function readoutSessionYmd(
@@ -108,10 +108,10 @@ export function pendingHorizonsClause(waiting: number, closure: PendingClosure):
   if (closure.closed > 0 && closure.upcoming > 0 && closure.name) {
     const closedVerb = closure.closed === 1 ? "horizon is" : "horizons are";
     const openVerb = closure.upcoming === 1 ? "horizon is" : "horizons are";
-    return `${closure.closed} ${closedVerb} not graded: the market was closed for ${closure.name}. ${closure.upcoming} ${openVerb} off this board until the tape prints.`;
+    return `${closure.closed} ${closedVerb} not graded: the market was closed for ${closure.name}. ${closure.upcoming} ${openVerb} off this board until the prices are in.`;
   }
   const verb = waiting === 1 ? "horizon is" : "horizons are";
-  return `${waiting} ${verb} off this board until the tape prints.`;
+  return `${waiting} ${verb} off this board until the prices are in.`;
 }
 
 export function closedHorizonNote(marketClosed: boolean): string {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PendingSettleLink } from "@/components/board-state";
 import { GradePill } from "@/components/gc-tube";
-import { formatPct, formatScore } from "@/lib/format";
+import { formatRate, formatScore } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import { getLeaderboard, type LeaderRow } from "@/lib/queries";
 
@@ -19,7 +19,7 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
       <ul className="mt-4 grid gap-3 min-[820px]:hidden">
         {rows.length === 0 ? (
           <li className="panel p-4 text-sm text-muted">
-            No settled grades in this bucket yet. Handles show up here after a readout settles.
+            No graded calls in this list yet. An account shows up here after a call is graded.
           </li>
         ) : (
           rows.map((row) => (
@@ -34,11 +34,8 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                 @{row.handle} · {row.posture}
               </p>
               <p className="mt-2 font-mono text-2xl text-ink">
-                {formatScore(row.avgScore, 1)}
-                <span className="text-sm text-muted">/100</span>
-              </p>
-              <p className="mt-1 text-sm text-muted">
-                Badge {row.badge}/10
+                {formatScore(row.avgScore, 0)}
+                <span className="text-sm text-muted">%</span>
               </p>
               <div className="mt-2">
                 <GradePill
@@ -51,16 +48,16 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
               </div>
               <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <dt className="text-xs text-[#9a9aa3]">Hit rate</dt>
-                  <dd className="font-mono">{formatPct(row.hitRate, 0)}</dd>
+                  <dt className="text-xs text-[#9a9aa3]">Hit</dt>
+                  <dd className="font-mono">{formatRate(row.hitRate, 0)}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-[#9a9aa3]">STRONG rate</dt>
-                  <dd className="font-mono">{formatPct(row.strongRate, 0)}</dd>
+                  <dd className="font-mono">{formatRate(row.strongRate, 0)}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-[#9a9aa3]">WEAK rate</dt>
-                  <dd className="font-mono">{formatPct(row.weakRate, 0)}</dd>
+                  <dd className="font-mono">{formatRate(row.weakRate, 0)}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-[#9a9aa3]">Graded calls</dt>
@@ -68,7 +65,7 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                 </div>
               </dl>
               <p className="mt-2 font-mono text-xs text-muted">
-                Best {row.bestScore}/100 · worst {row.worstScore}/100
+                Best {formatScore(row.bestScore)}% · worst {formatScore(row.worstScore)}%
               </p>
             </li>
           ))
@@ -81,10 +78,9 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
             <tr>
               <th scope="col" className="px-4 py-3 font-medium">Rank</th>
               <th scope="col" className="px-4 py-3 font-medium">Account</th>
-              <th scope="col" className="px-4 py-3 font-medium">Avg score</th>
-              <th scope="col" className="px-4 py-3 font-medium">Badge</th>
-              <th scope="col" className="px-4 py-3 font-medium">Marks</th>
-              <th scope="col" className="px-4 py-3 font-medium">Hit rate</th>
+              <th scope="col" className="px-4 py-3 font-medium">Average grade</th>
+              <th scope="col" className="px-4 py-3 font-medium">Grade</th>
+              <th scope="col" className="px-4 py-3 font-medium">Hit</th>
               <th scope="col" className="px-4 py-3 font-medium">STRONG rate</th>
               <th scope="col" className="px-4 py-3 font-medium">WEAK rate</th>
               <th scope="col" className="px-4 py-3 font-medium">Graded calls</th>
@@ -94,8 +90,8 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-4 py-6 text-muted">
-                  No settled grades in this bucket yet. Handles show up here after a readout settles.
+                <td colSpan={9} className="px-4 py-6 text-muted">
+                  No graded calls in this list yet. An account shows up here after a call is graded.
                 </td>
               </tr>
             ) : null}
@@ -111,12 +107,8 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                   </span>
                 </th>
                 <td className="px-4 py-3 font-mono text-lg">
-                  {formatScore(row.avgScore, 1)}
-                  <span className="text-xs text-muted">/100</span>
-                </td>
-                <td className="px-4 py-3 font-mono">
-                  {row.badge}
-                  <span className="text-xs text-muted">/10</span>
+                  {formatScore(row.avgScore, 0)}
+                  <span className="text-xs text-muted">%</span>
                 </td>
                 <td className="px-4 py-3">
                   <GradePill
@@ -127,12 +119,12 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                     })}
                   />
                 </td>
-                <td className="px-4 py-3 font-mono">{formatPct(row.hitRate, 0)}</td>
-                <td className="px-4 py-3 font-mono">{formatPct(row.strongRate, 0)}</td>
-                <td className="px-4 py-3 font-mono">{formatPct(row.weakRate, 0)}</td>
+                <td className="px-4 py-3 font-mono">{formatRate(row.hitRate, 0)}</td>
+                <td className="px-4 py-3 font-mono">{formatRate(row.strongRate, 0)}</td>
+                <td className="px-4 py-3 font-mono">{formatRate(row.weakRate, 0)}</td>
                 <td className="px-4 py-3 font-mono">{row.callCount}</td>
                 <td className="px-4 py-3 font-mono text-xs">
-                  {row.bestScore}/100 · {row.worstScore}/100
+                  {formatScore(row.bestScore)}% · {formatScore(row.worstScore)}%
                 </td>
               </tr>
             ))}
@@ -144,40 +136,26 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
 }
 
 export default async function LeaderboardPage() {
-  const [verified, watchlist, viral] = await Promise.all([
-    getLeaderboard("watchlist", "live"),
-    getLeaderboard("watchlist", "demo"),
-    getLeaderboard("viral", "demo"),
-  ]);
+  const verified = await getLeaderboard("watchlist", "live");
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="font-serif text-4xl text-ink">Leaderboards</h1>
+      <h1 className="font-serif text-4xl text-ink">Leaderboard</h1>
       <p className="mt-3 max-w-3xl text-muted">
-        Verified posts rank apart from the fictional demo. An average uses the furthest settled grade on each
-        call. Hit rate, STRONG rate, and WEAK rate count settled grades only. A call with no grade yet is not
-        in the rank. Bands are on the{" "}
-        <Link href="/methodology" className="text-pine underline-offset-4 hover:underline">
+        Live accounts only. An average grade uses the furthest graded checkpoint on each call. Hit is the share
+        of graded calls that were right. STRONG rate and WEAK rate count graded calls only. An account with no
+        graded call is not in this rank. Bands are on the{" "}
+        <Link href="/methodology" className="accent-link underline-offset-4 hover:underline">
           methodology
         </Link>{" "}
-        page.
+        page. Fictional ranks live on the demo board.
       </p>
       <div className="mt-7">
         <PendingSettleLink href="/pending" />
       </div>
       <Board
-        title="Verified watchlist"
-        note="Public posts on the latest board, ranked against each other."
+        title="Tracked accounts"
+        note="Verified posts, ranked against each other. Accounts with no graded call read Not graded yet on the home board."
         rows={verified}
-      />
-      <Board
-        title="Demo watchlist"
-        note="Fictional standing accounts, ranked against each other. They are not the verified book."
-        rows={watchlist}
-      />
-      <Board
-        title="Viral doom and hype"
-        note="Keyword and engagement spikes in the demo seed, ranked against each other."
-        rows={viral}
       />
     </div>
   );

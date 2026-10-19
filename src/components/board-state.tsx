@@ -8,13 +8,13 @@ export function NothingGraded({ href, horizon }: { href: string; horizon?: strin
       <p className="mt-2 max-w-2xl text-sm text-muted">
         {horizon
           ? `${horizon} has not settled, so these calls are off the board.`
-          : "This cohort has no settled grade yet. Scores land here after Monday's open, Monday noon, or a later close prints."}
+          : "This week has no grade yet. Scores land here after Monday's open, Monday noon, or a later close."}
       </p>
       <p className="mt-3 text-sm">
-        <Link href={href} className="font-medium text-pine underline-offset-4 hover:underline">
-          Pending settle
+        <Link href={href} className="accent-link font-medium underline-offset-4 hover:underline">
+          Not graded yet
         </Link>
-        <span className="text-muted"> lists what is waiting. It is not part of the ranking.</span>
+        <span className="text-muted"> lists what has no grade yet. It is not part of the ranking.</span>
       </p>
     </div>
   );
@@ -32,12 +32,12 @@ export function PendingSettleLink({
   const upcoming = closure ?? { closed: 0, upcoming: waiting ?? 0, name: null };
   return (
     <p className="text-sm text-muted">
-      <Link href={href} className="font-medium text-pine underline-offset-4 hover:underline">
-        Pending settle
+      <Link href={href} className="accent-link font-medium underline-offset-4 hover:underline">
+        Not graded yet
       </Link>
       {waiting != null && waiting > 0
         ? ` · ${pendingHorizonsClause(waiting, upcoming)}`
-        : " · unscored calls stay off this board until the tape prints."}
+        : " · calls without a grade stay off this board until the prices are in."}
     </p>
   );
 }

@@ -28,8 +28,9 @@ export async function generateMetadata({
   const result = await getCall(id);
   if (!result) return { title: "Call" };
   return {
-    title: `${result.call.displayName} on ${result.call.primary}`,
+    title: `${result.call.displayName}: ${result.call.tickers.length > 0 ? result.call.tickers.join(", ") : "No ticker named"}`,
     description: result.call.body,
+    robots: result.call.dataset === "demo" ? { index: false, follow: false } : undefined,
   };
 }
 
@@ -38,15 +39,17 @@ function Breakdown({
   levelPoints,
   specificityPoints,
   vixPoints,
+  levelsNamed,
 }: {
   directionPoints: number;
   levelPoints: number;
   specificityPoints: number;
   vixPoints: number;
+  levelsNamed: boolean;
 }) {
   const rows = [
-    { label: "Direction vs tape", value: directionPoints, max: DIRECTION_MAX },
-    { label: "Levels", value: levelPoints, max: LEVEL_MAX },
+    { label: "Direction vs the market", value: directionPoints, max: DIRECTION_MAX },
+    { label: levelsNamed ? "Levels" : "Levels · none named", value: levelPoints, max: LEVEL_MAX },
     { label: "Specificity", value: specificityPoints, max: SPECIFICITY_MAX },
     { label: "VIX factor", value: vixPoints, max: VIX_MAX },
   ];
@@ -86,11 +89,11 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <p className="text-sm text-muted">
-        <Link href={`/weeks/${cohort.slug}`} className="hover:underline">
+        <Link href={`/weeks/${cohort.slug}`} className="hit-44 hover:underline">
           {cohort.title}
         </Link>
         <span aria-hidden> / </span>
-        <Link href={`/accounts/${call.handle}`} className="hover:underline">
+        <Link href={`/accounts/${call.handle}`} className="hit-44 hover:underline">
           @{call.handle}
         </Link>
       </p>
@@ -110,23 +113,26 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           </header>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <DirectionChip direction={call.direction} />
-            <span className="font-mono text-xs text-pine">{call.primary}</span>
+            <span className="font-mono text-xs text-pine">
+              {call.tickers.length > 0 ? call.tickers.join(", ") : "No ticker named"}
+            </span>
             <span className="text-xs uppercase tracking-wide text-muted">{call.conviction} conviction</span>
           </div>
           <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
           <p className="mt-4 text-xl leading-snug text-ink">{call.body}</p>
-          <div className="mt-4">
-            <LevelList levels={call.levels} />
-          </div>
-          {call.tickers.length > 0 ? (
-            <p className="mt-3 text-sm text-muted">Named tickers: {call.tickers.join(", ")}</p>
-          ) : (
-            <p className="mt-3 text-sm text-muted">No ticker named. Specificity stays at the floor.</p>
-          )}
+          {call.levels.length > 0 ? (
+            <div className="mt-4">
+              <LevelList levels={call.levels} />
+            </div>
+          ) : null}
+          <p className="mt-3 text-sm text-muted">
+            {call.tickers.length > 0 ? `Named tickers: ${call.tickers.join(", ")}` : "No ticker named"}
+          </p>
+          <p className="mt-2 text-sm text-muted">Graded on the SPY, QQQ, and DIA average, plus VIX.</p>
           <p className="mt-3 text-xs text-muted">Posted {formatWhen(call.postedAt)} inside the collect window.</p>
           {call.sourceUrl ? (
             <p className="mt-2 text-sm">
-              <a href={call.sourceUrl} className="text-pine underline-offset-4 hover:underline">
+              <a href={call.sourceUrl} className="hit-44 text-pine underline-offset-4 hover:underline">
                 Original post
               </a>
             </p>
@@ -135,7 +141,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
             <p className="mt-2 text-sm">
               <a
                 href={disputePath(call.id)}
-                className="text-pine underline-offset-4 hover:underline"
+                className="hit-44 text-pine underline-offset-4 hover:underline"
               >
                 Dispute this grade
               </a>
@@ -194,9 +200,8 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                       peerCount={grade.peerCount}
                     />
                   </div>
-                  <p className="mt-3 text-sm text-ink/80">{grade.note}</p>
-                  <p className="mt-2 flex flex-wrap items-center gap-2">
-                    <TapeMark direction={call.direction} move={grade.rawMovePct} label="Tape" />
+                  <p className="mt-3 flex flex-wrap items-center gap-2">
+                    <TapeMark direction={call.direction} move={grade.rawMovePct} label="Market" />
                     <span className="font-mono text-xs text-[#9a9aa3] tabular-nums">
                       signed {formatPct(grade.signedMovePct)} · VIX {formatPct(grade.vixMovePct)}
                     </span>
@@ -204,10 +209,11 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                   <Breakdown
                     directionPoints={grade.directionPoints}
                     levelPoints={grade.levelPoints}
+                    levelsNamed={call.levels.length > 0}
                     specificityPoints={grade.specificityPoints}
                     vixPoints={grade.vixPoints}
                   />
-                  <Link href={`/weeks/${cohort.slug}/${kind}`} className="mt-3 inline-block text-sm text-pine underline-offset-4 hover:underline">
+                  <Link href={`/weeks/${cohort.slug}/${kind}`} className="hit-44 mt-3 inline-flex text-sm text-pine underline-offset-4 hover:underline">
                     Open the {meta.label} board
                   </Link>
                 </li>
@@ -219,11 +225,11 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
 
       {waiting.length > 0 ? (
         <details className="mt-8">
-          <summary className="flex min-h-11 cursor-pointer items-center font-serif text-2xl text-ink">Pending settle</summary>
+          <summary className="flex min-h-11 cursor-pointer items-center font-serif text-2xl text-ink">Not graded yet</summary>
           <p className="mt-2 max-w-3xl text-sm text-muted">
             {closedOnly
               ? `These horizons are not graded: the market was closed for ${closure.name}.`
-              : "These horizons are not on the board yet. There is no score until the tape prints."}
+              : "These checkpoints are not on the board yet. There is no score until the prices are in."}
           </p>
           <ul className="mt-4 grid gap-3">
             {waiting.map((kind) => {
@@ -246,8 +252,8 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
             })}
           </ul>
           <p className="mt-3 text-sm">
-            <Link href={`/weeks/${cohort.slug}/pending`} className="text-pine underline-offset-4 hover:underline">
-              {closedOnly ? "Open the pending list for this cohort" : "Open the waiting list for this cohort"}
+            <Link href={`/weeks/${cohort.slug}/pending`} className="accent-link hit-44 underline-offset-4 hover:underline">
+              Open what is not graded for this week
             </Link>
           </p>
         </details>

@@ -120,10 +120,10 @@ export function CalendarStrip() {
   const steps = [
     { kicker: "Collect opens", title: "Wednesday", detail: "12:00 PM ET" },
     { kicker: "Collect closes", title: "Sunday", detail: "5:00 PM ET" },
-    { kicker: "Monday gap", title: "Monday", detail: "9:30 AM ET" },
-    { kicker: "Weekend-noise grade", title: "Monday noon", detail: "12:00 PM ET" },
-    { kicker: "Same cohort", title: "Wed close", detail: "4:00 PM ET" },
-    { kicker: "Same cohort, final", title: "Fri close", detail: "4:00 PM ET" },
+    { kicker: "Monday open", title: "Monday", detail: "9:30 AM ET" },
+    { kicker: "Headline grade", title: "Monday noon", detail: "12:00 PM ET" },
+    { kicker: "Same week", title: "Wed close", detail: "4:00 PM ET" },
+    { kicker: "Same week, final", title: "Fri close", detail: "4:00 PM ET" },
   ];
   return (
     <ol className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -168,12 +168,18 @@ export function QuoteTape({
   quotes,
   kind,
   variant = "grid",
+  caption = "Market move used for grading",
+  symbols,
 }: {
   quotes: QuoteView[];
   kind: ReadoutKind | "latest";
   variant?: "grid" | "scoreboard";
+  caption?: string;
+  symbols?: readonly string[];
 }) {
-  const ordered = [...quotes].sort((a, b) => {
+  const allowed = symbols ? new Set(symbols) : null;
+  const visible = allowed ? quotes.filter((quote) => allowed.has(quote.symbol)) : quotes;
+  const ordered = [...visible].sort((a, b) => {
     const left = TILE_ORDER.indexOf(a.symbol);
     const right = TILE_ORDER.indexOf(b.symbol);
     return (left === -1 ? 99 : left) - (right === -1 ? 99 : right) || a.symbol.localeCompare(b.symbol);
@@ -207,7 +213,7 @@ export function QuoteTape({
     };
     return (
       <div className="scoreboard-stack" aria-label={`${printLabel(kind)} versus Friday session close`}>
-        <p className="market-print-note">Market print · not a grade</p>
+        <p className="market-print-note">{caption}</p>
         <div className="scoreboard scoreboard-primary">{primary.map(tile)}</div>
         {rest.length > 0 ? <div className="scoreboard scoreboard-rest">{rest.map(tile)}</div> : null}
       </div>
@@ -323,7 +329,7 @@ export function ReadoutCards({
                 ) : holiday ? (
                   <span className="text-[#9a9aa3]">{marketClosedCard(holiday)}</span>
                 ) : (
-                  <span className="text-muted">Scheduled · same cohort</span>
+                  <span className="text-muted">Scheduled · same week</span>
                 )}
               </p>
               <p className="mt-2 text-xs text-muted">
@@ -366,6 +372,15 @@ export function NoiseIndex({
   compact?: boolean;
   mondayAt?: Date;
 }) {
+  const closedMondayEarly = mondayAt ? mondayTapeClosedLine(mondayAt) : null;
+  if (calls.length < 10) {
+    if (closedMondayEarly) return <p className="text-sm text-[#9a9aa3]">{closedMondayEarly}</p>;
+    const priced = quotes.some((quote) => quote.monday != null || quote.mondayOpen != null);
+    if (!priced) {
+      return <p className="text-sm text-muted">Monday&apos;s prices are not on this board until they are graded.</p>;
+    }
+    return null;
+  }
   const noise = weekendNoise(
     calls.map((call) => call.sentiment),
     calls.map((call) => call.engagement),
@@ -376,8 +391,8 @@ export function NoiseIndex({
   const vixNoon = vixMove(quotes, "monday");
   const closedMonday = mondayAt ? mondayTapeClosedLine(mondayAt) : null;
   const stats = [
-    { label: "Monday gap tape", value: gap },
-    { label: "Monday noon tape", value: noon },
+    { label: "Monday open", value: gap },
+    { label: "Monday noon", value: noon },
     { label: "VIX at the open", value: vixGap },
     { label: "VIX at noon", value: vixNoon },
   ];
@@ -387,8 +402,8 @@ export function NoiseIndex({
         Weekend Noise Index
       </h2>
       <p className="mt-2 max-w-3xl text-sm text-muted">
-        Share of this cohort tagged panic, crash, or selloff, next to the equal-weight SPY, QQQ, and DIA move
-        from Friday&apos;s regular-session close. Descriptive only. Not a signal.
+        Share of this weekend&apos;s calls tagged panic, crash, or selloff, next to the equal-weight SPY, QQQ, and DIA move
+        from Friday&apos;s regular-session close. Descriptive only. Not a score.
       </p>
       <div className={`mt-4 grid gap-4 ${compact ? "" : "md:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]"}`}>
         <div>
@@ -424,7 +439,7 @@ export function NoiseIndex({
           closedMonday ? (
             <p className="text-sm text-[#9a9aa3]">{closedMonday}</p>
           ) : (
-            <p className="text-sm text-muted">The Monday tape is off this board until the session settles.</p>
+            <p className="text-sm text-muted">Monday&apos;s prices are not on this board until they are graded.</p>
           )
         )}
       </div>

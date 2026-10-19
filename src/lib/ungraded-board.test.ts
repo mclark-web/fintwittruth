@@ -88,7 +88,7 @@ test("Labor Day Weekend Noise Index does not promise a Monday tape", () => {
       mondayAt: zonedToUtc(2026, 9, 7, 12, 0),
     }),
   );
-  assert.match(holiday, /text-sm text-\[#9a9aa3\]">Market closed \(Labor Day\) · no Monday tape</);
+  assert.match(holiday, /text-sm text-\[#9a9aa3\]">Market closed \(Labor Day\) · no Monday prices</);
   assert.doesNotMatch(holiday, /until the session settles/);
   assert.doesNotMatch(holiday, /until the open prints settle/);
 
@@ -99,7 +99,7 @@ test("Labor Day Weekend Noise Index does not promise a Monday tape", () => {
       mondayAt: zonedToUtc(2026, 9, 21, 12, 0),
     }),
   );
-  assert.match(open, /The Monday tape is off this board until the session settles/);
+  assert.match(open, /prices are not on this board until they are graded/);
   assert.doesNotMatch(open, /Market closed/);
 });
 
@@ -121,13 +121,13 @@ test("a future trading day still says Scheduled and until the tape prints", () =
       },
     }),
   );
-  assert.match(html, /Scheduled · same cohort/);
+  assert.match(html, /Scheduled · same week/);
   assert.doesNotMatch(html, /Market closed/);
   const closure: PendingClosure = pendingClosure(["friday"], dates);
   assert.equal(closure.closed, 0);
   assert.equal(
     pendingHorizonsClause(1, closure),
-    "1 horizon is off this board until the tape prints.",
+    "1 horizon is off this board until the prices are in.",
   );
   assert.equal(
     readoutCallsHeading({ settled: false, count: 0, label: "Fri close", holidayName: null }),
@@ -142,7 +142,7 @@ test("Friday September 25 uses the official close", { skip: skipWithoutDb }, asy
     await FridayPage({ params: Promise.resolve({ slug: "2026-09-21", readout: "friday" }) }),
   );
   assert.ok(html.indexOf("<h1") !== -1 && html.indexOf("<h1") < html.indexOf("<h2"));
-  assert.match(html, /What the tape did/);
+  assert.match(html, /What the market did/);
   assert.match(html, /771\.35/);
   assert.doesNotMatch(html, /had not reached the 45-minute post-close buffer/);
   assert.doesNotMatch(html, /Waiting on the clock/);
@@ -153,7 +153,7 @@ test("Friday September 25 uses the official close", { skip: skipWithoutDb }, asy
 test("the pending counter uses Not graded yet", { skip: skipWithoutDb }, async () => {
   const { default: PendingPage } = await import("../app/pending/page");
   const html = renderToStaticMarkup(await PendingPage());
-  assert.match(html, /2 settled · <span class="normal-case text-\[#9a9aa3\]">\s*2 Not graded yet\s*<\/span>/);
+  assert.match(html, /Nothing is waiting/);
   assert.doesNotMatch(html, /NOT GRADED/);
   assert.doesNotMatch(html, />\s*\d+ not graded\s*</);
 });
@@ -171,7 +171,7 @@ test("Labor Day Monday board tube stays ungraded and does not promise a print", 
   assert.match(html, /text-2xl text-\[#9a9aa3\]">Market closed for Labor Day</);
   assert.ok(html.indexOf("<h1") !== -1 && html.indexOf("<h1") < html.indexOf("<h2"));
   assert.doesNotMatch(html, /<h2 class="sr-only">Market closed for Labor Day · not graded<\/h2>/);
-  assert.match(html, /Market closed \(Labor Day\) · no Monday tape/);
+  assert.match(html, /Market closed \(Labor Day\) · no Monday prices/);
   assert.doesNotMatch(html, /until the session settles/);
   assert.match(html, /2 horizons are not graded: the market was closed for Labor Day\./);
   assert.match(html, /A horizon on this week is not graded: the market was closed\./);
@@ -189,7 +189,7 @@ test("Labor Day Monday board tube stays ungraded and does not promise a print", 
     await FridayPage({ params: Promise.resolve({ slug: "2026-09-07", readout: "wednesday" }) }),
   );
   assert.ok(wednesday.indexOf("<h1") !== -1 && wednesday.indexOf("<h1") < wednesday.indexOf("<h2"));
-  assert.match(wednesday, /What the tape did/);
+  assert.match(wednesday, /What the market did/);
 
   const pending = renderToStaticMarkup(
     await CohortPendingPage({ params: Promise.resolve({ slug: "2026-09-07" }) }),

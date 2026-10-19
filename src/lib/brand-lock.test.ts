@@ -91,7 +91,7 @@ test("the logo link href is the Hub in the same tab", () => {
   for (const path of files(root)) {
     hrefs += readFileSync(path, "utf8").split(hubHref).length - 1;
   }
-  assert.equal(hrefs, 2);
+  assert.equal(hrefs, 3);
 
   const layout = readFileSync(join(root, "src", "app", "layout.tsx"), "utf8");
   assert.match(layout, /NEXT_PUBLIC_SITE_URL \|\| "https:\/\/fintwittruth\.vercel\.app"/);
@@ -140,7 +140,9 @@ test("GC Scale band copy is the short legend", () => {
 
   const method = readFileSync(join(root, "src", "app", "methodology", "page.tsx"), "utf8");
   assert.match(method, /EXIT LIQUIDITY at a graded 0/);
-  assert.match(method, /A 1–10 badge sits beside the fill\./);
+  assert.doesNotMatch(method, /A 1–10 badge sits beside the fill\./);
+  assert.doesNotMatch(method, /\/100/);
+  assert.doesNotMatch(method, /demo accounts/i);
   assert.match(method, /UNGRADED_HORIZON/);
   assert.equal(UNGRADED_HORIZON, "Not graded yet");
   assert.doesNotMatch(method, /0–9 is badge 1/);

@@ -4,9 +4,10 @@ import { CalendarStrip } from "@/components/market";
 import { ReadoutBubble, ReferenceLine } from "@/components/score";
 import { settledReadoutKinds } from "@/lib/board";
 import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
+import { formatScore } from "@/lib/format";
 import { GC_GRADE_LABEL, UNGRADED_HORIZON, gcGrade } from "@/lib/grades";
 import { GC_FACTOR, READOUT_META } from "@/lib/labels";
-import { PRICE_ADJUSTMENT, PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
+import { PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { getCohort } from "@/lib/queries";
 import {
   STRONG_LINE,
@@ -55,16 +56,14 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Named watchlist</dt>
             <dd className="mt-1 text-sm text-muted">
-              Standing demo accounts. Their posts are in every cohort and are ranked against other watchlist
-              accounts.
+              Accounts we follow. A post joins the rank after it is verified and graded.
             </dd>
           </div>
           <div className="panel p-4">
             <dt className="font-medium text-ink">Viral doom and hype</dt>
             <dd className="mt-1 text-sm text-muted">
-              A keyword-and-engagement style bucket for crash, war, sell-the-open, and melt-up spikes. In this
-              demo the posts and engagement counts are fictional. They are ranked on their own leaderboard and
-              still sit on the weekly board with the watchlist.
+              Crash, war, sell-the-open, and melt-up posts. Fictional examples stay on the demo board. A
+              verified post is ranked with the accounts we follow.
             </dd>
           </div>
         </dl>
@@ -88,17 +87,17 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Weekend reference</dt>
             <dd className="mt-1 text-sm text-muted">
-              There is no Sunday cash print. The reference is the prior Friday regular-session close for SPY,
-              QQQ, DIA, and the Friday VIX close. Equity index futures are shut from Friday 5:00 PM ET until
+              There is no Sunday cash print. The reference is the prior trading-week close (Friday, or Thursday
+              when Friday is a market holiday) for SPY, QQQ, DIA, and that day&apos;s VIX close. Equity index futures are shut from Friday 5:00 PM ET until
               Sunday 6:00 PM ET, so Sunday 5:00 PM only ends the book. Yahoo adjclose is stored for audit and is
               not used against the unadjusted open, the Monday noon bar, or the official close.
             </dd>
           </div>
           <div className="panel p-4">
-            <dt className="font-medium text-ink">Monday gap — 9:30 AM ET</dt>
+            <dt className="font-medium text-ink">Monday open — 9:30 AM ET</dt>
             <dd className="mt-1 text-sm text-muted">
-              Friday regular-session close to the regular-hours open for SPY, QQQ, and DIA. VIX uses Friday&apos;s
-              close to Monday&apos;s regular-session open.
+              Monday open is the move from Friday&apos;s close to the 9:30 AM ET open for SPY, QQQ, and DIA. Older notes
+              called this the Monday gap. VIX uses Friday&apos;s close to Monday&apos;s regular-session open.
             </dd>
           </div>
           <div className="panel p-4">
@@ -140,8 +139,8 @@ export default async function MethodologyPage() {
               readout has settled. Monday&apos;s open, Monday noon, the Wednesday close, and the Friday close are those horizons.
               Hit rate, STRONG rate, and WEAK rate use settled grades only. While a readout is still scheduled,
               the calls sit on{" "}
-              <Link href="/pending" className="text-pine underline-offset-4 hover:underline">
-                Pending settle
+              <Link href="/pending" className="accent-link underline-offset-4 hover:underline">
+                Not graded yet
               </Link>
               . That page is not part of the ranking.
             </dd>
@@ -151,11 +150,11 @@ export default async function MethodologyPage() {
 
       <section className="mt-10" aria-labelledby="score">
         <h2 id="score" className="font-serif text-3xl text-ink">
-          The 0–100 score
+          How the percentage is built
         </h2>
         <p className="mt-3 text-ink/80">
-          Every published grade shows the full score and a 1–10 badge. Parts add to 100: direction{" "}
-          {DIRECTION_MAX}, levels {LEVEL_MAX}, specificity {SPECIFICITY_MAX}, VIX {VIX_MAX}.
+          The board shows one GC Scale percent. Parts add to that percent: direction {DIRECTION_MAX}, levels{" "}
+          {LEVEL_MAX}, specificity {SPECIFICITY_MAX}, VIX {VIX_MAX}.
         </p>
         <h3 className="mt-6 font-medium text-ink">Direction versus the equity tape</h3>
         <p className="mt-1 text-sm text-muted">
@@ -251,7 +250,6 @@ export default async function MethodologyPage() {
           {GC_FACTOR}: STRONG 70+, PROVISIONAL 40–69, WEAK under 40, EXIT LIQUIDITY at a graded 0. An ungraded
           horizon reads <span className="text-[#9a9aa3]">{UNGRADED_HORIZON}</span>.
         </p>
-        <p className="mt-3 text-ink/80">A 1–10 badge sits beside the fill.</p>
       </section>
 
       <section className="mt-10" aria-labelledby="wni">
@@ -286,8 +284,8 @@ export default async function MethodologyPage() {
           <p className="mt-3 text-ink/80">
             {featured.summary} Monday gap and Monday noon are off this board because the cash session did not
             settle. They are on{" "}
-            <Link href={`/weeks/${featured.slug}/pending`} className="text-pine underline-offset-4 hover:underline">
-              Pending settle
+            <Link href={`/weeks/${featured.slug}/pending`} className="accent-link underline-offset-4 hover:underline">
+              Not graded yet
             </Link>
             , not in the ranking.
           </p>
@@ -323,11 +321,9 @@ export default async function MethodologyPage() {
                             direction={call.direction}
                           />
                         ) : null}
-                        <p className="font-mono text-sm">{grade ? `${grade.score}/100` : "Not graded yet"}</p>
+                        <p className="font-mono text-sm">{grade ? `${formatScore(grade.score)}%` : "Not graded yet"}</p>
                         {grade ? (
-                          <p className="text-xs text-muted">
-                            Badge {grade.badge}/10 · {GC_GRADE_LABEL[gcGrade(grade)]}
-                          </p>
+                          <p className="text-xs text-muted">{GC_GRADE_LABEL[gcGrade(grade)]}</p>
                         ) : null}
                       </div>
                     );
@@ -373,11 +369,9 @@ export default async function MethodologyPage() {
                               direction={call.direction}
                             />
                           ) : null}
-                          {grade ? `${grade.score}/100` : "Not graded yet"}
+                          {grade ? `${formatScore(grade.score)}%` : "Not graded yet"}
                           {grade ? (
-                            <span className="mt-1 block text-xs text-muted">
-                              Badge {grade.badge}/10 · {GC_GRADE_LABEL[gcGrade(grade)]}
-                            </span>
+                            <span className="mt-1 block text-xs text-muted">{GC_GRADE_LABEL[gcGrade(grade)]}</span>
                           ) : null}
                         </td>
                       );
@@ -398,7 +392,11 @@ export default async function MethodologyPage() {
           Prints are recorded {PRICE_SOURCE} chart data. The seed refuses a missing quote and will not invent a
           level to fill a hole.
         </p>
-        <p className="mt-3 text-ink/80">{PRICE_ADJUSTMENT}</p>
+        <p className="mt-3 text-ink/80">
+          Weekend reference is the prior trading-week close (Friday, or Thursday when Friday is a market holiday)
+          for SPY, QQQ, DIA, and VIX. That close is stored next to Yahoo adjclose for audit. Grades measure against
+          the session close, not a dividend-rewritten adjclose. A holiday has no equity daily bar and stays ungraded.
+        </p>
         <p className="mt-3 text-ink/80">
           The series is committed in <span className="font-mono text-xs">src/lib/market-history.json</span> and
           was fetched {PRICE_FETCHED_AT}. VIX is the Yahoo symbol ^VIX. Monday, September 7, 2026 was Labor Day.
@@ -408,7 +406,7 @@ export default async function MethodologyPage() {
           GradedCalls FinTwit does not scrape X and does not draw a price when a print is missing.
         </p>
         <p className="mt-4 text-sm text-muted">
-          Scores describe how demo posts lined up with those recorded prints. They are not investment advice.
+          Scores describe how posts lined up with those recorded prints. They are not investment advice.
           GradedCalls FinTwit is not affiliated with Yahoo Finance.{" "}
           <Link href="/disclaimer" className="text-pine underline-offset-4 hover:underline">
             Read the disclaimer

@@ -58,14 +58,12 @@ function main() {
   const next = serializeCallCsv(result.rows);
   if (!write) {
     console.log("dry-run: CSV not written");
-    return;
-  }
-  if (next === csvText) {
+  } else if (next === csvText) {
     console.log("CSV unchanged");
-    return;
+  } else {
+    writeFileSync(CALLS_CSV_PATH, next);
+    console.log("Wrote data/calls/calls.csv");
   }
-  writeFileSync(CALLS_CSV_PATH, next);
-  console.log("Wrote data/calls/calls.csv");
 }
 
 main();
