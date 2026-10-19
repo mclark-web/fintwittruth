@@ -15,6 +15,22 @@ export function formatWhen(date: Date | string): string {
   }).format(value);
 }
 
+/** Clock in Eastern Time with the zone written ET, plus the calendar date. */
+export function formatEtStamp(date: Date | string): string {
+  const value = typeof date === "string" ? new Date(date) : date;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hourCycle: "h12",
+  }).formatToParts(value);
+  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${get("month")} ${get("day")}, ${get("year")} at ${get("hour")}:${get("minute")} ${get("dayPeriod")} ET`;
+}
+
 export function formatDay(date: Date | string): string {
   const value = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("en-US", {

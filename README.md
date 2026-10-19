@@ -8,7 +8,7 @@ GradedCalls Analysts and GradedCalls Sports are sibling verticals. They are not 
 
 The npm package and the SQLite file stay named `fintwittruth`. That is the technical package name, not the public brand.
 
-This repository ships a labeled demo book and a small verified book. Demo handles and posts are fictional. The latest board (week of October 5, 2026) quotes one public Substack post and links its source. The market prints used to grade both books are real historical Yahoo Finance prices for those evaluation dates. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing.
+This repository ships a labeled demo book and a small verified book. Demo handles and posts are fictional. The latest board (week of October 19, 2026) quotes the public posts for that week and links each source. Monday noon is graded. Wednesday, October 21 and Friday, October 23 are not graded yet. The market prints used to grade both books are real historical Yahoo Finance prices for those evaluation dates. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing.
 
 ## Evaluation calendar
 
@@ -16,9 +16,9 @@ The calendar is fixed.
 
 **Collect window:** Wednesday 12:00 PM America/New_York → Sunday 5:00 PM America/New_York.
 
-That window is one cohort. The calls do not change for the rest of the week. One call per handle per cohort; a handle can appear in later weeks. The first post inside the window that names a direction on a graded print (SPY, QQQ, DIA, SPX, NDX, ES, NQ, or an index) counts. An ambiguous direction is excluded.
+That window is one cohort. The calls do not change for the rest of the week. One call per handle per cohort; a handle can appear in later weeks. The first forward-looking post covering the week that names a direction on a graded print (SPY, QQQ, DIA, SPX, NDX, ES, NQ, the S&P 500, the Nasdaq 100, or the Dow) counts. An ambiguous direction is excluded.
 
-X search only reaches back to about October 16, 2026. The weeks of September 28, October 5, and October 12 are Substack only. The week of October 19 was read from Substack and the X watchlist. Posts that were read and left out are in `data/calls/exclusions.csv`.
+X search only reaches back to about Friday, October 16, 2026 at 10:22 AM ET. The weeks of September 28, October 5, and October 12 are Substack only. For the week of October 19, Substack covers the whole Wednesday noon to Sunday 5:00 PM ET window. X is verified only from about Friday, October 16, 10:22 AM ET through Sunday, October 18, 5:00 PM ET. Posts from Wednesday noon through Friday 10:22 AM ET were not fully verified. Posts that were read and left out are in `data/calls/exclusions.csv`. A closed week with no qualifying call is listed in `data/calls/checked-weeks.csv` so the freshness check can see it. The 7-day limit is unchanged.
 
 **Four readouts on that same cohort:**
 
@@ -35,7 +35,7 @@ Each cohort has two inclusion buckets: a named watchlist and a viral doom / hype
 
 The weekend reference is the **prior Friday regular-session close** for SPY, QQQ, and DIA, plus Friday's VIX close. Yahoo `adjclose` is stored beside it for audit and is **not** used for gap, noon, or close grades, because the daily open and the 12:00 PM ET five-minute open are not dividend-adjusted. Comparing retrospectively rewritten adjclose to those prints invents a false gap. There is no invented Sunday cash print. Monday's gap uses the regular-session daily open. Monday noon uses the **open** of the 5-minute bar stamped 12:00 PM America/New_York. Wednesday and Friday use Yahoo's **daily close**, the official regular-session close. Settlement waits 45 minutes after that close so the equity auction and the 4:15 PM ET VIX print are posted. A daily bar before that buffer is the last trade, not the close. A closed session stays blank. Monday, September 7, 2026 was Labor Day, so that gap and noon stay ungraded. A Yahoo VIX daily bar on that holiday is ignored. A date that is not due yet stays null. The series is committed in `src/lib/market-history.json` (chart API `query1.finance.yahoo.com`). `src/lib/quotes.ts` throws if a required print is missing. `npm run settle` fills a due Wednesday or Friday close from Yahoo and refuses to invent one when the bar is missing.
 
-The in-app methodology page states this again. The latest verified week has the Monday gap, Monday noon, and Wednesday close published. Friday is still scheduled. The fictional open week uses those same prints and is labeled demo.
+The in-app methodology page states this again. The latest verified week (October 19, 2026) has the Monday gap and Monday noon published. Wednesday and Friday are not graded yet. The fictional open week uses those same prints and is labeled demo.
 
 ## Boards
 

@@ -7,12 +7,14 @@ import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "
 import { GcTube } from "@/components/gc-tube";
 import { mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
+import { emptyLiveWeeks } from "@/lib/empty-weeks";
+import { formatShortDay, formatWhen } from "@/lib/format";
 import { gradedSymbols } from "@/lib/prints";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
 
 export async function generateStaticParams() {
   const slugs = await listCohortSlugs();
-  return slugs.map((slug) => ({ slug }));
+  return [...slugs, ...emptyLiveWeeks().map((week) => week.slug)].map((slug) => ({ slug }));
 }
 
 export const dynamicParams = false;
@@ -24,7 +26,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const cohort = await getCohort(slug);
-  if (!cohort) return { title: "Week" };
+  if (!cohort) {
+    const empty = emptyLiveWeeks().find((week) => week.slug === slug);
+    return empty ? { title: `Week of ${formatShortDay(empty.window.mondayAt)}: no qualifying calls` } : { title: "Week" };
+  }
   return {
     title: cohort.title,
     description: cohort.summary,
@@ -35,7 +40,25 @@ export async function generateMetadata({
 export default async function CohortPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const cohort = await getCohort(slug);
-  if (!cohort) notFound();
+  if (!cohort) {
+    const empty = emptyLiveWeeks().find((week) => week.slug === slug);
+    if (!empty) notFound();
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        <p className="text-xs uppercase tracking-wide text-muted">Week of {formatShortDay(empty.window.mondayAt)}</p>
+        <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance]">No qualifying calls this week</h1>
+        <p className="mt-3 text-muted">
+          Collect window: {formatWhen(empty.window.collectStart)} → {formatWhen(empty.window.collectEnd)}. No post
+          read in that window named a direction on a graded print, so there is nothing to grade. This is not a 0% grade.
+        </p>
+        <p className="mt-4 text-sm">
+          <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">
+            All weeks
+          </Link>
+        </p>
+      </div>
+    );
+  }
 
   const readouts = Object.values(cohort.readouts);
   const settled = settledReadoutKinds(readouts);
@@ -62,7 +85,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         {cohort.dataset === "demo" ? "DEMO" : "Live week"}
         {cohort.isLatest ? " · latest" : ""}
       </p>
-      <h1 className="mt-1 font-serif text-4xl text-ink sm:text-5xl">{cohort.title}</h1>
+      <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance] sm:text-5xl">{cohort.title}</h1>
       <p className="mt-3 max-w-3xl text-lg text-ink/80">{cohort.summary}</p>
       <div className="mt-3">
         <CohortWindow

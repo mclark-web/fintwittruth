@@ -57,7 +57,7 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
       </p>
       <p className="mt-4 text-xs uppercase tracking-wide text-muted">Off the primary board</p>
       <h1 className="mt-1 font-serif text-4xl text-ink">Not graded yet</h1>
-      <p className="mt-2 font-serif text-2xl text-pine">{cohort.title}</p>
+      <p className="mt-2 font-serif text-2xl text-pine [text-wrap:balance]">{cohort.title}</p>
       <p className="mt-3 max-w-3xl text-muted">
         These calls are in the book. They are not ranked here.{" "}
         {closedWeek ? (

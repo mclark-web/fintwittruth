@@ -4,7 +4,7 @@ import { CalendarStrip } from "@/components/market";
 import { ReadoutBubble, ReferenceLine } from "@/components/score";
 import { settledReadoutKinds } from "@/lib/board";
 import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
-import { formatScore } from "@/lib/format";
+import { formatEtStamp, formatScore } from "@/lib/format";
 import { GC_GRADE_LABEL, UNGRADED_HORIZON, gcGrade } from "@/lib/grades";
 import { GC_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
@@ -82,8 +82,11 @@ export default async function MethodologyPage() {
             <dd className="mt-1 text-sm text-muted">
               Wednesday 12:00 PM America/New_York through Sunday 5:00 PM America/New_York. The cohort does not
               grow after Sunday. One call per handle per cohort; a handle can appear in later weeks. The first
-              post inside the window that names a direction on a graded print (SPY, QQQ, DIA, SPX, NDX, ES, NQ, or
-              an index) counts. An ambiguous direction is excluded.
+              forward-looking post covering the week that names a direction on a graded print (SPY, QQQ, DIA, SPX,
+              NDX, ES, NQ, the S&P 500, the Nasdaq 100, or the Dow) counts. An ambiguous direction is excluded.
+              X search for the week of October 19, 2026 only reaches back to about Friday, October 16, 10:22 AM ET.
+              Substack covers that whole window. X posts from Wednesday noon through that Friday morning were not
+              fully verified.
             </dd>
           </div>
           <div className="panel p-4">
@@ -401,7 +404,7 @@ export default async function MethodologyPage() {
         </p>
         <p className="mt-3 text-ink/80">
           The series is committed in <span className="font-mono text-xs">src/lib/market-history.json</span> and
-          was fetched {PRICE_FETCHED_AT}. VIX is the Yahoo symbol ^VIX. Monday, September 7, 2026 was Labor Day.
+          was fetched {formatEtStamp(PRICE_FETCHED_AT)}. VIX is the Yahoo symbol ^VIX. Monday, September 7, 2026 was Labor Day.
           SPY, QQQ, and DIA have no session that day. A Yahoo VIX daily bar exists for that holiday and is not
           used as a Monday open or noon print. Wednesday, September 23 and Friday, September 25 are graded on
           those days&apos; official closes.

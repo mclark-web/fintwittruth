@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { emptyLiveWeeks } from "@/lib/empty-weeks";
 import { getLiveCohorts } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
 import { WATCHLIST } from "@/lib/watchlist";
@@ -21,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/disclaimer` },
     { url: `${base}/terms` },
     { url: `${base}/donate` },
+    ...emptyLiveWeeks().map((week) => ({ url: `${base}/weeks/${week.slug}` })),
     ...live.flatMap((cohort) => [
       { url: `${base}/weeks/${cohort.slug}` },
       { url: `${base}/weeks/${cohort.slug}/pending` },
