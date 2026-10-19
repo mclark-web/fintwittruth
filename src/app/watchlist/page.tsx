@@ -72,7 +72,14 @@ export default async function WatchlistPage() {
               {account.profileUrl ? (
                 <p className="mt-2 text-sm">
                   <a href={account.profileUrl} className="accent-link hit-44 underline-offset-4 hover:underline">
-                    {account.profileUrl.includes("substack.com") ? "Read on Substack ↗" : account.profileUrl}
+                    {account.profileUrl.includes("substack.com") ? (
+                      <>
+                        Read on Substack <span aria-hidden="true">↗</span>
+                        <span className="sr-only"> (opens Substack)</span>
+                      </>
+                    ) : (
+                      account.profileUrl
+                    )}
                   </a>
                 </p>
               ) : null}
