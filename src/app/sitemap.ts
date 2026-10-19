@@ -1,31 +1,32 @@
 import type { MetadataRoute } from "next";
-import { listCallIds, listCohortSlugs, listHandles } from "@/lib/queries";
+import { getLiveCohorts } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
 import { WATCHLIST } from "@/lib/watchlist";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = "https://fintwittruth.vercel.app";
-  const [slugs, handles, calls] = await Promise.all([listCohortSlugs(), listHandles(), listCallIds()]);
+  const live = await getLiveCohorts();
+  const handles = new Set<string>(WATCHLIST.map((account) => account.handle));
+  for (const cohort of live) {
+    for (const call of cohort.calls) handles.add(call.handle);
+  }
   return [
     { url: base },
     { url: `${base}/weeks` },
     { url: `${base}/watchlist` },
     { url: `${base}/real` },
-    { url: `${base}/demo` },
     { url: `${base}/leaderboard` },
     { url: `${base}/pending` },
     { url: `${base}/methodology` },
     { url: `${base}/disclaimer` },
     { url: `${base}/terms` },
     { url: `${base}/donate` },
-    ...slugs.flatMap((slug) => [
-      { url: `${base}/weeks/${slug}` },
-      { url: `${base}/weeks/${slug}/pending` },
-      ...READOUTS.map((readout) => ({ url: `${base}/weeks/${slug}/${readout}` })),
+    ...live.flatMap((cohort) => [
+      { url: `${base}/weeks/${cohort.slug}` },
+      { url: `${base}/weeks/${cohort.slug}/pending` },
+      ...READOUTS.map((readout) => ({ url: `${base}/weeks/${cohort.slug}/${readout}` })),
     ]),
-    ...[...new Set([...handles, ...WATCHLIST.map((account) => account.handle)])].map((handle) => ({
-      url: `${base}/accounts/${handle}`,
-    })),
-    ...calls.map((id) => ({ url: `${base}/calls/${id}` })),
+    ...[...handles].map((handle) => ({ url: `${base}/accounts/${handle}` })),
+    ...live.flatMap((cohort) => cohort.calls.map((call) => ({ url: `${base}/calls/${call.id}` }))),
   ];
 }

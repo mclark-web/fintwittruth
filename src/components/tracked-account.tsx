@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { RealCallCard } from "@/components/real-call-card";
 import type { RealCallView } from "@/lib/real-book";
-import { TRACKING_EMPTY, profileUrl } from "@/lib/watchlist";
+import { profileUrl } from "@/lib/watchlist";
 
 export function TrackedAccount({
   handle,
@@ -22,10 +22,10 @@ export function TrackedAccount({
         </Link>
       </p>
       <header className="mt-4">
-        <p className="text-xs uppercase tracking-wide text-pine">Tracked X account</p>
+        <p className="text-xs uppercase tracking-wide text-[#c9c9cf]">Tracked X account</p>
         <h1 className="mt-2 font-serif text-4xl text-ink">{name}</h1>
         <p className="mt-2 text-muted">
-          <a href={profileUrl(handle)} className="text-pine underline-offset-4 hover:underline">
+          <a href={profileUrl(handle)} className="accent-link underline-offset-4 hover:underline">
             @{handle}
           </a>
         </p>
@@ -35,9 +35,12 @@ export function TrackedAccount({
       </header>
       {graded.length === 0 ? (
         <div className="panel mt-8 p-5">
-          <h2 className="font-serif text-2xl text-ink">{TRACKING_EMPTY}</h2>
+          <h2 className="font-serif text-2xl text-ink">Not graded yet</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            There is no score on this profile. Demo grades live on the demo board and are not copied here.
+            A call is graded once its post URL is confirmed. Demo grades stay on the demo board and are not copied here.{" "}
+            <Link href="/methodology" className="accent-link underline-offset-4 hover:underline">
+              How grading works
+            </Link>
           </p>
         </div>
       ) : null}

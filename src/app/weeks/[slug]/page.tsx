@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded, PendingSettleLink } from "@/components/board-state";
+import { CallCard } from "@/components/call-card";
 import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
-import { GcTube, GradePill } from "@/components/gc-tube";
-import { DirectionChip, ReadoutBubble, ReferenceLine } from "@/components/score";
-import { gcGrade, mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
+import { GcTube } from "@/components/gc-tube";
+import { mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
-import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
 
 export async function generateStaticParams() {
@@ -24,10 +23,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const cohort = await getCohort(slug);
-  if (!cohort) return { title: "Cohort" };
+  if (!cohort) return { title: "Week" };
   return {
     title: cohort.title,
     description: cohort.summary,
+    robots: cohort.dataset === "demo" ? { index: false, follow: false } : undefined,
   };
 }
 
@@ -58,7 +58,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         </Link>
       </p>
       <p className="mt-4 text-xs uppercase tracking-wide text-muted">
-        {cohort.dataset === "demo" ? "Demo cohort" : "Live cohort"}
+        {cohort.dataset === "demo" ? "DEMO" : "Live week"}
         {cohort.isLatest ? " · latest" : ""}
       </p>
       <h1 className="mt-1 font-serif text-4xl text-ink sm:text-5xl">{cohort.title}</h1>
@@ -77,7 +77,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
           closedMonday ? (
             <p className="text-sm text-[#9a9aa3]">{closedMonday}</p>
           ) : (
-            <p className="text-sm text-muted">The Monday tape is off this board until the session settles.</p>
+            <p className="text-sm text-muted">Monday&apos;s prices are not on this board until they are graded.</p>
           )
         )}
         <PriceSource />
@@ -94,138 +94,29 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
           Settled grades
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          Rows are calls that already have a settled grade. Watchlist and viral posts share this board.{" "}
-          {closure.closed > 0 && closure.upcoming === 0
-            ? "Closed sessions stay off the table."
-            : closure.closed > 0
-              ? "A closed session stays off the table. A later session stays off until its tape prints."
-              : "A horizon stays off the table until its tape prints."}
+          Watchlist and viral posts share this weekly board. Each card shows the Monday noon, Wednesday close, and Friday close prices, plus one GC Scale grade.
         </p>
         {rows.length === 0 || settled.length === 0 ? (
           <div className="mt-4">
             <NothingGraded href={`/weeks/${cohort.slug}/pending`} />
           </div>
         ) : (
-          <>
-          <ul className="mt-4 grid gap-3 min-[820px]:hidden">
-            {rows.map((call) => (
-              <li key={call.id} className="panel p-4">
-                <p className="font-medium text-ink">
-                  <Link href={`/accounts/${call.handle}`} className="hover:underline">
-                    {call.displayName}
-                  </Link>
-                </p>
-                <p className="text-xs text-[#9a9aa3]">@{call.handle}</p>
-                <p className="mt-3 text-ink">
-                  <Link href={`/calls/${call.id}`} className="hover:underline">
-                    {call.body}
-                  </Link>
-                </p>
-                <p className="mt-2 flex flex-wrap items-center gap-2">
-                  <DirectionChip direction={call.direction} />
-                  <span className="font-mono text-xs text-pine">{call.primary}</span>
-                </p>
-                <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
-                <div className="mt-3 grid gap-2">
-                  {settled.map((kind) => {
-                    const grade = call.grades[kind];
-                    return (
-                      <div key={kind} className="min-w-0">
-                        {grade ? (
-                          <Link href={`/weeks/${cohort.slug}/${kind}`} className="mt-1 block hover:underline">
-                            <ReadoutBubble
-                              kind={kind}
-                              quotes={cohort.quotes}
-                              primary={call.primary}
-                              direction={call.direction}
-                            />
-                            <span className="call-grade mt-1 block">
-                              <GcTube score={grade.score} grade={gcGrade(grade)} variant="mini" showMeta={false} />
-                            </span>
-                            <span className="mt-1 flex flex-wrap items-center gap-2">
-                              <span className="font-mono text-sm tabular-nums">{Math.round(grade.score)}%</span>
-                              <GradePill grade={gcGrade(grade)} />
-                            </span>
-                          </Link>
-                        ) : (
-                          <span className="text-xs text-[#9a9aa3]">Not graded yet</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </li>
-            ))}
+          <ul className="mt-4 grid gap-3">
+            {rows.map((call) => {
+              const readout = call.grades.monday
+                ? "monday"
+                : call.grades.friday
+                  ? "friday"
+                  : call.grades.wednesday
+                    ? "wednesday"
+                    : "monday-gap";
+              return (
+                <li key={call.id}>
+                  <CallCard call={call} readout={readout} quotes={cohort.quotes} />
+                </li>
+              );
+            })}
           </ul>
-          <div className="mt-4 hidden overflow-x-clip rounded-2xl border border-line bg-card min-[820px]:block">
-            <table className="w-full table-fixed text-left text-sm">
-              <caption className="sr-only">Settled grades for {cohort.title}</caption>
-              <thead className="bg-sheet text-xs uppercase tracking-wide text-muted">
-                <tr>
-                  <th scope="col" className="px-4 py-3 font-medium">
-                    Account
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-medium">
-                    Call
-                  </th>
-                  {settled.map((kind) => (
-                    <th key={kind} scope="col" className="px-4 py-3 font-medium normal-case tracking-normal">
-                      {READOUT_META[kind].short}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((call) => (
-                  <tr key={call.id} className="border-t border-line align-top">
-                    <th scope="row" className="px-4 py-3 font-medium">
-                      <Link href={`/accounts/${call.handle}`} className="hover:underline">
-                        {call.displayName}
-                      </Link>
-                      <span className="mt-1 block text-xs font-normal text-muted">@{call.handle}</span>
-                    </th>
-                    <td className="px-4 py-3">
-                      <Link href={`/calls/${call.id}`} className="hover:underline">
-                        {call.body}
-                      </Link>
-                      <span className="mt-2 flex flex-wrap items-center gap-2">
-                        <DirectionChip direction={call.direction} />
-                        <span className="font-mono text-xs text-pine">{call.primary}</span>
-                      </span>
-                      <ReferenceLine quotes={cohort.quotes} primary={call.primary} />
-                    </td>
-                    {settled.map((kind) => {
-                      const grade = call.grades[kind];
-                      return (
-                        <td key={kind} className="px-4 py-3">
-                          {grade ? (
-                            <Link href={`/weeks/${cohort.slug}/${kind}`} className="block hover:underline">
-                              <ReadoutBubble
-                                kind={kind}
-                                quotes={cohort.quotes}
-                                primary={call.primary}
-                                direction={call.direction}
-                              />
-                              <span className="mt-1 block max-w-32">
-                                <GcTube score={grade.score} grade={gcGrade(grade)} variant="mini" showMeta={false} />
-                              </span>
-                              <span className="mt-1 flex flex-col items-start gap-1">
-                                <span className="font-mono text-sm">{Math.round(grade.score)}%</span>
-                                <GradePill grade={gcGrade(grade)} />
-                              </span>
-                            </Link>
-                          ) : (
-                            <span className="text-muted">Not graded yet</span>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          </>
         )}
         {pending.length > 0 ? (
           <div className="mt-3">

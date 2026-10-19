@@ -52,6 +52,21 @@ export function formatPct(value: number, digits = 2): string {
   return `${sign}${pct.toFixed(digits)}%`;
 }
 
+/** Unsigned share, for rates such as "Hit 50%". A plus sign is never added. */
+export function formatRate(value: number, digits = 0): string {
+  return `${(Math.abs(value) * 100).toFixed(digits)}%`;
+}
+
+export function formatAsOf(date: Date | string): string {
+  const value = typeof date === "string" ? new Date(date) : date;
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(value);
+}
+
 /** One decimal from the call-time reference. Positive uses `+`; negative uses a minus sign. */
 export function formatSignedPct(value: number): string {
   const rounded = Math.round(value * 1000) / 10;

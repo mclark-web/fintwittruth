@@ -1,114 +1,116 @@
 import Link from "next/link";
 import { disputePath } from "@/lib/dispute";
-import { formatWhen } from "@/lib/format";
+import { formatPrice, formatSignedPct, formatWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
+import { READOUT_META } from "@/lib/labels";
+import { predictedReadout } from "@/lib/prints";
 import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
-import { printAt, TapeMark } from "./market";
-import { Avatar, DirectionChip, Evolution, LevelList, ReferenceLine, ScoreMark } from "./score";
+import { GradePill } from "./gc-tube";
+import { Avatar, DirectionChip } from "./score";
 
-const TAPE = ["SPY", "DIA", "QQQ", "VIX"] as const;
+/** Headline noon grade, then the two later closes. Monday open stays off the card. */
+const CARD_CHECKPOINTS: ReadoutKind[] = ["monday", "wednesday", "friday"];
 
 export function CallCard({
   call,
   readout,
   quotes,
+  clampQuote = false,
 }: {
   call: CallView;
   readout: ReadoutKind;
   quotes?: QuoteView[];
+  clampQuote?: boolean;
 }) {
-  const grade = call.grades[readout];
-  const moves = (quotes ?? [])
-    .filter((quote) => (TAPE as readonly string[]).includes(quote.symbol))
-    .map((quote) => {
-      const now = printAt(quote, readout);
-      const move = now == null ? null : (now - quote.ref) / quote.ref;
-      return { symbol: quote.symbol, move };
-    })
-    .sort((a, b) => TAPE.indexOf(a.symbol as (typeof TAPE)[number]) - TAPE.indexOf(b.symbol as (typeof TAPE)[number]));
+  const grade = call.grades[readout] ?? call.grades.monday ?? call.grades.wednesday ?? call.grades.friday;
+  const pill = grade ? gcGrade(grade) : null;
 
   return (
     <article className="panel p-5">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <Avatar name={call.displayName} />
-          <div>
+          <div className="min-w-0">
             <Link href={`/accounts/${call.handle}`} className="font-medium text-ink hover:underline">
               {call.displayName} <span className="font-normal text-muted">@{call.handle}</span>
             </Link>
-            <p className="mt-0.5 font-mono text-xs text-[#c9c9cf]">
+            <p className="mt-0.5 text-xs text-[#c9c9cf]">
               {formatWhen(call.postedAt)}
-              {call.dataset === "demo" ? " · DEMO" : " · verified real call"}
-              {grade ? ` · rank ${grade.peerRank} of ${grade.peerCount}` : " · not on this board"}
+              {call.dataset === "demo" ? " · DEMO" : " · verified"}
             </p>
           </div>
         </div>
-        {grade ? (
-          <ScoreMark
-            variant="mini"
-            score={grade.score}
-            badge={grade.badge}
-            isStrong={grade.isStrong}
-            isWeak={grade.isWeak}
-          />
+        {grade && pill ? (
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <span className="font-mono text-2xl text-ink">
+              {Math.round(grade.score)}
+              <span className="text-sm text-muted">%</span>
+            </span>
+            <GradePill grade={pill} />
+          </div>
         ) : (
-          <ScoreMark variant="mini" score={0} badge={1} isStrong={false} isWeak />
+          <span className="text-xs text-[#9a9aa3]">Not graded yet</span>
         )}
       </div>
-      <p className="mt-3 text-[15px] leading-relaxed text-ink">“{call.body}”</p>
-      <ReferenceLine quotes={quotes} primary={call.primary} />
-      {moves.some((item) => item.move != null) ? (
-        <div className="vs">
-          {moves.map((item) =>
-            item.move == null ? null : (
-              <TapeMark key={item.symbol} direction={call.direction} move={item.move} label={item.symbol} />
-            ),
-          )}
-        </div>
-      ) : null}
-      <div className="mt-3">
-        <LevelList levels={call.levels} />
-      </div>
-      <div className="post-meta">
-        <span className="tag">
-          <DirectionChip direction={call.direction} /> {call.primary}
-        </span>
-        <span>{call.toneLabel || (call.sentiment === "panic" ? "Panic" : "Melt-up")} · {call.bucket === "viral" ? "Viral" : "Watchlist"}</span>
-        <span className="uppercase tracking-wide">{call.conviction} conviction</span>
+      <p className={`mt-3 text-[15px] leading-relaxed text-ink ${clampQuote ? "line-clamp-2" : ""}`}>“{call.body}”</p>
+      <p className="mt-3 flex flex-wrap items-center gap-2">
+        <DirectionChip direction={call.direction} />
+        <span className="font-mono text-xs text-[#c9c9cf]">{call.primary}</span>
+      </p>
+      <ul className="checkpoint-bubbles mt-3">
+        {CARD_CHECKPOINTS.map((kind) => (
+          <li key={kind}>
+            <CheckpointBubble call={call} kind={kind} quotes={quotes} />
+          </li>
+        ))}
+      </ul>
+      <p className="post-meta">
         {call.sourceUrl ? (
-          <a href={call.sourceUrl} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
+          <a href={call.sourceUrl} className="accent-link hit-44 underline-offset-4 hover:underline">
             Source
           </a>
         ) : null}
+        <Link href={`/calls/${call.id}`} className="accent-link underline-offset-4 hover:underline">
+          Call detail
+        </Link>
         {call.dataset !== "demo" && call.sourceUrl && grade ? (
-          <a href={disputePath(call.id)} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
+          <a href={disputePath(call.id)} className="accent-link hit-44 underline-offset-4 hover:underline">
             Dispute this grade
           </a>
         ) : null}
-        <Link href={`/calls/${call.id}`} className="underline-offset-4 hover:text-ink hover:underline">
-          Call detail
-        </Link>
-        {grade ? <span>{gcGrade(grade) === "exit" ? "EXIT LIQUIDITY" : `Badge ${grade.badge}/10`}</span> : <span>Off the board</span>}
-      </div>
-      {grade ? <p className="mt-3 max-w-3xl text-sm text-muted">{grade.note}</p> : (
-        <p className="mt-3 text-sm text-muted">
-          This readout has not been graded yet.{" "}
-          <Link href={`/weeks/${call.cohortSlug}/pending`} className="text-pine underline-offset-4 hover:underline">
-            Pending settle
-          </Link>
-        </p>
-      )}
-      <div className="mt-4">
-        <Evolution
-          grades={call.grades}
-          slug={call.cohortSlug}
-          active={readout}
-          quotes={quotes}
-          primary={call.primary}
-          direction={call.direction}
-        />
-      </div>
+      </p>
     </article>
+  );
+}
+
+function CheckpointBubble({
+  call,
+  kind,
+  quotes,
+}: {
+  call: CallView;
+  kind: ReadoutKind;
+  quotes?: QuoteView[];
+}) {
+  const graded = call.grades[kind] != null;
+  const print = predictedReadout(quotes, call.primary, kind, call.direction);
+  const meta = READOUT_META[kind];
+  if (!graded || !print || print.price == null || print.move == null) {
+    return (
+      <span className="checkpoint-bubble">
+        <span>{meta.short}</span>
+        <span className="text-[#9a9aa3]">Not graded yet</span>
+      </span>
+    );
+  }
+  const tone = print.stance === "with" ? "right" : print.stance === "against" ? "wrong" : "flat";
+  return (
+    <span className={`checkpoint-bubble checkpoint-bubble-${tone}`}>
+      <span className="checkpoint-when">{meta.short}</span>
+      <span>
+        {print.symbol} (${formatPrice(print.price)}) {formatSignedPct(print.move)}
+      </span>
+    </span>
   );
 }

@@ -11,17 +11,22 @@ import { READOUTS } from "@/lib/scoring";
 export const metadata: Metadata = {
   title: "Weeks",
   description:
-    "Every GradedCalls FinTwit cohort, with Monday gap, Monday noon, Wed close, and Fri close grades on the same calls.",
+    "Verified GradedCalls FinTwit weeks, with Monday noon, Wednesday close, and Friday close grades on the same calls.",
 };
 
 export default async function WeeksPage() {
-  const cohorts = await getCohortList();
+  const cohorts = (await getCohortList()).filter((cohort) => cohort.dataset === "live");
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="font-serif text-4xl text-ink">Weekly cohorts</h1>
+      <h1 className="font-serif text-4xl text-ink">Weeks</h1>
       <p className="mt-3 max-w-2xl text-muted">
-        Each card is one collect window. A number is the average of settled grades at that horizon. A horizon
-        that has not printed stays off the ranking until it settles.
+        The latest real week is first. A number is the average grade at that checkpoint. A checkpoint that has
+        not been graded stays off the ranking. Fictional weeks live on the demo board.
+      </p>
+      <p className="mt-3 text-sm">
+        <Link href="/demo" className="accent-link underline-offset-4 hover:underline">
+          Demo board
+        </Link>
       </p>
       <ul className="mt-8 grid gap-4">
         {cohorts.map((cohort) => (

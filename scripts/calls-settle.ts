@@ -4,6 +4,8 @@
  * A pending row is graded only when the post names exactly one whitelist print and that print is the primary.
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { stalenessMessage } from "../src/lib/freshness";
+import { liveFile } from "../src/lib/live-book";
 import {
   CALLS_CSV_PATH,
   collectIssues,
@@ -14,6 +16,14 @@ import {
   type CallRow,
   type Checkpoint,
 } from "./calls-ledger";
+
+function realWeekAlert(now = new Date()): string | null {
+  const newest = liveFile()
+    .cohorts.map((cohort) => cohort.slug)
+    .sort()
+    .at(-1);
+  return stalenessMessage(newest ?? null, now);
+}
 
 const HELP = `Usage: npm run calls:settle -- [--write]
 
@@ -28,6 +38,7 @@ function tapeFor(row: CallRow, kind: Checkpoint) {
 }
 
 function main() {
+  const stale = realWeekAlert();
   const args = process.argv.slice(2).filter((arg) => arg !== "--");
   if (args.includes("--help") || args.includes("-h")) {
     console.log(HELP.trim());
@@ -58,14 +69,16 @@ function main() {
   const next = serializeCallCsv(result.rows);
   if (!write) {
     console.log("dry-run: CSV not written");
-    return;
-  }
-  if (next === csvText) {
+  } else if (next === csvText) {
     console.log("CSV unchanged");
-    return;
+  } else {
+    writeFileSync(CALLS_CSV_PATH, next);
+    console.log("Wrote data/calls/calls.csv");
   }
-  writeFileSync(CALLS_CSV_PATH, next);
-  console.log("Wrote data/calls/calls.csv");
+  if (stale) {
+    console.error(stale);
+    if (write) process.exit(1);
+  }
 }
 
 main();

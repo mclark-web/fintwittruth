@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Outfit } from "next/font/google";
-import { DemoBanner, SiteFooter, SiteHeader } from "@/components/chrome";
+import { SiteFooter, SiteHeader } from "@/components/chrome";
 import { PRODUCT_NAME } from "@/lib/brand";
 import "./globals.css";
 
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     default: PRODUCT_NAME,
     template: `%s · ${PRODUCT_NAME}`,
   },
-  description: `${PRODUCT_NAME} grades one weekly cohort on the Monday gap, Monday noon, the Wednesday close, and the Friday close. Grades describe the past. They are not for sale.`,
+  description: `${PRODUCT_NAME} grades weekend market calls from X against Monday's market. Grades describe the past. They are not for sale.`,
   applicationName: PRODUCT_NAME,
   icons: {
     icon: [
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: PRODUCT_NAME,
     description:
-      "One weekend of calls. Graded on the Monday gap, at Monday noon, and at the Wednesday and Friday closes. Descriptive only. Grades are not for sale.",
+      "Weekend market calls from X, graded against Monday's market. Descriptive only. Grades are not for sale.",
     siteName: PRODUCT_NAME,
     type: "website",
     images: [shareImage],
@@ -59,7 +59,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         >
           Skip to content
         </a>
-        <DemoBanner />
         <SiteHeader />
         <main id="content">{children}</main>
         <SiteFooter />

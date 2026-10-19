@@ -2,18 +2,16 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { CallCard } from "@/components/call-card";
 import { GcTube } from "@/components/gc-tube";
-import { CheckpointStrip, NoiseIndex, QuoteTape } from "@/components/market";
-import { closedHorizonNote, gcBoardGrade, gcGrade } from "@/lib/grades";
+import { NoiseIndex, QuoteTape } from "@/components/market";
+import { closedHorizonNote, gcBoardGrade } from "@/lib/grades";
 import { GC_SCALE_BANDS } from "@/lib/labels";
 import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
 
 export function FinTwitBoard({
-  kicker = "Sector · FinTwit",
   title,
   lede,
   quotes,
-  tapeKind,
   calls,
   feed,
   readout,
@@ -48,59 +46,49 @@ export function FinTwitBoard({
     const right = b.grades[readout]?.score ?? -1;
     return right - left || a.handle.localeCompare(b.handle);
   });
-  const top = [...calls]
-    .filter((call) => call.grades[readout] != null)
-    .sort((a, b) => (b.grades[readout]?.score ?? -1) - (a.grades[readout]?.score ?? -1) || a.handle.localeCompare(b.handle))
-    .slice(0, 4);
 
   return (
     <div>
-      <div className="ft-hero">
-        <div>
-          <div className="chip hit-44">{kicker}</div>
-          {titleHeading === "p" ? <p className="ft-hero-title">{title}</p> : <h1>{title}</h1>}
-          <p className="mt-2 max-w-[48ch] text-sm leading-relaxed text-muted">{lede}</p>
-        </div>
-        <QuoteTape quotes={quotes} kind={tapeKind} variant="scoreboard" />
+      <div>
+        {titleHeading === "p" ? <p className="ft-hero-title">{title}</p> : <h1>{title}</h1>}
+        <p className="mt-2 max-w-[48ch] text-sm leading-relaxed text-muted">{lede}</p>
       </div>
 
       <div className="panel mt-4 p-4">
-        <CheckpointStrip quotes={quotes} />
-      </div>
-
-      <div className="panel mt-4 grid items-center gap-5 p-4 md:grid-cols-[1.2fr_1fr]">
-        <p className="text-sm leading-relaxed text-muted">{GC_SCALE_BANDS}</p>
-        <GcTube
-          score={calibration.fill}
-          grade={boardGrade}
-          variant="sidebar"
-          compactMeta
-          ungraded={!horizonGraded}
-        />
+        <h2 className="text-sm font-semibold text-ink">Latest checkpoint</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted">{GC_SCALE_BANDS}</p>
+        <div className="mt-4 max-w-sm">
+          <GcTube
+            score={calibration.fill}
+            grade={boardGrade}
+            variant="sidebar"
+            compactMeta
+            ungraded={!horizonGraded}
+          />
+        </div>
       </div>
 
       {toolbar}
 
-      <div className="ft-layout">
-        <div className="flex flex-col gap-3.5">
-          {ranked.length === 0 ? (
-            calls.some((call) => call.grades[readout] != null) ? (
-              <div className="panel p-5">
-                <h2 className="text-xl text-ink">No posts in this filter</h2>
-                <p className="mt-2 text-sm text-muted">The horizon is graded. None of those calls match the pills above.</p>
-              </div>
-            ) : (
+      <div className="mt-4 flex flex-col gap-3.5">
+        {ranked.length === 0 ? (
+          calls.some((call) => call.grades[readout] != null) ? (
+            <div className="panel p-5">
+              <h2 className="text-xl text-ink">No posts in this filter</h2>
+              <p className="mt-2 text-sm text-muted">This checkpoint is graded. None of those calls match the filter.</p>
+            </div>
+          ) : (
             <div className="panel p-5">
               <h2 className="text-xl text-ink">Nothing graded yet</h2>
               <p className={`mt-2 text-sm ${marketClosed ? "text-[#9a9aa3]" : "text-muted"}`}>
                 {marketClosed
-                  ? "This horizon is not graded: the market was closed."
-                  : "This horizon has not settled, so every tube on it stays empty."}
+                  ? closedHorizonNote(true)
+                  : "This checkpoint has not been graded, so there is no score yet."}
               </p>
               {pendingHref ? (
                 <p className="mt-3 text-sm">
-                  <Link href={pendingHref} className="text-pine underline-offset-4 hover:underline">
-                    Pending settle
+                  <Link href={pendingHref} className="accent-link underline-offset-4 hover:underline">
+                    Not graded yet
                   </Link>
                 </p>
               ) : (
@@ -109,79 +97,20 @@ export function FinTwitBoard({
                 </div>
               )}
             </div>
-            )
-          ) : (
-            ranked.map((call) => <CallCard key={call.id} call={call} readout={readout} quotes={quotes} />)
-          )}
-        </div>
-        <aside className="flex flex-col gap-3.5">
-          <NoiseIndex calls={calls} quotes={quotes} compact mondayAt={mondayAt} />
-          <section className="panel p-4">
-            <h2 className="text-sm font-semibold text-ink">Top handles</h2>
-            <p className="mt-1 text-xs text-muted">By GC Scale on this horizon</p>
-            {top.length === 0 ? (
-              <p className="mt-3 text-sm text-muted">No settled grades to rank.</p>
-            ) : (
-              <ol className="rank-list mt-2">
-                {top.map((call, index) => {
-                  const grade = call.grades[readout];
-                  if (!grade) return null;
-                  const pill = gcGrade(grade);
-                  return (
-                    <li key={call.id}>
-                      <span>
-                        <span className="rank-n">{String(index + 1).padStart(2, "0")}</span>
-                        <Link href={`/accounts/${call.handle}`} className="hover:underline">
-                          {call.displayName}
-                        </Link>
-                      </span>
-                      <span
-                        className={
-                          pill === "strong"
-                            ? "text-[#eb6505]"
-                            : pill === "exit"
-                              ? "text-[#9a9aa3]"
-                              : pill === "weak"
-                                ? "text-[#c9c9cf]"
-                                : "text-muted"
-                        }
-                      >
-                        {Math.round(grade.score)}%
-                      </span>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </section>
-          <section className="panel p-4">
-            <h2 className="text-sm font-semibold text-ink">Methodology</h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
-              Posts lock with the weekend book. Grades use the Monday open, Monday noon, and the Wednesday and
-              Friday official closes against Friday&apos;s regular-session close for SPY, QQQ, DIA, and VIX.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {["Monday open", "Public sources", "Sample size", "No edits after lock"].map((chip) => (
-                <span key={chip} className="rounded-full border border-[rgba(154,154,163,.35)] bg-transparent px-2 py-1 text-xs text-[#c9c9cf]">
-                  {chip}
-                </span>
-              ))}
-            </div>
-            <Link href="/methodology" className="mt-3 inline-block text-sm text-pine underline-offset-4 hover:underline">
-              How the week is graded
-            </Link>
-          </section>
-          {pendingHref ? (
-            <section className="panel p-4">
-              <h2 className="text-sm font-semibold text-[#9a9aa3]">Not graded yet</h2>
-              <p className="mt-1 text-xs text-[#9a9aa3]">{closedHorizonNote(marketClosed)}</p>
-              <div className="mt-3">
-                <GcTube score={0} grade="exit" variant="sidebar" compactMeta ungraded />
-              </div>
-            </section>
-          ) : null}
-        </aside>
+          )
+        ) : (
+          ranked.map((call) => <CallCard key={call.id} call={call} readout={readout} quotes={quotes} />)
+        )}
       </div>
+
+      {calls.length >= 10 ? <div className="mt-4"><NoiseIndex calls={calls} quotes={quotes} compact mondayAt={mondayAt} /></div> : null}
+
+      <details className="panel mt-4 p-4">
+        <summary className="cursor-pointer text-sm font-semibold text-ink">Market move used for grading</summary>
+        <div className="mt-3">
+          <QuoteTape quotes={quotes} kind={readout} variant="scoreboard" caption="Market move used for grading" />
+        </div>
+      </details>
     </div>
   );
 }

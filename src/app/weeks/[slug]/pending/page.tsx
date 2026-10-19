@@ -22,11 +22,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const cohort = await getCohort(slug);
-  if (!cohort) return { title: "Pending settle" };
+  if (!cohort) return { title: "Not graded yet" };
   const closure = pendingClosure(pendingReadoutKinds(Object.values(cohort.readouts)), cohort);
   const closedWeek = closure.closed > 0 && closure.upcoming === 0 && closure.name;
   return {
-    title: `${cohort.title} · Pending settle`,
+    title: `${cohort.title} · Not graded yet`,
     description: closedWeek
       ? `Calls in ${cohort.title} that stay off the board. The market was closed for ${closure.name}.`
       : `Calls in ${cohort.title} that stay off the board until a readout settles.`,
@@ -48,7 +48,7 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
     <div className="mx-auto max-w-6xl px-4 py-10">
       <p className="text-sm text-muted">
         <Link href="/pending" className="hover:underline">
-          Pending settle
+          Not graded yet
         </Link>
         <span aria-hidden> / </span>
         <Link href={`/weeks/${cohort.slug}`} className="hover:underline">
@@ -56,7 +56,7 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
         </Link>
       </p>
       <p className="mt-4 text-xs uppercase tracking-wide text-muted">Off the primary board</p>
-      <h1 className="mt-1 font-serif text-4xl text-ink">Pending settle</h1>
+      <h1 className="mt-1 font-serif text-4xl text-ink">Not graded yet</h1>
       <p className="mt-2 font-serif text-2xl text-pine">{cohort.title}</p>
       <p className="mt-3 max-w-3xl text-muted">
         These calls are in the book. They are not ranked here.{" "}
@@ -68,7 +68,7 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
             <Link href={`/weeks/${cohort.slug}`} className="text-pine underline-offset-4 hover:underline">
               graded board
             </Link>{" "}
-            when its tape settles.
+            when the prices are in.
           </>
         )}
       </p>
@@ -103,7 +103,7 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
                 <p className={`mt-2 text-sm ${holiday ? "text-[#9a9aa3]" : "text-muted"}`}>
                   {holiday
                     ? `${waiting.length} ${waiting.length === 1 ? "call is" : "calls are"} not graded.`
-                    : `${waiting.length} ${waiting.length === 1 ? "call is" : "calls are"} waiting. Not graded yet.`}
+                    : `${waiting.length} ${waiting.length === 1 ? "call is" : "calls are"} not graded yet.`}
                 </p>
                 <ul className="mt-4 grid gap-3">
                   {waiting.map((call) => (
@@ -116,7 +116,7 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
                         <DirectionChip direction={call.direction} />
                         <span className="font-mono text-xs text-pine">{call.primary}</span>
                         <span className={`text-xs uppercase tracking-wide ${holiday ? "text-[#9a9aa3]" : "text-muted"}`}>
-                          {holiday ? "Market closed" : "Waiting on the tape"}
+                          {holiday ? "Market closed" : "Not graded yet"}
                         </span>
                       </div>
                       <p className="mt-3 text-ink">

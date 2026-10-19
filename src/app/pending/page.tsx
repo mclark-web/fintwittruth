@@ -5,17 +5,18 @@ import { pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { etYmd } from "@/lib/format";
 import { UNGRADED_HORIZON, pendingClosure, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
-import { getCohort, listCohortSlugs } from "@/lib/queries";
+import { getCohort, listCohortSlugs, type CohortView } from "@/lib/queries";
 
 export const metadata: Metadata = {
-  title: "Pending settle",
-  description:
-    "Calls and horizons that stay off the GradedCalls FinTwit boards until a readout settles. Rankings use graded calls only.",
+  title: "Not graded yet",
+  description: "Calls that stay off the GradedCalls FinTwit boards until a checkpoint is graded. Rankings use graded calls only.",
 };
 
 export default async function PendingPage() {
   const slugs = await listCohortSlugs();
-  const cohorts = (await Promise.all(slugs.map((slug) => getCohort(slug)))).filter((cohort) => cohort != null);
+  const cohorts = (await Promise.all(slugs.map((slug) => getCohort(slug)))).filter(
+    (cohort): cohort is CohortView => cohort != null && cohort.dataset === "live",
+  );
   const waiting = cohorts
     .map((cohort) => ({
       cohort,
@@ -32,16 +33,16 @@ export default async function PendingPage() {
           Leaderboard
         </Link>
       </p>
-      <h1 className="mt-4 font-serif text-4xl text-ink">Pending settle</h1>
+      <h1 className="mt-4 font-serif text-4xl text-ink">Not graded yet</h1>
       <p className="mt-3 max-w-3xl text-muted">
-        These horizons are not on the home tape, the weekly boards, or the leaderboards. A call joins those
-        rankings after Monday&apos;s open, Monday noon, the Wednesday close, or the Friday close settles. This page is the waiting
-        list, not a score.
+        These checkpoints are not on the home board, the weekly boards, or the leaderboard. A call joins those
+        rankings after Monday&apos;s open, Monday noon, the Wednesday close, or the Friday close is graded. This page is the waiting
+        list, not a score. Demo weeks are not listed here.
       </p>
       {waiting.length === 0 ? (
         <p className="panel mt-8 p-5 text-sm text-muted">
-          Nothing is waiting. Every cohort on the board has a settled grade.{" "}
-          <Link href="/weeks" className="text-pine underline-offset-4 hover:underline">
+          Nothing is waiting. Every live week on the board has a grade.{" "}
+          <Link href="/weeks" className="accent-link underline-offset-4 hover:underline">
             Open the weeks
           </Link>
           .

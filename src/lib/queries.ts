@@ -522,3 +522,10 @@ export async function listCallIds() {
   const calls = await prisma.call.findMany({ select: { id: true } });
   return calls.map((call) => call.id);
 }
+
+export const getLiveCohorts = cache(async (): Promise<CohortView[]> => {
+  const list = await getCohortList();
+  const live = list.filter((cohort) => cohort.dataset === "live");
+  const full = await Promise.all(live.map((cohort) => getCohort(cohort.slug)));
+  return full.filter((cohort): cohort is CohortView => cohort != null);
+});

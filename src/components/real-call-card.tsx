@@ -12,7 +12,7 @@ export function RealCallCard({ call }: { call: RealCallView }) {
   const settled = READOUTS.filter((kind) => call.grades[kind] != null);
   return (
     <article className="panel p-5">
-      <p className="text-xs uppercase tracking-wide text-pine">{call.label}</p>
+      <p className="text-xs uppercase tracking-wide text-[#c9c9cf]">{call.label}</p>
       <h2 className="mt-2 text-xl text-ink">
         <Link href={`/accounts/${call.handle}`} className="hover:underline">
           {call.authorName} <span className="font-normal text-muted">@{call.handle}</span>
@@ -39,7 +39,7 @@ export function RealCallCard({ call }: { call: RealCallView }) {
                 <p className="text-xs uppercase text-muted">{REAL_READOUT_META[kind as keyof typeof REAL_READOUT_META]?.label ?? READOUT_META[kind].label}</p>
                 <p className="font-mono text-2xl">
                   {grade.score}
-                  <span className="text-sm text-muted">/100</span>
+                  <span className="text-sm text-muted">%</span>
                 </p>
                 <span className="mt-1 inline-flex">
                   <GradePill grade={gcGrade(grade)} />

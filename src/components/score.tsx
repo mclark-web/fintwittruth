@@ -17,7 +17,6 @@ export function Avatar({ name }: { name: string; accent?: string }) {
 
 export function ScoreMark({
   score,
-  badge,
   isStrong,
   isWeak,
   rank,
@@ -38,20 +37,19 @@ export function ScoreMark({
   if (variant === "mini") {
     return (
       <div className="flex flex-col items-end gap-1.5">
+        <span className="font-mono text-2xl text-ink">
+          {digits > 0 ? score.toFixed(digits) : Math.round(score)}
+          <span className="text-sm text-muted">%</span>
+        </span>
         <GradePill grade={grade} />
-        <GcTube score={score} grade={grade} variant="mini" showMeta={false} />
       </div>
     );
   }
   return (
     <div className="min-w-44">
       <GcTube score={score} grade={grade} variant="sidebar" />
-      <p className="mt-2 font-mono text-xs text-muted">
-        Badge {badge}/10
-        {digits > 0 ? ` · ${score.toFixed(digits)}/100` : ` · ${Math.round(score)}/100`}
-      </p>
       {rank && peerCount ? (
-        <p className="mt-1 text-xs text-muted">
+        <p className="mt-2 text-xs text-muted">
           Rank {rank} of {peerCount}
         </p>
       ) : null}

@@ -30,6 +30,7 @@ export async function generateMetadata({
   return {
     title: `${result.call.displayName} on ${result.call.primary}`,
     description: result.call.body,
+    robots: result.call.dataset === "demo" ? { index: false, follow: false } : undefined,
   };
 }
 
@@ -45,7 +46,7 @@ function Breakdown({
   vixPoints: number;
 }) {
   const rows = [
-    { label: "Direction vs tape", value: directionPoints, max: DIRECTION_MAX },
+    { label: "Direction vs the market", value: directionPoints, max: DIRECTION_MAX },
     { label: "Levels", value: levelPoints, max: LEVEL_MAX },
     { label: "Specificity", value: specificityPoints, max: SPECIFICITY_MAX },
     { label: "VIX factor", value: vixPoints, max: VIX_MAX },
@@ -194,9 +195,8 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                       peerCount={grade.peerCount}
                     />
                   </div>
-                  <p className="mt-3 text-sm text-ink/80">{grade.note}</p>
-                  <p className="mt-2 flex flex-wrap items-center gap-2">
-                    <TapeMark direction={call.direction} move={grade.rawMovePct} label="Tape" />
+                  <p className="mt-3 flex flex-wrap items-center gap-2">
+                    <TapeMark direction={call.direction} move={grade.rawMovePct} label="Market" />
                     <span className="font-mono text-xs text-[#9a9aa3] tabular-nums">
                       signed {formatPct(grade.signedMovePct)} · VIX {formatPct(grade.vixMovePct)}
                     </span>
@@ -219,11 +219,11 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
 
       {waiting.length > 0 ? (
         <details className="mt-8">
-          <summary className="flex min-h-11 cursor-pointer items-center font-serif text-2xl text-ink">Pending settle</summary>
+          <summary className="flex min-h-11 cursor-pointer items-center font-serif text-2xl text-ink">Not graded yet</summary>
           <p className="mt-2 max-w-3xl text-sm text-muted">
             {closedOnly
               ? `These horizons are not graded: the market was closed for ${closure.name}.`
-              : "These horizons are not on the board yet. There is no score until the tape prints."}
+              : "These checkpoints are not on the board yet. There is no score until the prices are in."}
           </p>
           <ul className="mt-4 grid gap-3">
             {waiting.map((kind) => {
@@ -246,8 +246,8 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
             })}
           </ul>
           <p className="mt-3 text-sm">
-            <Link href={`/weeks/${cohort.slug}/pending`} className="text-pine underline-offset-4 hover:underline">
-              {closedOnly ? "Open the pending list for this cohort" : "Open the waiting list for this cohort"}
+            <Link href={`/weeks/${cohort.slug}/pending`} className="accent-link underline-offset-4 hover:underline">
+              Open what is not graded for this week
             </Link>
           </p>
         </details>

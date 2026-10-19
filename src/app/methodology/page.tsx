@@ -95,10 +95,10 @@ export default async function MethodologyPage() {
             </dd>
           </div>
           <div className="panel p-4">
-            <dt className="font-medium text-ink">Monday gap — 9:30 AM ET</dt>
+            <dt className="font-medium text-ink">Monday open — 9:30 AM ET</dt>
             <dd className="mt-1 text-sm text-muted">
-              Friday regular-session close to the regular-hours open for SPY, QQQ, and DIA. VIX uses Friday&apos;s
-              close to Monday&apos;s regular-session open.
+              Monday open is the move from Friday&apos;s close to the 9:30 AM ET open for SPY, QQQ, and DIA. Older notes
+              called this the Monday gap. VIX uses Friday&apos;s close to Monday&apos;s regular-session open.
             </dd>
           </div>
           <div className="panel p-4">
@@ -140,8 +140,8 @@ export default async function MethodologyPage() {
               readout has settled. Monday&apos;s open, Monday noon, the Wednesday close, and the Friday close are those horizons.
               Hit rate, STRONG rate, and WEAK rate use settled grades only. While a readout is still scheduled,
               the calls sit on{" "}
-              <Link href="/pending" className="text-pine underline-offset-4 hover:underline">
-                Pending settle
+              <Link href="/pending" className="accent-link underline-offset-4 hover:underline">
+                Not graded yet
               </Link>
               . That page is not part of the ranking.
             </dd>
@@ -286,8 +286,8 @@ export default async function MethodologyPage() {
           <p className="mt-3 text-ink/80">
             {featured.summary} Monday gap and Monday noon are off this board because the cash session did not
             settle. They are on{" "}
-            <Link href={`/weeks/${featured.slug}/pending`} className="text-pine underline-offset-4 hover:underline">
-              Pending settle
+            <Link href={`/weeks/${featured.slug}/pending`} className="accent-link underline-offset-4 hover:underline">
+              Not graded yet
             </Link>
             , not in the ranking.
           </p>
