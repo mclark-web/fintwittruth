@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { GradePill } from "@/components/gc-tube";
 import { disputePath } from "@/lib/dispute";
-import { formatWhen } from "@/lib/format";
+import { formatScopeWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { REAL_READOUT_META, type RealCallView } from "@/lib/real-book";
@@ -20,7 +20,7 @@ export function RealCallCard({ call }: { call: RealCallView }) {
         </Link>
       </h2>
       <p className="mt-1 text-xs text-muted">
-        {formatWhen(call.postedAt)}
+        {formatScopeWhen(call.postedAt)}
         {call.cohortSlug ? ` · readout week ${call.cohortSlug}` : ""} · {call.horizon}
       </p>
       <p className="mt-3 text-[15px] leading-relaxed text-ink">“{call.text}”</p>

@@ -3,7 +3,9 @@ import { CallCard } from "@/components/call-card";
 import { GradePill, GcTube } from "@/components/gc-tube";
 import { NoiseIndex, QuoteTape } from "@/components/market";
 import { Avatar } from "@/components/score";
-import { formatAsOf, formatCheckpointStamp, formatRate, formatScore, formatWeekday, referenceCloseDay } from "@/lib/format";
+import { closedPendingLiveWeeks, emptyLiveWeeks } from "@/lib/empty-weeks";
+import { parseWeekCoverage } from "@/lib/search-scope";
+import { formatAsOf, formatDay, formatRate, formatScore, formatScopeWhen, formatShortDay, referenceCloseDay } from "@/lib/format";
 import { gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_SCALE_BANDS } from "@/lib/labels";
 import { bestWorst } from "@/lib/lanes";
@@ -35,7 +37,18 @@ function toggleHref(query: HomeQuery, key: keyof HomeQuery, value: string) {
 function priceMoveLabel(cohort: CohortView, kind: ReadoutKind): string {
   const at = cohort.readouts[kind].at;
   const close = referenceCloseDay(cohort.mondayAt, cohortReferenceDate(cohort.slug));
-  return `${formatCheckpointStamp(at)} vs ${formatWeekday(close)} close`;
+  return `${formatScopeWhen(at)} vs ${formatDay(close)} close`;
+}
+
+function emptyWeeksLine(weeks: { coverage: string; window: { mondayAt: Date } }[]): string {
+  const days = (list: typeof weeks) => list.map((week) => formatShortDay(week.window.mondayAt)).join(" and ");
+  const plural = (list: typeof weeks) => (list.length === 1 ? "week" : "weeks");
+  const covered = weeks.filter((week) => parseWeekCoverage(week.coverage));
+  const uncovered = weeks.filter((week) => !parseWeekCoverage(week.coverage));
+  const parts: string[] = [];
+  if (covered.length) parts.push(`No qualifying calls in the ${plural(covered)} of ${days(covered)}, so nothing to grade.`);
+  if (uncovered.length) parts.push(`No search coverage is recorded for the ${plural(uncovered)} of ${days(uncovered)}, so nothing to grade.`);
+  return parts.join(" ");
 }
 
 function headlineKind(calls: CallView[]): ReadoutKind {
@@ -80,6 +93,8 @@ export default async function HomePage({
     return true;
   });
   const filterOn = Boolean(query.side || query.index);
+  const emptyWeeks = emptyLiveWeeks();
+  const pendingWeeks = closedPendingLiveWeeks();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-7">
@@ -111,6 +126,22 @@ export default async function HomePage({
           <p className="mt-1 text-xs text-muted">
             {latest ? `Week of ${formatAsOf(latest.mondayAt)} · n=${graded.length}` : "No graded weekend yet"}
           </p>
+          {pendingWeeks.length ? (
+            <p className="mt-1 text-xs text-muted">
+              {pendingWeeks.length === 1
+                ? `Week of ${formatShortDay(pendingWeeks[0]!.window.mondayAt)} has closed and is not graded yet.`
+                : `Weeks of ${pendingWeeks.map((week) => formatShortDay(week.window.mondayAt)).join(" and ")} have closed and are not graded yet.`}
+              {latest ? ` Week of ${formatAsOf(latest.mondayAt)} is the latest week with calls loaded.` : ""}
+            </p>
+          ) : emptyWeeks.length ? (
+            <p className="mt-1 text-xs text-muted">
+              {emptyWeeksLine(emptyWeeks)}
+            </p>
+          ) : latest ? (
+            <p className="mt-1 text-xs text-muted">
+              Week of {formatAsOf(latest.mondayAt)} is the latest collect window that has closed.
+            </p>
+          ) : null}
           <div className="mt-4">
             <GcTube
               score={calibration.fill}
@@ -170,7 +201,7 @@ export default async function HomePage({
 
       <section className="mt-10" aria-labelledby="accounts-heading">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 id="accounts-heading" className="text-2xl text-ink">
+          <h2 id="accounts-heading" className="text-2xl text-ink [text-wrap:balance]">
             Tracked accounts, by average grade
           </h2>
           <Link href="/leaderboard" className="accent-link text-sm underline-offset-4 hover:underline">
@@ -320,6 +351,7 @@ function AccountRow({ row }: { row: LeaderRow }) {
           <span className="text-sm text-muted">%</span>
         </span>
         <GradePill grade={pill} />
+        {row.callCount === 1 ? <span className="text-xs text-muted">n=1</span> : null}
         <span className="text-xs text-muted">Hit {formatRate(row.hitRate, 0)}</span>
       </span>
     </li>

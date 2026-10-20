@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { etYmd, formatPct, formatPrice, formatShortDay, formatWhen } from "@/lib/format";
+import { etYmd, formatPct, formatPrice, formatScopeWhen, formatShortDay } from "@/lib/format";
 import { marketClosedCard, marketHolidayName, mondayTapeClosedLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { TAPE_DISPLAY, checkpointPrints, checkpointSymbols } from "@/lib/prints";
@@ -322,7 +322,7 @@ export function ReadoutCards({
             >
               <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">{meta.role}</p>
               <p className="mt-1 font-serif text-2xl text-ink">{meta.label}</p>
-              <p className="font-mono text-sm text-[#c9c9cf]">{formatWhen(readout.at)}</p>
+              <p className="font-mono text-sm text-[#c9c9cf]">{formatScopeWhen(readout.at)}</p>
               <p className="mt-3 text-sm text-ink">
                 {readout.status === "published" ? (
                   <TapeMark direction={readout.consensusDirection} move={readout.benchmarkMovePct} label="Tape" />
@@ -458,7 +458,7 @@ export function CohortWindow({
 }) {
   return (
     <p className="text-sm text-muted">
-      Collect {formatWhen(collectStart)} → {formatWhen(collectEnd)}. Readout week of {formatShortDay(mondayAt)}.
+      Collect {formatScopeWhen(collectStart)} through {formatScopeWhen(collectEnd)}. Readout week of {formatShortDay(mondayAt)}.
     </p>
   );
 }

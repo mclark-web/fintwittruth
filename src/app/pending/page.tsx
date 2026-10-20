@@ -69,7 +69,7 @@ export default async function PendingPage() {
                     `${settled.length} settled · ${pending.length} waiting`
                   )}
                 </p>
-                <h2 className="mt-1 font-serif text-3xl text-ink">
+                <h2 className="mt-1 font-serif text-3xl text-ink [text-wrap:balance]">
                   <Link href={`/weeks/${cohort.slug}/pending`} className="hover:underline">
                     {cohort.title}
                   </Link>

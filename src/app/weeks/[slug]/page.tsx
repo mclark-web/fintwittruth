@@ -7,15 +7,30 @@ import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "
 import { GcTube } from "@/components/gc-tube";
 import { mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
+import { closedPendingLiveWeeks, emptyLiveWeeks, futureLiveWeek, resolveLiveWeek } from "@/lib/empty-weeks";
+import { formatScopeWhen, formatShortDay } from "@/lib/format";
 import { gradedSymbols } from "@/lib/prints";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
+import { OCT19_X_SCOPE, emptyWeekHeading, emptyWeekSearchLine } from "@/lib/search-scope";
+
+/** Re-read the clock so a future week stops saying it is open after Sunday 5:00 PM ET. */
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   const slugs = await listCohortSlugs();
-  return slugs.map((slug) => ({ slug }));
+  const future = futureLiveWeek();
+  return [
+    ...slugs,
+    ...emptyLiveWeeks().map((week) => week.slug),
+    ...closedPendingLiveWeeks().map((week) => week.slug),
+    ...(future ? [future.slug] : []),
+  ].map((slug) => ({
+    slug,
+  }));
 }
 
-export const dynamicParams = false;
+/** Unknown slugs render on request. Only collect Mondays in the recorded span return 200. */
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,
@@ -24,7 +39,19 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const cohort = await getCohort(slug);
-  if (!cohort) return { title: "Week" };
+  if (!cohort) {
+    const resolved = resolveLiveWeek(slug);
+    if (resolved.status === 200 && resolved.kind === "empty") {
+      return { title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: ${emptyWeekHeading(resolved.week.coverage).toLowerCase()}` };
+    }
+    if (resolved.status === 200 && resolved.kind === "future") {
+      return { title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: not closed yet` };
+    }
+    if (resolved.status === 200 && resolved.kind === "closed") {
+      return { title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: closed, not graded yet` };
+    }
+    return { title: "Week" };
+  }
   return {
     title: cohort.title,
     description: cohort.summary,
@@ -35,7 +62,58 @@ export async function generateMetadata({
 export default async function CohortPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const cohort = await getCohort(slug);
-  if (!cohort) notFound();
+  if (!cohort) {
+    const resolved = resolveLiveWeek(slug);
+    if (resolved.status === 404) notFound();
+    if (resolved.kind === "future") {
+      return (
+        <div className="mx-auto max-w-3xl px-4 py-10">
+          <p className="text-xs uppercase tracking-wide text-muted">Week of {formatShortDay(resolved.week.window.mondayAt)}</p>
+          <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance]">This week has not closed yet</h1>
+          <p className="mt-3 text-muted">
+            Collect window: {formatScopeWhen(resolved.week.window.collectStart)} through{" "}
+            {formatScopeWhen(resolved.week.window.collectEnd)}. The book closes Sunday at 5:00 PM ET, so there is
+            nothing to grade yet.
+          </p>
+          <p className="mt-4 text-sm">
+            <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">
+              All weeks
+            </Link>
+          </p>
+        </div>
+      );
+    }
+    if (resolved.kind === "closed") {
+      return (
+        <div className="mx-auto max-w-3xl px-4 py-10">
+          <p className="text-xs uppercase tracking-wide text-muted">Week of {formatShortDay(resolved.week.window.mondayAt)}</p>
+          <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance]">Closed, not graded yet</h1>
+          <p className="mt-3 text-muted">
+            Collect window: {formatScopeWhen(resolved.week.window.collectStart)} through{" "}
+            {formatScopeWhen(resolved.week.window.collectEnd)}. Calls for this week are not loaded yet, so there is no
+            grade yet.
+          </p>
+          <p className="mt-4 text-sm">
+            <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">
+              All weeks
+            </Link>
+          </p>
+        </div>
+      );
+    }
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        <p className="text-xs uppercase tracking-wide text-muted">Week of {formatShortDay(resolved.week.window.mondayAt)}</p>
+        <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance]">{emptyWeekHeading(resolved.week.coverage)} this week</h1>
+        <p className="mt-3 text-muted">{emptyWeekSearchLine(resolved.week.window, resolved.week.coverage)}</p>
+        <p className="mt-4 text-sm">
+          <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">
+            All weeks
+          </Link>
+        </p>
+      </div>
+    );
+  }
 
   const readouts = Object.values(cohort.readouts);
   const settled = settledReadoutKinds(readouts);
@@ -62,8 +140,13 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         {cohort.dataset === "demo" ? "DEMO" : "Live week"}
         {cohort.isLatest ? " · latest" : ""}
       </p>
-      <h1 className="mt-1 font-serif text-4xl text-ink sm:text-5xl">{cohort.title}</h1>
-      <p className="mt-3 max-w-3xl text-lg text-ink/80">{cohort.summary}</p>
+      <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance] sm:text-5xl">{cohort.title}</h1>
+      {cohort.slug === "2026-10-19" ? (
+        <p className="mt-3 max-w-3xl text-lg text-ink/80">{OCT19_X_SCOPE}</p>
+      ) : null}
+      <p className="mt-3 max-w-3xl text-lg text-ink/80">
+        {cohort.slug === "2026-10-19" ? cohort.summary.replace(OCT19_X_SCOPE, "").replace(/\s+/g, " ").trim() : cohort.summary}
+      </p>
       <div className="mt-3">
         <CohortWindow
           collectStart={cohort.collectStart}

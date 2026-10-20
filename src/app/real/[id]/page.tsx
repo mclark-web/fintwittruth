@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GradePill } from "@/components/gc-tube";
 import { disputePath } from "@/lib/dispute";
-import { formatPct, formatWhen } from "@/lib/format";
+import { formatPct, formatScopeWhen } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { loadRealCalls } from "@/lib/public-real";
@@ -89,7 +89,7 @@ export default async function RealCallPage({ params }: { params: Promise<{ id: s
             <span>@{call.handle}</span>
           )}
           {" · "}
-          {formatWhen(call.postedAt)}
+          {formatScopeWhen(call.postedAt)}
           {call.cohortSlug ? ` · readout week ${call.cohortSlug}` : ""}
         </p>
         <p className="mt-4 text-xl leading-snug text-ink">{call.text}</p>

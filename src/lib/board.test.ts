@@ -7,15 +7,16 @@ import {
   pendingReadoutKinds,
   settledReadoutKinds,
 } from "./board";
-import { FEATURED_COHORT_SLUG } from "./demo-data";
+import { FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG } from "./demo-data";
 import { buildDataset } from "./dataset";
 import { READOUTS } from "./scoring";
 
 const data = buildDataset();
 
 test("a scheduled readout contributes nothing to the primary board", () => {
-  const latest = data.cohorts.find((cohort) => cohort.isLatest);
+  const latest = data.cohorts.find((cohort) => cohort.slug === LATEST_COHORT_SLUG);
   assert.ok(latest);
+  assert.equal(latest.isLatest, false);
   const friday = latest.readouts.find((item) => item.kind === "friday");
   assert.equal(friday?.status, "published");
   const fridayGrades = latest.grades.filter((grade) => grade.readout === "friday");

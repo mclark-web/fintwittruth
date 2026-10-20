@@ -51,7 +51,6 @@ export function assertLiveFile(data: LiveFile = liveFile()): LiveCohortRecord[] 
     throw new Error("live-calls.json is not a version 1 book. Refusing to seed it.");
   }
   const seenUrls = new Set<string>();
-  const seenHandles = new Set<string>();
   for (const cohort of data.cohorts) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(cohort.slug)) {
       throw new Error(`Live cohort slug ${cohort.slug} must be the readout Monday.`);
@@ -61,10 +60,11 @@ export function assertLiveFile(data: LiveFile = liveFile()): LiveCohortRecord[] 
     if (cohort.monday.year !== year || cohort.monday.month !== month || cohort.monday.day !== day) {
       throw new Error(`Live cohort ${cohort.slug} does not match its Monday date.`);
     }
+    const seenHandles = new Set<string>();
     for (const call of cohort.calls) {
       assertLiveCall(call, window, seenUrls);
-      if (seenHandles.has(call.handle) && data.cohorts.some((other) => other !== cohort && other.calls.some((item) => item.handle === call.handle))) {
-        throw new Error(`Handle @${call.handle} is repeated across live cohorts.`);
+      if (seenHandles.has(call.handle)) {
+        throw new Error(`Handle @${call.handle} is repeated in live cohort ${cohort.slug}.`);
       }
       seenHandles.add(call.handle);
     }
