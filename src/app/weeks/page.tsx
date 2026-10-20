@@ -3,7 +3,7 @@ import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { closedPendingLiveWeeks, emptyLiveWeeks, futureLiveWeek } from "@/lib/empty-weeks";
 import { etYmd, formatScopeWhen, formatScore, formatShortDay } from "@/lib/format";
-import { emptyWeekSearchLine } from "@/lib/search-scope";
+import { emptyWeekHeading, emptyWeekSearchLine } from "@/lib/search-scope";
 import { gcBoardGrade, LABOR_DAY_UNGRADED_LINE, UNGRADED_HORIZON, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohortList } from "@/lib/queries";
@@ -90,7 +90,7 @@ export default async function WeeksPage() {
                 </p>
                 <h2 className="mt-1 font-serif text-3xl text-ink [text-wrap:balance]">
                   <Link href={`/weeks/${row.week.slug}`} className="hover:underline">
-                    No qualifying calls
+                    {emptyWeekHeading(row.week.coverage)}
                   </Link>
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm text-muted">{emptyWeekSearchLine(row.week.window, row.week.coverage)}</p>

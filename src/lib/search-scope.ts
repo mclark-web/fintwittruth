@@ -77,6 +77,11 @@ export function methodologySourceLead(rows: { slug: string; coverage: string }[]
  * and the full graded-print list. Coverage comes from checked-weeks.csv.
  * A blank record says no search coverage is recorded. It does not claim any post was read.
  */
+/** Heading for an empty week. It names a search result only when search coverage is recorded. */
+export function emptyWeekHeading(coverage = ""): string {
+  return parseWeekCoverage(coverage) ? "No qualifying calls" : "No search on record";
+}
+
 export function emptyWeekSearchLine(window: CohortWindow, coverage = ""): string {
   const start = formatScopeWhen(window.collectStart);
   const end = formatScopeWhen(window.collectEnd);

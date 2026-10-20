@@ -11,7 +11,7 @@ import { closedPendingLiveWeeks, emptyLiveWeeks, futureLiveWeek, resolveLiveWeek
 import { formatScopeWhen, formatShortDay } from "@/lib/format";
 import { gradedSymbols } from "@/lib/prints";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
-import { OCT19_X_SCOPE, emptyWeekSearchLine } from "@/lib/search-scope";
+import { OCT19_X_SCOPE, emptyWeekHeading, emptyWeekSearchLine } from "@/lib/search-scope";
 
 /** Re-read the clock so a future week stops saying it is open after Sunday 5:00 PM ET. */
 export const revalidate = 60;
@@ -42,7 +42,7 @@ export async function generateMetadata({
   if (!cohort) {
     const resolved = resolveLiveWeek(slug);
     if (resolved.status === 200 && resolved.kind === "empty") {
-      return { title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: no qualifying calls` };
+      return { title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: ${emptyWeekHeading(resolved.week.coverage).toLowerCase()}` };
     }
     if (resolved.status === 200 && resolved.kind === "future") {
       return { title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: not closed yet` };
@@ -104,7 +104,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
     return (
       <div className="mx-auto max-w-3xl px-4 py-10">
         <p className="text-xs uppercase tracking-wide text-muted">Week of {formatShortDay(resolved.week.window.mondayAt)}</p>
-        <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance]">No qualifying calls this week</h1>
+        <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance]">{emptyWeekHeading(resolved.week.coverage)} this week</h1>
         <p className="mt-3 text-muted">{emptyWeekSearchLine(resolved.week.window, resolved.week.coverage)}</p>
         <p className="mt-4 text-sm">
           <Link href="/weeks" className="accent-link hit-44 underline-offset-4 hover:underline">

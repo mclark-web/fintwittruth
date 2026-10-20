@@ -15,7 +15,7 @@ import {
   resolveLiveWeek,
 } from "./empty-weeks";
 import { formatScopeWhen } from "./format";
-import { GRADED_PRINT_LIST, OCT19_X_SCOPE, X_SEARCH_START, emptyWeekSearchLine, methodologySourceLead } from "./search-scope";
+import { GRADED_PRINT_LIST, OCT19_X_SCOPE, X_SEARCH_START, emptyWeekHeading, emptyWeekSearchLine, methodologySourceLead } from "./search-scope";
 
 test("empty weeks come from the collect calendar and skip weeks that have calls", () => {
   const now = new Date("2026-10-20T16:00:00Z");
@@ -170,7 +170,7 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   const csv = readFileSync(join(process.cwd(), "data/calls/calls.csv"), "utf8");
   const home = readFileSync(join(root, "app/page.tsx"), "utf8");
   const css = readFileSync(join(root, "app/globals.css"), "utf8");
-  assert.match(week, /No qualifying calls this week/);
+  assert.match(week, /\{emptyWeekHeading\(resolved\.week\.coverage\)\} this week/);
   assert.match(week, /emptyWeekSearchLine\(resolved\.week\.window, resolved\.week\.coverage\)/);
   assert.match(week, /Closed, not graded yet/);
   assert.match(week, /export const dynamicParams = true/);
@@ -181,7 +181,7 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   assert.match(week, /\[text-wrap:balance\]/);
   assert.doesNotMatch(week, /EXIT LIQUIDITY/);
   assert.doesNotMatch(week, /so this week has no grade/);
-  assert.match(index, /No qualifying calls/);
+  assert.match(index, /emptyWeekHeading\(row\.week\.coverage\)/);
   assert.match(index, /emptyWeekSearchLine\(row\.week\.window, row\.week\.coverage\)/);
   assert.match(index, /Closed, not graded yet/);
   assert.doesNotMatch(index, /formatWhen|EDT/);
@@ -201,6 +201,12 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   assert.doesNotMatch(sitemap, /futureLiveWeek/);
   assert.ok(readme.includes(OCT19_X_SCOPE));
   assert.ok(csv.includes(OCT19_X_SCOPE));
-  assert.match(home, /latest collect window that has closed|No qualifying calls in the week/);
+  assert.match(home, /latest collect window that has closed|No qualifying calls in the/);
   assert.match(css, /h1,\s*\n\s*h2,\s*\n\s*h3 \{\s*\n\s*text-wrap: balance;/);
+});
+
+test("an empty week's heading names a search result only when coverage is recorded", () => {
+  assert.equal(emptyWeekHeading(""), "No search on record");
+  assert.equal(emptyWeekHeading("substack"), "No qualifying calls");
+  assert.equal(emptyWeekHeading("substack+x-from-2026-10-16T14:22:00.000Z"), "No qualifying calls");
 });

@@ -4,6 +4,7 @@ import { GradePill, GcTube } from "@/components/gc-tube";
 import { NoiseIndex, QuoteTape } from "@/components/market";
 import { Avatar } from "@/components/score";
 import { closedPendingLiveWeeks, emptyLiveWeeks } from "@/lib/empty-weeks";
+import { parseWeekCoverage } from "@/lib/search-scope";
 import { formatAsOf, formatDay, formatRate, formatScore, formatScopeWhen, formatShortDay, referenceCloseDay } from "@/lib/format";
 import { gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_SCALE_BANDS } from "@/lib/labels";
@@ -37,6 +38,17 @@ function priceMoveLabel(cohort: CohortView, kind: ReadoutKind): string {
   const at = cohort.readouts[kind].at;
   const close = referenceCloseDay(cohort.mondayAt, cohortReferenceDate(cohort.slug));
   return `${formatScopeWhen(at)} vs ${formatDay(close)} close`;
+}
+
+function emptyWeeksLine(weeks: { coverage: string; window: { mondayAt: Date } }[]): string {
+  const days = (list: typeof weeks) => list.map((week) => formatShortDay(week.window.mondayAt)).join(" and ");
+  const plural = (list: typeof weeks) => (list.length === 1 ? "week" : "weeks");
+  const covered = weeks.filter((week) => parseWeekCoverage(week.coverage));
+  const uncovered = weeks.filter((week) => !parseWeekCoverage(week.coverage));
+  const parts: string[] = [];
+  if (covered.length) parts.push(`No qualifying calls in the ${plural(covered)} of ${days(covered)}, so nothing to grade.`);
+  if (uncovered.length) parts.push(`No search coverage is recorded for the ${plural(uncovered)} of ${days(uncovered)}, so nothing to grade.`);
+  return parts.join(" ");
 }
 
 function headlineKind(calls: CallView[]): ReadoutKind {
@@ -123,8 +135,7 @@ export default async function HomePage({
             </p>
           ) : emptyWeeks.length ? (
             <p className="mt-1 text-xs text-muted">
-              No qualifying calls in the week{emptyWeeks.length === 1 ? "" : "s"} of{" "}
-              {emptyWeeks.map((week) => formatShortDay(week.window.mondayAt)).join(" and ")}, so nothing to grade.
+              {emptyWeeksLine(emptyWeeks)}
             </p>
           ) : latest ? (
             <p className="mt-1 text-xs text-muted">
