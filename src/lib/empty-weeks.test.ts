@@ -83,13 +83,13 @@ test("an empty week names recorded coverage and does not assume X for a later we
   const oct12 = recorded.find((row) => row.slug === "2026-10-12");
   assert.equal(oct12?.coverage, "substack");
   const before = emptyWeekSearchLine(beforeWindow, oct12?.coverage ?? "");
-  assert.equal(formatScopeWhen(X_SEARCH_START), "Friday, October 16 at 10:22 AM ET");
-  assert.equal(formatScopeWhen(beforeWindow.collectEnd), "Sunday, October 11 at 5:00 PM ET");
-  assert.match(before, /^Searched Substack from Wednesday, October 7 at 12:00 PM ET through Sunday, October 11 at 5:00 PM ET\./);
+  assert.equal(formatScopeWhen(X_SEARCH_START), "Friday, October 16 at 10:22\u00a0AM\u00a0ET");
+  assert.equal(formatScopeWhen(beforeWindow.collectEnd), "Sunday, October 11 at 5:00\u00a0PM\u00a0ET");
+  assert.match(before, /^Searched Substack from Wednesday, October 7 at 12:00\u00a0PM\u00a0ET through Sunday, October 11 at 5:00\u00a0PM\u00a0ET\./);
   assert.match(before, /X was not searched\./);
   assert.doesNotMatch(before, /X was searched|EDT|EST|Sun, Oct/);
   const assumed = emptyWeekSearchLine(beforeWindow);
-  assert.match(assumed, /No sources were searched for this week, so there is nothing to grade\. This is not a 0% grade\./);
+  assert.match(assumed, /No search coverage is recorded for this week, so there is nothing to grade\. This is not a 0% grade\./);
   assert.doesNotMatch(assumed, /Searched Substack|X was not searched|No post read|were read/);
   for (const name of ["SPX", "NDX", "ES", "NQ", "the S&P 500", "the Nasdaq 100", "the Dow"]) {
     assert.ok(before.includes(name), name);
@@ -101,12 +101,12 @@ test("an empty week names recorded coverage and does not assume X for a later we
   const oct19 = recorded.find((row) => row.slug === "2026-10-19");
   assert.equal(oct19?.coverage, "substack+x-from-2026-10-16T14:22:00.000Z");
   const uncovered = emptyWeekSearchLine(overlapWindow);
-  assert.match(uncovered, /No sources were searched for this week/);
+  assert.match(uncovered, /No search coverage is recorded for this week/);
   assert.doesNotMatch(uncovered, /X was searched|No post read|were read|EDT|EST/);
   const overlap = emptyWeekSearchLine(overlapWindow, oct19?.coverage ?? "");
   assert.match(
     overlap,
-    /X was searched only from Friday, October 16 at 10:22 AM ET through Sunday, October 18 at 5:00 PM ET\./,
+    /X was searched only from Friday, October 16 at 10:22\u00a0AM\u00a0ET through Sunday, October 18 at 5:00\u00a0PM\u00a0ET\./,
   );
   assert.doesNotMatch(overlap, /EDT|EST|Sun, Oct/);
   assert.ok(overlap.includes(GRADED_PRINT_LIST));
@@ -116,7 +116,7 @@ test("an empty week names recorded coverage and does not assume X for a later we
 
   const laterWindow = buildCohortWindow(parseCalendarDay("2026-11-02"));
   const later = emptyWeekSearchLine(laterWindow);
-  assert.match(later, /No sources were searched for this week/);
+  assert.match(later, /No search coverage is recorded for this week/);
   assert.doesNotMatch(later, /X was searched|No post read|were read/);
   const start = formatScopeWhen(laterWindow.collectStart);
   const end = formatScopeWhen(laterWindow.collectEnd);
@@ -127,14 +127,14 @@ test("an empty week names recorded coverage and does not assume X for a later we
 
 test("the open week steps to the first Monday whose collect window is still open", () => {
   const beforeClose = new Date("2026-10-25T20:57:00.000Z");
-  assert.equal(formatScopeWhen(beforeClose), "Sunday, October 25 at 4:57 PM ET");
+  assert.equal(formatScopeWhen(beforeClose), "Sunday, October 25 at 4:57\u00a0PM\u00a0ET");
   const stillOpen = resolveLiveWeek("2026-10-26", beforeClose);
   assert.equal(stillOpen.status, 200);
   if (stillOpen.status === 200) assert.equal(stillOpen.kind, "future");
   assert.equal(resolveLiveWeek("2026-11-02", beforeClose).status, 404);
 
   const justClosed = new Date("2026-10-25T21:01:00.000Z");
-  assert.equal(formatScopeWhen(justClosed), "Sunday, October 25 at 5:01 PM ET");
+  assert.equal(formatScopeWhen(justClosed), "Sunday, October 25 at 5:01\u00a0PM\u00a0ET");
   const closed = resolveLiveWeek("2026-10-26", justClosed);
   assert.equal(closed.status, 200);
   if (closed.status === 200) assert.equal(closed.kind, "closed");
@@ -146,7 +146,7 @@ test("the open week steps to the first Monday whose collect window is still open
 
 test("at Sunday November 1 5:01 PM ET, /weeks/2026-11-02 returns 200 in the closed state", () => {
   const now = new Date("2026-11-01T22:01:00.000Z");
-  assert.equal(formatScopeWhen(now), "Sunday, November 1 at 5:01 PM ET");
+  assert.equal(formatScopeWhen(now), "Sunday, November 1 at 5:01\u00a0PM\u00a0ET");
   const page = resolveLiveWeek("2026-11-02", now);
   assert.equal(page.status, 200);
   if (page.status !== 200) return;

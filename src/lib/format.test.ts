@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { zonedToUtc } from "./calendar";
-import { etYmd, formatEtStamp, formatScore, formatWeekday, lastTradingDayBeforeWeekend, referenceCloseDay } from "./format";
+import { etYmd, formatScopeWhen, formatScore, formatWeekday, lastTradingDayBeforeWeekend, referenceCloseDay } from "./format";
 
 test("a UTC fetch time is shown in ET", () => {
-  assert.equal(formatEtStamp("2026-10-19T19:29:44.258Z"), "October 19, 2026 at 3:29 PM ET");
+  assert.equal(formatScopeWhen("2026-10-19T19:29:44.258Z"), "Monday, October 19 at 3:29\u00a0PM\u00a0ET");
 });
 
 test("GC percents floor, and a positive average under 1 reads <1", () => {

@@ -4,7 +4,7 @@ import { CalendarStrip } from "@/components/market";
 import { ReadoutBubble, ReferenceLine } from "@/components/score";
 import { settledReadoutKinds } from "@/lib/board";
 import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
-import { formatEtStamp, formatScore } from "@/lib/format";
+import { formatScopeWhen, formatScore } from "@/lib/format";
 import { GC_GRADE_LABEL, UNGRADED_HORIZON, gcGrade } from "@/lib/grades";
 import { GC_FACTOR, READOUT_META } from "@/lib/labels";
 import { PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
@@ -105,7 +105,7 @@ export default async function MethodologyPage() {
             </dd>
           </div>
           <div className="panel p-4">
-            <dt className="font-medium text-ink">Monday 12:00 PM ET — weekend-noise grade</dt>
+            <dt className="font-medium text-ink [text-wrap:balance]">Monday 12:00 PM ET — weekend-noise grade</dt>
             <dd className="mt-1 text-sm text-muted">
               The primary score. It asks whether the weekend doom, war panic, sell-the-open calls, and melt-up
               calls were still there at noon. The print is the open of the Yahoo Finance 5-minute bar stamped
@@ -403,7 +403,7 @@ export default async function MethodologyPage() {
         </p>
         <p className="mt-3 text-ink/80">
           The series is committed in <span className="font-mono text-xs">src/lib/market-history.json</span> and
-          was fetched {formatEtStamp(PRICE_FETCHED_AT)}. VIX is the Yahoo symbol ^VIX. Monday, September 7, 2026 was Labor Day.
+          was fetched {formatScopeWhen(PRICE_FETCHED_AT)}. VIX is the Yahoo symbol ^VIX. Monday, September 7, 2026 was Labor Day.
           SPY, QQQ, and DIA have no session that day. A Yahoo VIX daily bar exists for that holiday and is not
           used as a Monday open or noon print. Wednesday, September 23 and Friday, September 25 are graded on
           those days&apos; official closes.

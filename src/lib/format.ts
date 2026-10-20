@@ -18,23 +18,8 @@ export function formatScopeWhen(date: Date | string): string {
     hourCycle: "h12",
   }).formatToParts(value);
   const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
-  return `${get("weekday")}, ${get("month")} ${get("day")} at ${get("hour")}:${get("minute")} ${get("dayPeriod")} ET`;
-}
-
-/** Clock in Eastern Time with the zone written ET, plus the calendar date. */
-export function formatEtStamp(date: Date | string): string {
-  const value = typeof date === "string" ? new Date(date) : date;
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: TIME_ZONE,
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hourCycle: "h12",
-  }).formatToParts(value);
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
-  return `${get("month")} ${get("day")}, ${get("year")} at ${get("hour")}:${get("minute")} ${get("dayPeriod")} ET`;
+  // No-break spaces keep "9:30 AM ET" on one line, so a narrow column never strands "ET".
+  return `${get("weekday")}, ${get("month")} ${get("day")} at ${get("hour")}:${get("minute")}\u00a0${get("dayPeriod")}\u00a0ET`;
 }
 
 export function formatDay(date: Date | string): string {
