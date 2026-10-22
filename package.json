@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "predev": "tsx scripts/ensure-db.ts",
-    "prebuild": "set -a; [ -f .env ] && . ./.env; set +a; export DATABASE_URL=\"${DATABASE_URL:-file:./fintwittruth.db}\"; prisma generate && prisma db push --skip-generate --accept-data-loss && tsx prisma/seed.ts",
+    "prebuild": "set -a; [ -f .env ] && . ./.env; set +a; export DATABASE_URL=\"${DATABASE_URL:-file:./fintwittruth.db}\"; case \"$DATABASE_URL\" in file:*) echo \"prebuild DATABASE_URL=$DATABASE_URL\";; *) echo \"prebuild DATABASE_URL=[redacted non-file datasource]\";; esac; prisma generate && prisma db push --skip-generate --accept-data-loss && tsx prisma/seed.ts",
     "build": "next build",
     "start": "next start",
     "postinstall": "prisma generate",
