@@ -4,11 +4,11 @@ import { pendingHorizonsClause, type PendingClosure } from "@/lib/grades";
 export function NothingGraded({ href, horizon }: { href: string; horizon?: string }) {
   return (
     <div className="panel p-5">
-      <h2 className="font-serif text-2xl text-ink">Nothing graded yet</h2>
+      <h2 className="font-serif text-2xl text-ink">No graded calls yet this week</h2>
       <p className="mt-2 max-w-2xl text-sm text-muted">
         {horizon
           ? `${horizon} has not settled, so these calls are off the board.`
-          : "This week has no grade yet. Scores land here after Monday's open, Monday noon, or a later close."}
+          : "No graded calls yet this week. Scores land here after Monday noon, or a later close, once the prices are in."}
       </p>
       <p className="mt-3 text-sm">
         <Link href={href} className="accent-link font-medium underline-offset-4 hover:underline">

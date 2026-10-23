@@ -95,8 +95,16 @@ export const CSV_COLUMNS = [
   "grade_method",
   "flags",
   "notes",
+  "data_source",
   "export_index",
 ] as const;
+
+/**
+ * `public` is a public post (a Substack page or a public status link).
+ * `licensed` stays available for a later feed the operator has rights to.
+ * `demo` is rejected wherever it appears in calls.csv.
+ */
+export const DATA_SOURCES = ["public", "licensed"] as const;
 
 /** Dropped on export. The site recomputes the bubble and the GC Scale from the price tape. */
 export const CSV_ONLY_COLUMNS = [
@@ -126,6 +134,7 @@ export const CSV_ONLY_COLUMNS = [
   "grade_method",
   "flags",
   "notes",
+  "data_source",
   "export_index",
 ] as const;
 
@@ -439,6 +448,7 @@ function shellFromCall(cohort: LiveCohortRecord, call: LiveCallRecord, index: nu
   row.levels = JSON.stringify(call.levels);
   row.body = call.body;
   row.verification = call.verification;
+  row.data_source = "public";
   row.export_index = String(index);
   return row;
 }
@@ -843,6 +853,11 @@ export function collectIssues(rows: CallRow[]): LedgerIssues {
     if (row.source_url === "" || !/^https:\/\/\S+$/.test(row.source_url)) {
       errors.push(`${label}: missing source URL`);
     }
+    if (row.data_source === "demo") {
+      errors.push(`${label}: data_source=demo is rejected`);
+    } else if (!DATA_SOURCES.includes(row.data_source as (typeof DATA_SOURCES)[number])) {
+      errors.push(`${label}: data_source must be ${DATA_SOURCES.join(" or ")}`);
+    }
     if (row.graded_at !== "" && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(row.graded_at)) {
       errors.push(`${label}: graded_at must be an ISO timestamp when set`);
     }
@@ -911,7 +926,10 @@ export function considerCheckpoint(
   if (status === "PENDING") {
     if (!input.due) return { row, action: "unchanged", detail: "" };
     const call = classifyCall(row);
-    if (!call.autoPrint) {
+    const earlierApproved =
+      row.grade_method === "recorded" &&
+      CHECKPOINTS.some((prior) => prior !== kind && row[field(prior, "status")] === "GRADED");
+    if (!call.autoPrint && !earlierApproved) {
       const why = call.tapeDefault
         ? "post names no ticker or index"
         : call.ambiguous
@@ -925,7 +943,7 @@ export function considerCheckpoint(
     }
     const next = { ...row };
     applyComputed(next, kind, computed);
-    if (next.grade_method !== "recorded") next.grade_method = "auto-yahoo";
+    if (!earlierApproved && next.grade_method !== "recorded") next.grade_method = "auto-yahoo";
     next.flags = expectedFlags(next);
     next.graded_at = latestGradedAt(next.cohort_slug, next);
     return { row: next, action: "graded", detail: `${label}: ${computed.text} ${computed.grade}` };

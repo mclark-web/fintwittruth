@@ -1,6 +1,6 @@
 import path from "path";
 import { PrismaClient } from "@prisma/client";
-import { buildDataset } from "../src/lib/dataset";
+import { productionBook } from "../src/lib/dataset";
 
 process.env.DATABASE_URL = `file:${path.join(process.cwd(), "prisma", "fintwittruth.db")}`;
 
@@ -9,7 +9,7 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  const dataset = buildDataset();
+  const dataset = productionBook();
 
   await prisma.grade.deleteMany();
   await prisma.readout.deleteMany();

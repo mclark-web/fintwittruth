@@ -84,6 +84,55 @@ test("grade bands stay 70 / 40 and an ungraded horizon is not EXIT LIQUIDITY", (
   assert.equal(UNGRADED_HORIZON, "Not graded yet");
 });
 
+test("data_source=demo is rejected and a sourced row stays public", () => {
+  const rows = gradedRowsFromLive();
+  assert.ok(rows.every((row) => row.data_source === "public"));
+  const demo = rows.map((row, index) => (index === 0 ? { ...row, data_source: "demo" } : { ...row }));
+  assert.ok(collectIssues(demo).errors.some((error) => error.includes("data_source=demo is rejected")));
+});
+
+test("an approved call ages at the next due checkpoint and an unapproved ambiguous call stays pending", () => {
+  const ambiguous = callRow({
+    primary: "SPY",
+    direction: "bullish",
+    sentiment: "panic",
+    explicit: "true",
+    tickers: "SPY;VIX",
+    body: "Just bought calls. $SPY. VIX triggered my extreme signal.",
+    grade_method: "recorded",
+    monday_status: "GRADED",
+    monday_price: "1",
+    monday_score: "1",
+    monday_grade: "WEAK",
+    monday_stance: "with",
+    monday_text: "placeholder",
+  });
+  const wednesday = considerCheckpoint(ambiguous, "wednesday", {
+    now: new Date("2026-09-23T21:00:00.000Z"),
+    due: true,
+    tape: OPEN_TAPE,
+  });
+  assert.equal(wednesday.action, "graded");
+  assert.equal(wednesday.row.grade_method, "recorded");
+  assert.equal(wednesday.row.wednesday_status, "GRADED");
+
+  const unapproved = callRow({
+    primary: "SPY",
+    direction: "bullish",
+    sentiment: "panic",
+    explicit: "true",
+    tickers: "SPY;VIX",
+    body: "Just bought calls. $SPY. VIX triggered my extreme signal.",
+  });
+  const held = considerCheckpoint(unapproved, "wednesday", {
+    now: new Date("2026-09-23T21:00:00.000Z"),
+    due: true,
+    tape: OPEN_TAPE,
+  });
+  assert.equal(held.action, "flagged");
+  assert.equal(held.row.wednesday_status, "PENDING");
+});
+
 test("the verified book round-trips through the CSV and the scorer", () => {
   const rows = gradedRowsFromLive();
   const json = readFileSync(LIVE_JSON_PATH, "utf8");
@@ -95,7 +144,7 @@ test("the verified book round-trips through the CSV and the scorer", () => {
   for (const row of rows) {
     assert.ok(row.source_url.startsWith("https://"));
     for (const kind of CHECKPOINTS) {
-      const stillOpen = row.cohort_slug === "2026-10-19" && (kind === "wednesday" || kind === "friday");
+      const stillOpen = row.cohort_slug === "2026-10-19" && kind === "friday";
       if (stillOpen) {
         assert.equal(row[`${kind}_status`], "PENDING");
         assert.equal(row[`${kind}_score`], "");

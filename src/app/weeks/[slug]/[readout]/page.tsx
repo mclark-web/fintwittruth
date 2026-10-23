@@ -163,7 +163,7 @@ export default async function ReadoutPage({
           </div>
         ) : null}
         <FinTwitBoard
-          kicker={`${meta.role} · ${cohort.dataset === "demo" ? "demo" : "live"}`}
+          kicker={`${meta.role} · live`}
           title={boardTitle}
           titleHeading="p"
           lede={cohort.title}

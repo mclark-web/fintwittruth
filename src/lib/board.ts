@@ -29,6 +29,36 @@ export type GradedCallInput = {
 
 const MATURE_ORDER: ReadoutKind[] = ["friday", "wednesday", "monday", "monday-gap"];
 
+/** Pills on every call card, in this order. Monday's open is a tape print, not one of these grades. */
+export const CALL_TIMEFRAMES = ["monday", "wednesday", "friday"] as const satisfies readonly ReadoutKind[];
+export type CallTimeframe = (typeof CALL_TIMEFRAMES)[number];
+
+type GradeScore = { readout: string; score: number };
+type RollupInput = readonly GradeScore[] | Partial<Record<string, { score: number } | null | undefined>>;
+
+function isGradeList(grades: RollupInput): grades is readonly GradeScore[] {
+  return Array.isArray(grades);
+}
+
+/** Mean of the graded timeframe pills. No graded pill is ungraded, not a zero. */
+export function callRollupScore(grades: RollupInput): number | null {
+  const byKind = new Map<string, number>();
+  if (isGradeList(grades)) {
+    for (const item of grades) {
+      if (Number.isFinite(item.score)) byKind.set(item.readout, item.score);
+    }
+  } else {
+    for (const [kind, grade] of Object.entries(grades)) {
+      if (grade != null && Number.isFinite(grade.score)) byKind.set(kind, grade.score);
+    }
+  }
+  const scores = CALL_TIMEFRAMES.flatMap((kind) => {
+    const score = byKind.get(kind);
+    return score != null ? [score] : [];
+  });
+  return average(scores);
+}
+
 export function isSettledStatus(status: string): boolean {
   return status === "published";
 }
@@ -52,12 +82,12 @@ export function matureSettledGrade(call: GradedCallInput): SettledGrade | null {
 }
 
 export function handleBoardStats(calls: GradedCallInput[]) {
-  const graded = calls.filter((call) => settledGrades(call).length > 0);
+  const graded = calls.filter((call) => callRollupScore(call.grades) != null);
   const grades = graded.flatMap((call) => settledGrades(call));
-  const matureScores = graded
-    .map((call) => matureSettledGrade(call)?.score)
+  const rollups = graded
+    .map((call) => callRollupScore(call.grades))
     .filter((score): score is number => score != null);
-  const avgScore = average(matureScores) ?? 0;
+  const avgScore = average(rollups) ?? 0;
   const rate = (pick: (grade: SettledGrade) => boolean) =>
     grades.length === 0 ? 0 : grades.filter(pick).length / grades.length;
   return {
@@ -69,8 +99,8 @@ export function handleBoardStats(calls: GradedCallInput[]) {
     strongRate: rate((grade) => gcGrade(grade) === "strong"),
     weakRate: rate((grade) => gcGrade(grade) === "weak"),
     hitRate: rate((grade) => isDirectionHit(grade.signedMovePct)),
-    bestScore: matureScores.length ? Math.max(...matureScores) : 0,
-    worstScore: matureScores.length ? Math.min(...matureScores) : 0,
+    bestScore: rollups.length ? Math.max(...rollups) : 0,
+    worstScore: rollups.length ? Math.min(...rollups) : 0,
   };
 }
 

@@ -3,6 +3,7 @@ import { CallCard } from "@/components/call-card";
 import { GradePill, GcTube } from "@/components/gc-tube";
 import { NoiseIndex, QuoteTape } from "@/components/market";
 import { Avatar } from "@/components/score";
+import { callRollupScore } from "@/lib/board";
 import { closedPendingLiveWeeks, emptyLiveWeeks } from "@/lib/empty-weeks";
 import { parseWeekCoverage } from "@/lib/search-scope";
 import { formatAsOf, formatDay, formatRate, formatScore, formatScopeWhen, formatShortDay, referenceCloseDay } from "@/lib/format";
@@ -70,9 +71,12 @@ export default async function HomePage({
   ]);
   const calls = latest?.calls ?? [];
   const readout = headlineKind(calls);
-  const graded = calls.filter((call) => call.grades[readout] != null);
-  const calibration = gcBoardGrade(graded.map((call) => call.grades[readout]?.score ?? 0));
-  const lanes = bestWorst(graded, (call) => call.grades[readout]?.score ?? 0);
+  const graded = calls.filter((call) => callRollupScore(call.grades) != null);
+  const calibration = gcBoardGrade(graded.flatMap((call) => {
+    const score = callRollupScore(call.grades);
+    return score == null ? [] : [score];
+  }));
+  const lanes = bestWorst(graded, (call) => callRollupScore(call.grades) ?? 0);
   const asOf = latest
     ? latest.readouts.friday.status === "published"
       ? latest.fridayAt
@@ -124,7 +128,9 @@ export default async function HomePage({
             Latest weekend
           </h2>
           <p className="mt-1 text-xs text-muted">
-            {latest ? `Week of ${formatAsOf(latest.mondayAt)} · n=${graded.length}` : "No graded weekend yet"}
+            {latest && graded.length > 0
+              ? `Week of ${formatAsOf(latest.mondayAt)} · n=${graded.length}`
+              : "No graded calls yet this week"}
           </p>
           {pendingWeeks.length ? (
             <p className="mt-1 text-xs text-muted">

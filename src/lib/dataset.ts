@@ -526,3 +526,13 @@ export function buildDataset(): BuiltDataset {
 
   return { accounts, cohorts };
 }
+
+/** What production seeds and serves. Fictional cohorts and accounts stay out of this book. */
+export function productionBook(dataset: BuiltDataset = buildDataset()): BuiltDataset {
+  const cohorts = dataset.cohorts.filter((cohort) => cohort.dataset === "live");
+  const accountIds = new Set(cohorts.flatMap((cohort) => cohort.calls.map((call) => call.accountId)));
+  return {
+    accounts: dataset.accounts.filter((account) => accountIds.has(account.id)),
+    cohorts,
+  };
+}

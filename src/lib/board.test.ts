@@ -87,8 +87,8 @@ test("an account with only unscored calls is not a graded handle", () => {
   assert.equal(stats.hitRate, 0);
 });
 
-test("STRONG, WEAK, and hit rate use every settled grade and skip the mature-only shortcut", () => {
-  const stats = handleBoardStats([
+test("timeframe grades roll up into the call score and completed calls roll up into the account grade", () => {
+  const one = handleBoardStats([
     {
       grades: [
         { readout: "monday", score: 40, isStrong: false, isWeak: true, signedMovePct: -0.02 },
@@ -96,11 +96,24 @@ test("STRONG, WEAK, and hit rate use every settled grade and skip the mature-onl
       ],
     },
   ]);
-  assert.equal(stats.avgScore, 80);
-  assert.equal(stats.callCount, 1);
-  assert.equal(stats.strongRate, 0.5);
-  assert.equal(stats.weakRate, 0);
-  assert.equal(stats.hitRate, 0.5);
+  assert.equal(one.avgScore, 60);
+  assert.equal(one.callCount, 1);
+  assert.equal(one.bestScore, 60);
+  assert.equal(one.worstScore, 60);
+  assert.equal(one.strongRate, 0.5);
+  assert.equal(one.weakRate, 0);
+  assert.equal(one.hitRate, 0.5);
+
+  const account = handleBoardStats([
+    { grades: [{ readout: "monday", score: 90, isStrong: true, isWeak: false, signedMovePct: 0.02 }] },
+    { grades: [{ readout: "wednesday", score: 30, isStrong: false, isWeak: true, signedMovePct: -0.02 }] },
+    { grades: [] },
+  ]);
+  assert.equal(account.callCount, 2);
+  assert.equal(account.pendingCount, 1);
+  assert.equal(account.avgScore, 60);
+  assert.equal(account.bestScore, 90);
+  assert.equal(account.worstScore, 30);
 });
 
 test("a flat tape is not a hit", () => {

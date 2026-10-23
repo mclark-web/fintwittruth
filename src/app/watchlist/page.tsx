@@ -49,7 +49,7 @@ export default async function WatchlistPage() {
         {gradedCount === 0
           ? "None has a verified, graded call yet."
           : `${gradedCount} ${gradedCount === 1 ? "has" : "have"} a verified, graded call.`}{" "}
-        A call is graded once its post URL is confirmed. Demo handles stay on the demo board.
+        A call is graded once its post URL is confirmed. An account with no confirmed call stays ungraded.
       </p>
       <p className="mt-3 text-sm">
         <Link href="/real" className="accent-link underline-offset-4 hover:underline">

@@ -163,7 +163,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       </header>
       <p className="mt-4 max-w-3xl text-sm text-muted">
         {row
-          ? `The number is the average of the furthest graded checkpoint on each call. Hit is the share of graded calls that were right. Best ${formatScore(row.bestScore)}%. Worst ${formatScore(row.worstScore)}%.`
+          ? `The number averages each completed call. A call averages its graded Mon noon, Wed close, and Fri close scores. Hit is the share of graded calls that were right. Best ${formatScore(row.bestScore)}%. Worst ${formatScore(row.worstScore)}%.`
           : "This handle has no graded call, so it is not ranked."}
       </p>
       {row && pendingCount > 0 ? (

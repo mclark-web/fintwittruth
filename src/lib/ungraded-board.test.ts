@@ -5,10 +5,10 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PendingSettleLink } from "../components/board-state";
+import { TimeframePills } from "../components/call-readouts";
 import { NoiseIndex, ReadoutCards } from "../components/market";
 import { zonedToUtc } from "./calendar";
 import {
-  LABOR_DAY_UNGRADED_LINE,
   closedHorizonNote,
   marketClosedCard,
   pendingClosure,
@@ -161,44 +161,33 @@ test("the pending counter uses Not graded yet", { skip: skipWithoutDb }, async (
   assert.doesNotMatch(html, />\s*\d+ not graded\s*</);
 });
 
-test("Labor Day Monday board tube stays ungraded and does not promise a print", { skip: skipWithoutDb }, async () => {
-  const { default: FridayPage } = await import("../app/weeks/[slug]/[readout]/page");
-  const { default: CohortPendingPage } = await import("../app/weeks/[slug]/pending/page");
+test("timeframe pills keep one order and paint cold scores dim grey", () => {
   const html = renderToStaticMarkup(
-    await FridayPage({ params: Promise.resolve({ slug: "2026-09-07", readout: "monday" }) }),
+    createElement(TimeframePills, {
+      grades: {
+        monday: { score: 80 },
+        wednesday: { score: 20 },
+        friday: null,
+      },
+    }),
   );
-  assert.match(html, /aria-label="GC Scale, not graded yet"/);
-  assert.match(html, /Not graded yet · market closed for Labor Day/);
-  assert.equal(html.includes(LABOR_DAY_UNGRADED_LINE), true);
-  assert.match(html, /Market closed \(Labor Day\) · Not graded yet/);
-  assert.match(html, /text-2xl text-\[#9a9aa3\]">Market closed for Labor Day</);
-  assert.ok(html.indexOf("<h1") !== -1 && html.indexOf("<h1") < html.indexOf("<h2"));
-  assert.doesNotMatch(html, /<h2 class="sr-only">Market closed for Labor Day · not graded<\/h2>/);
-  assert.match(html, /Market closed \(Labor Day\) · no Monday prices/);
-  assert.doesNotMatch(html, /until the session settles/);
-  assert.match(html, /2 horizons are not graded: the market was closed for Labor Day\./);
-  assert.match(html, /A horizon on this week is not graded: the market was closed\./);
-  assert.doesNotMatch(html, /off the board until 12:00 PM ET/);
-  assert.doesNotMatch(html, /Scheduled/);
-  assert.doesNotMatch(html, /waiting/i);
-  assert.doesNotMatch(html, /aria-label="0% GC Scale, EXIT LIQUIDITY"/);
+  const noon = html.indexOf("Mon noon");
+  const wednesday = html.indexOf("Wed close");
+  const friday = html.indexOf("Fri close");
+  assert.ok(noon >= 0 && noon < wednesday && wednesday < friday);
+  assert.match(html, /tf-strong/);
+  assert.match(html, /tf-weak/);
+  assert.match(html, /tf-open/);
+  assert.match(html, /Not graded yet/);
+  assert.doesNotMatch(html, /EXIT LIQUIDITY/);
+  const zero = renderToStaticMarkup(createElement(TimeframePills, { grades: { monday: { score: 0 } } }));
+  assert.match(zero, /tf-exit/);
+  assert.match(zero, /EXIT LIQUIDITY/);
+  assert.match(zero, /Wed close/);
+  assert.match(zero, /Fri close/);
+});
 
-  const gap = renderToStaticMarkup(
-    await FridayPage({ params: Promise.resolve({ slug: "2026-09-07", readout: "monday-gap" }) }),
-  );
-  assert.ok(gap.indexOf("<h1") !== -1 && gap.indexOf("<h1") < gap.indexOf("<h2"));
-  assert.doesNotMatch(gap, /<h2 class="sr-only">Market closed for Labor Day · not graded<\/h2>/);
-  const wednesday = renderToStaticMarkup(
-    await FridayPage({ params: Promise.resolve({ slug: "2026-09-07", readout: "wednesday" }) }),
-  );
-  assert.ok(wednesday.indexOf("<h1") !== -1 && wednesday.indexOf("<h1") < wednesday.indexOf("<h2"));
-  assert.match(wednesday, /What the market did/);
-
-  const pending = renderToStaticMarkup(
-    await CohortPendingPage({ params: Promise.resolve({ slug: "2026-09-07" }) }),
-  );
-  assert.equal(pending.includes(LABOR_DAY_UNGRADED_LINE), true);
-  assert.doesNotMatch(pending, /off the board until (9:30 AM ET|12:00 PM ET)/);
-  assert.doesNotMatch(pending, /Scheduled/);
-  assert.doesNotMatch(pending, /waiting/i);
+test("production does not serve the fictional Labor Day cohort", { skip: skipWithoutDb }, async () => {
+  const { getCohort } = await import("./queries");
+  assert.equal(await getCohort("2026-09-07"), null);
 });

@@ -1,15 +1,35 @@
 import Link from "next/link";
-import { GradePill } from "@/components/gc-tube";
+import { callRollupScore } from "@/lib/board";
+import { ReadoutBubbles, TimeframePills } from "@/components/call-readouts";
 import { disputePath } from "@/lib/dispute";
 import { formatScopeWhen } from "@/lib/format";
-import { gcGrade } from "@/lib/grades";
-import { READOUT_META } from "@/lib/labels";
-import { REAL_READOUT_META, type RealCallView } from "@/lib/real-book";
-import { READOUTS } from "@/lib/scoring";
+import { quotesForCohort } from "@/lib/quotes";
+import type { QuoteView } from "@/lib/queries";
+import { type RealCallView } from "@/lib/real-book";
+import { EQUITY_TAPE, type Direction } from "@/lib/scoring";
 import { profileUrl } from "@/lib/watchlist";
 
+function quotesFor(call: RealCallView): QuoteView[] {
+  if (!call.cohortSlug) return [];
+  try {
+    return quotesForCohort(call.cohortSlug, [...EQUITY_TAPE, "VIX", call.symbol]).map((quote) => ({
+      symbol: quote.symbol,
+      name: quote.symbol,
+      ref: quote.ref,
+      mondayOpen: quote.mondayOpen,
+      monday: quote.monday,
+      wednesday: quote.wednesday,
+      friday: quote.friday,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export function RealCallCard({ call }: { call: RealCallView }) {
-  const settled = READOUTS.filter((kind) => call.grades[kind] != null);
+  const rollup = callRollupScore(call.grades);
+  const quotes = quotesFor(call);
+  const direction: Direction | undefined = call.direction === "bullish" || call.direction === "bearish" ? call.direction : undefined;
   const xProfile = profileUrl(call.handle);
   return (
     <article className="panel p-5">
@@ -30,28 +50,9 @@ export function RealCallCard({ call }: { call: RealCallView }) {
           ? ` · ${call.levels.map((level) => `${level.role} ${level.price}`).join(", ")}`
           : ""}
       </p>
-      {settled.length > 0 ? (
-        <ol className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {settled.map((kind) => {
-            const grade = call.grades[kind];
-            if (!grade) return null;
-            return (
-              <li key={kind} className="rounded-xl bg-sheet px-3 py-2">
-                <p className="text-xs uppercase text-muted">{REAL_READOUT_META[kind as keyof typeof REAL_READOUT_META]?.label ?? READOUT_META[kind].label}</p>
-                <p className="font-mono text-2xl">
-                  {grade.score}
-                  <span className="text-sm text-muted">%</span>
-                </p>
-                <span className="mt-1 inline-flex">
-                  <GradePill grade={gcGrade(grade)} />
-                </span>
-              </li>
-            );
-          })}
-        </ol>
-      ) : (
-        <p className="mt-4 text-sm text-muted">{call.ungradedReason}</p>
-      )}
+      <TimeframePills grades={call.grades} />
+      <ReadoutBubbles grades={call.grades} quotes={quotes} primary={call.symbol} direction={direction} />
+      {rollup == null ? <p className="mt-3 text-sm text-muted">{call.ungradedReason ?? "Not graded yet"}</p> : null}
       <p className="post-meta">
         <a href={call.sourceUrl} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
           Original post
@@ -64,7 +65,7 @@ export function RealCallCard({ call }: { call: RealCallView }) {
         <Link href={`/real/${call.id}`} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
           Call detail
         </Link>
-        {settled.length > 0 ? (
+        {rollup != null ? (
           <a href={disputePath(call.id)} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
             Dispute this grade
           </a>

@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarStrip } from "@/components/market";
-import { ReadoutBubble, ReferenceLine } from "@/components/score";
-import { settledReadoutKinds } from "@/lib/board";
-import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
-import { formatScopeWhen, formatScore } from "@/lib/format";
-import { GC_GRADE_LABEL, UNGRADED_HORIZON, gcGrade } from "@/lib/grades";
-import { GC_FACTOR, READOUT_META } from "@/lib/labels";
+import { formatScopeWhen } from "@/lib/format";
+import { UNGRADED_HORIZON } from "@/lib/grades";
+import { GC_FACTOR } from "@/lib/labels";
 import { PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { checkedWeekRows } from "@/lib/empty-weeks";
-import { getCohort } from "@/lib/queries";
 import { GRADED_PRINT_LIST, OCT19_X_SCOPE, methodologySourceLead } from "@/lib/search-scope";
 import {
   STRONG_LINE,
@@ -27,22 +23,13 @@ export const metadata: Metadata = {
     "GradedCalls FinTwit v1 grades one Wednesday-to-Sunday cohort on the Monday gap, Monday noon, the Wednesday close, and the Friday close, with a VIX factor.",
 };
 
-export default async function MethodologyPage() {
-  const featured = await getCohort(FEATURED_COHORT_SLUG);
-  const examples = featured
-    ? ["permapump", "doomscroll", "doomsiren"]
-        .map((handle) => featured.calls.find((call) => call.handle === handle))
-        .filter((call) => call != null)
-    : [];
-  const exampleKinds = featured ? settledReadoutKinds(Object.values(featured.readouts)) : [];
-
+export default function MethodologyPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <p className="text-xs uppercase tracking-wide text-muted">GradedCalls FinTwit v1</p>
       <h1 className="mt-2 font-serif text-4xl text-ink">How a week is graded</h1>
       <p className="mt-4 text-lg text-ink/80">
-        GradedCalls FinTwit is a scorecard. The latest board grades verified public posts against recorded prints.
-        Fictional weekend doom, crash, and melt-up calls stay on the demo weeks and age against the same prints.
+        GradedCalls FinTwit is a scorecard. The board grades sourced public posts against recorded prints.
         It does not tell anyone to buy or sell because the noise was loud.
       </p>
 
@@ -64,8 +51,7 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Viral doom and hype</dt>
             <dd className="mt-1 text-sm text-muted">
-              Crash, war, sell-the-open, and melt-up posts. Fictional examples stay on the demo board. A
-              verified post is ranked with the accounts we follow.
+              Crash, war, sell-the-open, and melt-up posts. A verified post is ranked with the accounts we follow.
             </dd>
           </div>
         </dl>
@@ -127,8 +113,8 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Verified real calls</dt>
             <dd className="mt-1 text-sm text-muted">
-              Demo and paste-intake calls use the same stamps. Monday is the open of the 12:00 PM ET 5-minute
-              bar. Wednesday and Friday are the 4:00 PM ET regular-session close. Paste-intake calls skip the
+              Sourced calls and paste-intake calls use the same stamps. Monday is the open of the 12:00 PM ET
+              5-minute bar. Wednesday and Friday are the 4:00 PM ET regular-session close. Those calls skip the
               Monday gap.
             </dd>
           </div>
@@ -279,114 +265,6 @@ export default async function MethodologyPage() {
           and the middle is flat. Agreement is a description, not a recommendation.
         </p>
       </section>
-
-      {featured && examples.length > 0 ? (
-        <section className="mt-10" aria-labelledby="example">
-          <h2 id="example" className="font-serif text-3xl text-ink">
-            Worked example: {featured.title}
-          </h2>
-          <p className="mt-3 text-ink/80">
-            {featured.summary} Monday gap and Monday noon are off this board because the cash session did not
-            settle. They are on{" "}
-            <Link href={`/weeks/${featured.slug}/pending`} className="accent-link underline-offset-4 hover:underline">
-              Not graded yet
-            </Link>
-            , not in the ranking.
-          </p>
-          <p className="text-ink/80">
-            <Link href={`/weeks/${featured.slug}`} className="text-pine underline-offset-4 hover:underline">
-              Open the graded cohort
-            </Link>
-            .
-          </p>
-          <ul className="mt-4 grid gap-3 min-[820px]:hidden">
-            {examples.map((call) => (
-              <li key={call.id} className="panel p-4">
-                <p className="font-medium">
-                  <Link href={`/calls/${call.id}`} className="hover:underline">
-                    {call.displayName}
-                  </Link>
-                </p>
-                <p className="text-xs text-muted">
-                  {call.sentiment} {call.explicit ? call.primary : "no ticker"}
-                </p>
-                <ReferenceLine quotes={featured.quotes} primary={call.primary} />
-                <div className="mt-3 grid gap-2">
-                  {exampleKinds.map((kind) => {
-                    const grade = call.grades[kind];
-                    return (
-                      <div key={kind}>
-                        <p className="text-xs text-[#9a9aa3]">{READOUT_META[kind].short}</p>
-                        {grade ? (
-                          <ReadoutBubble
-                            kind={kind}
-                            quotes={featured.quotes}
-                            primary={call.primary}
-                            direction={call.direction}
-                          />
-                        ) : null}
-                        <p className="font-mono text-sm">{grade ? `${formatScore(grade.score)}%` : "Not graded yet"}</p>
-                        {grade ? (
-                          <p className="text-xs text-muted">{GC_GRADE_LABEL[gcGrade(grade)]}</p>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="settled-grades mt-4 hidden min-[820px]:block">
-            <table className="settled-table w-full table-fixed text-left text-sm">
-              <caption className="sr-only">Settled grades in the worked example</caption>
-              <thead className="text-xs uppercase tracking-wide text-muted">
-                <tr>
-                  <th scope="col" className="py-2 font-medium">Call</th>
-                  {exampleKinds.map((kind) => (
-                    <th key={kind} scope="col" className="py-2 font-medium normal-case tracking-normal">
-                      {READOUT_META[kind].short}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {examples.map((call) => (
-                  <tr key={call.id} className="border-t border-line">
-                    <th scope="row" className="py-3 pr-3 font-medium">
-                      <Link href={`/calls/${call.id}`} className="hover:underline">
-                        {call.displayName}
-                      </Link>
-                      <span className="mt-0.5 block text-xs font-normal text-muted">
-                        {call.sentiment} {call.explicit ? call.primary : "no ticker"}
-                      </span>
-                      <ReferenceLine quotes={featured.quotes} primary={call.primary} />
-                    </th>
-                    {exampleKinds.map((kind) => {
-                      const grade = call.grades[kind];
-                      return (
-                        <td key={kind} className="py-3 font-mono">
-                          {grade ? (
-                            <ReadoutBubble
-                              kind={kind}
-                              quotes={featured.quotes}
-                              primary={call.primary}
-                              direction={call.direction}
-                            />
-                          ) : null}
-                          {grade ? `${formatScore(grade.score)}%` : "Not graded yet"}
-                          {grade ? (
-                            <span className="mt-1 block text-xs text-muted">{GC_GRADE_LABEL[gcGrade(grade)]}</span>
-                          ) : null}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ) : null}
 
       <section className="mt-10" aria-labelledby="data">
         <h2 id="data" className="font-serif text-3xl text-ink">

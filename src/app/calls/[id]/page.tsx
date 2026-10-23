@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded } from "@/components/board-state";
+import { ReadoutBubbles, TimeframePills } from "@/components/call-readouts";
 import { PricePath, PriceSource, TapeMark } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ReadoutBubble, ReferenceLine, ScoreMark } from "@/components/score";
 import { disputePath } from "@/lib/dispute";
@@ -100,7 +101,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
       <article className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <div className="panel p-5">
           <p className="text-xs uppercase tracking-wide text-muted">
-            {call.dataset === "demo" ? "Demo call" : "Verified real call"}
+            Verified real call
           </p>
           <header className="mt-3 flex flex-wrap items-center gap-3">
             <Avatar name={call.displayName} accent={call.accent} />
@@ -137,7 +138,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
               </a>
             </p>
           ) : null}
-          {call.dataset !== "demo" && call.sourceUrl && settled.length > 0 ? (
+          {call.sourceUrl && settled.length > 0 ? (
             <p className="mt-2 text-sm">
               <a
                 href={disputePath(call.id)}
@@ -164,8 +165,15 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
           The words do not change. Each settled horizon rescores this call against recorded prints measured from
-          Friday&apos;s regular-session close.
+          Friday&apos;s regular-session close. The three pills are Monday noon, Wednesday close, and Friday close.
         </p>
+        <TimeframePills grades={call.grades} />
+        <ReadoutBubbles
+          grades={call.grades}
+          quotes={cohort.quotes}
+          primary={call.primary}
+          direction={call.direction}
+        />
         {settled.length === 0 ? (
           <div className="mt-4">
             <NothingGraded href={`/weeks/${cohort.slug}/pending`} />

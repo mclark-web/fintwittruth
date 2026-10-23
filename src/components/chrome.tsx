@@ -25,15 +25,12 @@ export function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-line">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-6 text-sm text-muted sm:px-7">
-        <p>Not investment advice. Prices: Yahoo Finance. Fictional examples live on the demo board.</p>
+        <p>Not investment advice. Prices: Yahoo Finance. Every graded call links its source.</p>
         <p className="text-sm text-[#c9c9cf]">Not affiliated with X or Yahoo.</p>
         <nav aria-label="Footer" className="footer-nav flex flex-wrap gap-x-4 gap-y-1">
           <a href="https://charoof.vercel.app" className="hit-44 hover:text-[#ee9a44]" aria-label="GradedCalls Hub">
             Hub
           </a>
-          <Link href="/demo" className="hit-44 hover:text-[#ee9a44]">
-            Demo board
-          </Link>
           <Link href="/disclaimer" className="hit-44 hover:text-[#ee9a44]">
             Disclaimer
           </Link>

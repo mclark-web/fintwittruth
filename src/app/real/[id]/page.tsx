@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ReadoutBubbles, TimeframePills } from "@/components/call-readouts";
 import { GradePill } from "@/components/gc-tube";
 import { disputePath } from "@/lib/dispute";
 import { formatPct, formatScopeWhen } from "@/lib/format";
@@ -8,7 +9,9 @@ import { gcGrade } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { loadRealCalls } from "@/lib/public-real";
 import { REAL_READOUT_META } from "@/lib/real-book";
-import { DIRECTION_MAX, LEVEL_MAX, READOUTS, SPECIFICITY_MAX, VIX_MAX } from "@/lib/scoring";
+import type { QuoteView } from "@/lib/queries";
+import { quotesForCohort } from "@/lib/quotes";
+import { DIRECTION_MAX, EQUITY_TAPE, LEVEL_MAX, READOUTS, SPECIFICITY_MAX, VIX_MAX, type Direction } from "@/lib/scoring";
 import { profileUrl } from "@/lib/watchlist";
 
 export const dynamic = "force-dynamic";
@@ -65,6 +68,23 @@ export default async function RealCallPage({ params }: { params: Promise<{ id: s
   if (!call) notFound();
   const settled = READOUTS.filter((kind) => call.grades[kind] != null);
   const xProfile = profileUrl(call.handle);
+  const direction: Direction | undefined = call.direction === "bullish" || call.direction === "bearish" ? call.direction : undefined;
+  let quotes: QuoteView[] = [];
+  if (call.cohortSlug) {
+    try {
+      quotes = quotesForCohort(call.cohortSlug, [...EQUITY_TAPE, "VIX", call.symbol]).map((quote) => ({
+        symbol: quote.symbol,
+        name: quote.symbol,
+        ref: quote.ref,
+        mondayOpen: quote.mondayOpen,
+        monday: quote.monday,
+        wednesday: quote.wednesday,
+        friday: quote.friday,
+      }));
+    } catch {
+      quotes = [];
+    }
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -114,6 +134,8 @@ export default async function RealCallPage({ params }: { params: Promise<{ id: s
       </article>
       <section className="mt-8">
         <h2 className="font-serif text-3xl text-ink">Settled grades</h2>
+        <TimeframePills grades={call.grades} />
+        <ReadoutBubbles grades={call.grades} quotes={quotes} primary={call.symbol} direction={direction} />
         {settled.length === 0 ? (
           <p className="mt-3 max-w-2xl text-sm text-muted">{call.ungradedReason}</p>
         ) : (

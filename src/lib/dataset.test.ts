@@ -3,7 +3,7 @@ import test from "node:test";
 import { zonedToUtc } from "./calendar";
 import { ACCOUNTS, COHORTS, DEMO_OPEN_COHORT_SLUG, FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG, SYMBOLS, VIRAL_CALLS } from "./demo-data";
 import { liveFile } from "./live-book";
-import { buildDataset } from "./dataset";
+import { buildDataset, productionBook } from "./dataset";
 import {
   adjustedClose,
   assertHistoricalPrint,
@@ -70,7 +70,7 @@ test("every demo post sits inside the Wednesday-to-Sunday collect window", () =>
   }
 });
 
-test("the latest live week publishes Monday and leaves Wednesday and Friday scheduled", () => {
+test("the latest live week publishes Monday and Wednesday and leaves Friday scheduled", () => {
   const prior = data.cohorts.find((cohort) => cohort.slug === "2026-09-28");
   assert.ok(prior);
   assert.match(prior.summary, /Wednesday, September 23, 2026 at 12:00 PM ET through Sunday, September 27 at 5:00 PM ET/);
@@ -94,9 +94,19 @@ test("the latest live week publishes Monday and leaves Wednesday and Friday sche
   assert.doesNotMatch(latest.summary, /after the cash close/);
   assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
-  assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "scheduled");
+  assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "scheduled");
-  assert.equal(latest.grades.length, latest.calls.length * 2);
+  assert.equal(latest.grades.length, latest.calls.length * 3);
+});
+
+test("production keeps sourced calls and drops fictional accounts", () => {
+  const book = productionBook(data);
+  assert.ok(book.cohorts.length > 0);
+  assert.equal(book.cohorts.some((cohort) => cohort.dataset === "demo"), false);
+  assert.equal(book.cohorts.every((cohort) => cohort.calls.every((call) => call.sourceUrl.startsWith("https://"))), true);
+  const handles = new Set(book.accounts.map((account) => account.handle));
+  for (const account of ACCOUNTS) assert.equal(handles.has(account.handle), false);
+  assert.equal(book.accounts.some((account) => account.handle === "doomscroll"), false);
 });
 
 test("watchlist and viral posts share the weekly board", () => {

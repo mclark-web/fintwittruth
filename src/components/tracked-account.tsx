@@ -42,7 +42,7 @@ export function TrackedAccount({
         <div className="panel mt-8 p-5">
           <h2 className="font-serif text-2xl text-ink">Not graded yet</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted">
-            A call is graded once its post URL is confirmed. Demo grades stay on the demo board and are not copied here.{" "}
+            No graded calls yet. A call is graded once its post URL is confirmed.{" "}
             <Link href="/methodology" className="accent-link hit-44 underline-offset-4 hover:underline">
               How grading works
             </Link>
