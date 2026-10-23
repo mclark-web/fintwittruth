@@ -1,5 +1,5 @@
 week,note,coverage
-2026-09-28,Substack only. X was not searched.,substack
-2026-10-05,Substack only. X was not searched.,substack
-2026-10-12,Substack only. X was not searched.,substack
+2026-09-28,Substack for the window. The backfill added public X posts from this window. Not a complete X scrape.,substack+x
+2026-10-05,Substack for the window. The backfill added public X posts from this window. Not a complete X scrape.,substack+x
+2026-10-12,Substack for the window. The backfill added public X posts from this window. Not a complete X scrape.,substack+x
 2026-10-19,Substack for the window. X from Friday October 16 at 10:22 AM ET.,substack+x-from-2026-10-16T14:22:00.000Z

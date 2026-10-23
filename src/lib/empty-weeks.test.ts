@@ -81,13 +81,15 @@ test("an empty week names recorded coverage and does not assume X for a later we
   const beforeWindow = buildCohortWindow(parseCalendarDay("2026-10-12"));
   const recorded = checkedWeekRows();
   const oct12 = recorded.find((row) => row.slug === "2026-10-12");
-  assert.equal(oct12?.coverage, "substack");
+  assert.equal(oct12?.coverage, "substack+x");
   const before = emptyWeekSearchLine(beforeWindow, oct12?.coverage ?? "");
   assert.equal(formatScopeWhen(X_SEARCH_START), "Friday, October 16 at 10:22\u00a0AM\u00a0ET");
   assert.equal(formatScopeWhen(beforeWindow.collectEnd), "Sunday, October 11 at 5:00\u00a0PM\u00a0ET");
   assert.match(before, /^Searched Substack from Wednesday, October 7 at 12:00\u00a0PM\u00a0ET through Sunday, October 11 at 5:00\u00a0PM\u00a0ET\./);
-  assert.match(before, /X was not searched\./);
-  assert.doesNotMatch(before, /X was searched|EDT|EST|Sun, Oct/);
+  assert.match(before, /X was searched from Wednesday, October 7 at 12:00\u00a0PM\u00a0ET through Sunday, October 11 at 5:00\u00a0PM\u00a0ET\./);
+  assert.doesNotMatch(before, /X was not searched|EDT|EST|Sun, Oct/);
+  const substackOnly = emptyWeekSearchLine(beforeWindow, "substack");
+  assert.match(substackOnly, /X was not searched\./);
   const assumed = emptyWeekSearchLine(beforeWindow);
   assert.match(assumed, /No search coverage is recorded for this week, so there is nothing to grade\. This is not a 0% grade\./);
   assert.doesNotMatch(assumed, /Searched Substack|X was not searched|No post read|were read/);
@@ -192,7 +194,7 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   const lead = methodologySourceLead(checkedWeekRows());
   assert.equal(
     lead,
-    "The weeks of September 28, October 5, and October 12 are Substack only (X not searched). For the week of October 19, 2026, Substack covers the whole Wednesday noon to Sunday 5:00 PM ET window.",
+    "For the week of October 19, 2026, Substack covers the whole Wednesday noon to Sunday 5:00 PM ET window.",
   );
   assert.equal(lead.split("For the week of October 19").length - 1, 1);
   assert.match(methodology, /\{GRADED_PRINT_LIST\}/);

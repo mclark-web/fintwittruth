@@ -12,14 +12,28 @@ const ingested = ingestXScan(scan, rows[0]);
 
 test("the October 22 scan adds clear FinTwit rows and queues ambiguous rows", () => {
   const week = rows.filter((row) => row.cohort_slug === "2026-10-26");
-  assert.equal(week.length, ingested.counts.calls);
+  assert.ok(week.length > ingested.counts.calls);
+  for (const call of ingested.calls) {
+    assert.ok(week.some((row) => row.call_id === call.call_id && row.source_url === call.source_url));
+  }
   assert.ok(ingested.counts.calls > 0);
   assert.equal(ingested.counts.ambiguousRows, 63);
   assert.equal(ingested.counts.bankRows, 175);
   assert.equal(ingested.pending.length, ingested.counts.pendingRows);
   assert.ok(ingested.pending.every((row) => row.reason.includes("Not graded")));
   const pending = parsePendingApproval(readFileSync("data/calls/pending-approval.csv", "utf8"));
-  assert.equal(pending.length, ingested.pending.length);
+  assert.ok(pending.length > ingested.pending.length);
+  for (const row of ingested.pending) {
+    assert.ok(
+      pending.some(
+        (item) =>
+          item.postUrl === row.post_url &&
+          item.ticker === row.ticker &&
+          item.direction === row.direction &&
+          item.reason === row.reason,
+      ),
+    );
+  }
   const bodies = new Set(week.map((row) => row.body));
   for (const row of ingested.pending) assert.equal(bodies.has(row.quote), false);
   for (const row of week) {

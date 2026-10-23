@@ -25,7 +25,8 @@ test("the closed October 19 lead is the Monday noon board grade", () => {
     assert.ok(grade);
     return grade.score;
   });
-  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 32% WEAK");
+  assert.equal(scores.length, 10);
+  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 52% PROVISIONAL");
   const open = buildCohortWindow({ year: 2026, month: 10, day: 26 });
   assert.equal(formatWeekday(open.collectEnd), "Sun Oct 25");
 });
