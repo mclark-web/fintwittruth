@@ -304,7 +304,7 @@ export const getCohort = cache(async (slug: string): Promise<CohortView | null> 
       calls: { include: callInclude, orderBy: { postedAt: "asc" } },
     },
   });
-  if (!cohort) return null;
+  if (!cohort || cohort.dataset === "demo") return null;
 
   const readouts = {} as Record<ReadoutKind, ReadoutView>;
   for (const readout of cohort.readouts) {
@@ -387,7 +387,7 @@ export const getLatestCohort = cache(async () => {
 
 export const getFeaturedCohort = cache(async () => getCohort(FEATURED_COHORT_SLUG));
 
-export const getLeaderboard = cache(async (bucket: Bucket, dataset: "live" | "demo" = "demo"): Promise<LeaderRow[]> => {
+export const getLeaderboard = cache(async (bucket: Bucket, dataset: "live" | "demo" = "live"): Promise<LeaderRow[]> => {
   const accounts = await prisma.account.findMany({
     where: { bucket },
     include: {
@@ -509,17 +509,23 @@ export const getCall = cache(async (id: string) => {
 });
 
 export async function listCohortSlugs() {
-  const cohorts = await prisma.cohort.findMany({ select: { slug: true } });
+  const cohorts = await prisma.cohort.findMany({ where: { dataset: "live" }, select: { slug: true } });
   return cohorts.map((cohort) => cohort.slug);
 }
 
 export async function listHandles() {
-  const accounts = await prisma.account.findMany({ select: { handle: true } });
+  const accounts = await prisma.account.findMany({
+    where: { calls: { some: { cohort: { dataset: "live" } } } },
+    select: { handle: true },
+  });
   return accounts.map((account) => account.handle);
 }
 
 export async function listCallIds() {
-  const calls = await prisma.call.findMany({ select: { id: true } });
+  const calls = await prisma.call.findMany({
+    where: { cohort: { dataset: "live" } },
+    select: { id: true },
+  });
   return calls.map((call) => call.id);
 }
 

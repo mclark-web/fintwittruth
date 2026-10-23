@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { marketHoliday } from "../src/lib/calendar";
 import { UNGRADED_HORIZON } from "../src/lib/grades";
 import {
   CALLS_CSV_PATH,
@@ -10,9 +11,11 @@ import {
   LIVE_JSON_PATH,
   classifyCall,
   collectIssues,
+  computeGrade,
   considerCheckpoint,
   gradeLabel,
   gradedRowsFromLive,
+  loadTape,
   parseCallCsv,
   renderLiveJson,
   serializeCallCsv,
@@ -84,6 +87,55 @@ test("grade bands stay 70 / 40 and an ungraded horizon is not EXIT LIQUIDITY", (
   assert.equal(UNGRADED_HORIZON, "Not graded yet");
 });
 
+test("data_source=demo is rejected and a sourced row stays public", () => {
+  const rows = gradedRowsFromLive();
+  assert.ok(rows.every((row) => row.data_source === "public"));
+  const demo = rows.map((row, index) => (index === 0 ? { ...row, data_source: "demo" } : { ...row }));
+  assert.ok(collectIssues(demo).errors.some((error) => error.includes("data_source=demo is rejected")));
+});
+
+test("a recorded ambiguous call does not auto-grade a later checkpoint", () => {
+  const ambiguous = callRow({
+    primary: "SPY",
+    direction: "bullish",
+    sentiment: "panic",
+    explicit: "true",
+    tickers: "SPY;VIX",
+    body: "Just bought calls. $SPY. VIX triggered my extreme signal.",
+    grade_method: "recorded",
+    monday_status: "GRADED",
+    monday_price: "1",
+    monday_score: "1",
+    monday_grade: "WEAK",
+    monday_stance: "with",
+    monday_text: "placeholder",
+  });
+  const wednesday = considerCheckpoint(ambiguous, "wednesday", {
+    now: new Date("2026-09-23T21:00:00.000Z"),
+    due: true,
+    tape: OPEN_TAPE,
+  });
+  assert.equal(wednesday.action, "flagged");
+  assert.equal(wednesday.row.grade_method, "recorded");
+  assert.equal(wednesday.row.wednesday_status, "PENDING");
+
+  const unapproved = callRow({
+    primary: "SPY",
+    direction: "bullish",
+    sentiment: "panic",
+    explicit: "true",
+    tickers: "SPY;VIX",
+    body: "Just bought calls. $SPY. VIX triggered my extreme signal.",
+  });
+  const held = considerCheckpoint(unapproved, "wednesday", {
+    now: new Date("2026-09-23T21:00:00.000Z"),
+    due: true,
+    tape: OPEN_TAPE,
+  });
+  assert.equal(held.action, "flagged");
+  assert.equal(held.row.wednesday_status, "PENDING");
+});
+
 test("the verified book round-trips through the CSV and the scorer", () => {
   const rows = gradedRowsFromLive();
   const json = readFileSync(LIVE_JSON_PATH, "utf8");
@@ -95,13 +147,26 @@ test("the verified book round-trips through the CSV and the scorer", () => {
   for (const row of rows) {
     assert.ok(row.source_url.startsWith("https://"));
     for (const kind of CHECKPOINTS) {
-      const stillOpen = row.cohort_slug === "2026-10-19" && (kind === "wednesday" || kind === "friday");
+      const stillOpen =
+        (row.cohort_slug === "2026-10-19" && kind === "friday") || row.cohort_slug === "2026-10-26";
       if (stillOpen) {
         assert.equal(row[`${kind}_status`], "PENDING");
         assert.equal(row[`${kind}_score`], "");
         continue;
       }
-      assert.equal(row[`${kind}_status`], "GRADED");
+      const status = row[`${kind}_status`];
+      if (status === "CLOSED") {
+        assert.ok(marketHoliday(row[`${kind}_date`]));
+        assert.equal(row[`${kind}_score`], "");
+        continue;
+      }
+      if (status === "PENDING") {
+        const tape = loadTape(row.history_slug, row.primary, kind, row[`${kind}_date`]);
+        assert.equal(computeGrade(row, kind, tape), null, `${row.call_id} ${kind} is pending with a recorded print`);
+        assert.equal(row[`${kind}_score`], "");
+        continue;
+      }
+      assert.equal(status, "GRADED");
       assert.ok(Number(row.ref_price) > 0);
       assert.ok(Number(row[`${kind}_price`]) > 0);
       assert.match(row[`${kind}_text`], new RegExp(`^${row.primary} \\(\\$`));
@@ -118,18 +183,23 @@ test("duplicate ids, a missing source, a graded row without prices, a foreign ti
   const missingUrl = rows.map((row, index) => (index === 0 ? { ...row, source_url: "" } : { ...row }));
   assert.ok(collectIssues(missingUrl).errors.some((error) => error.includes("missing source URL")));
 
-  const noPrice = rows.map((row, index) => (index === 0 ? { ...row, monday_price: "" } : { ...row }));
+  const gradedMonday = rows.find((row) => row.monday_status === "GRADED" && row.primary === "SPY" && !row.tickers.split(";").includes("AAPL"));
+  assert.ok(gradedMonday);
+  const edited = (patch: Partial<CallRow>) =>
+    rows.map((row) => (row.call_id === gradedMonday.call_id ? { ...row, ...patch } : { ...row }));
+
+  const noPrice = edited({ monday_price: "" });
   assert.ok(collectIssues(noPrice).errors.some((error) => error.includes("missing the price at the call or the price at the checkpoint")));
 
-  const foreign = rows.map((row, index) => (index === 0 ? { ...row, primary: "AAPL" } : { ...row }));
+  const foreign = edited({ primary: "AAPL" });
   assert.ok(collectIssues(foreign).errors.some((error) => error.includes("does not match a ticker or index")));
 
-  const badDate = rows.map((row, index) => (index === 0 ? { ...row, monday_date: "2026-01-01" } : { ...row }));
+  const badDate = edited({ monday_date: "2026-01-01" });
   assert.ok(collectIssues(badDate).errors.some((error) => error.includes("not the allowed")));
 
-  const impossible = rows.map((row, index) => (index === 0 ? { ...row, monday_score: "140" } : { ...row }));
+  const impossible = edited({ monday_score: "140" });
   assert.ok(collectIssues(impossible).errors.some((error) => error.includes("above 100")));
-  const negative = rows.map((row, index) => (index === 0 ? { ...row, monday_price: "-1" } : { ...row }));
+  const negative = edited({ monday_price: "-1" });
   assert.ok(collectIssues(negative).errors.some((error) => error.includes("missing the price")));
 });
 

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Verified real calls",
-  description: "Confirmed public posts graded against recorded Yahoo prints. Demo calls are not on this board.",
+  description: "Confirmed public posts graded against recorded Yahoo prints.",
 };
 
 function readoutFor(grades: { monday?: unknown; wednesday?: unknown; friday?: unknown }): ReadoutKind {
@@ -32,7 +32,7 @@ export default async function RealBoardPage() {
       <p className="text-xs uppercase tracking-wide text-[#c9c9cf]">Live board</p>
       <h1 className="mt-2 font-serif text-4xl text-ink">Verified real calls</h1>
       <p className="mt-3 max-w-3xl text-muted">
-        These are the same verified posts as the home board. A call is graded once its post URL is confirmed. Demo posts stay on the demo board.
+        These are the same verified posts as the home board. A call is graded once its post URL is confirmed.
       </p>
       <p className="mt-3 text-sm">
         <Link href="/watchlist" className="accent-link underline-offset-4 hover:underline">

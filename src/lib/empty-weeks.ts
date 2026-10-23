@@ -23,7 +23,7 @@ const CHECKED_WEEKS_PATH = join(process.cwd(), "data/calls/checked-weeks.csv");
  * A trailing empty week has to be listed here so freshness can see it.
  * Gaps between recorded Mondays are derived from the calendar.
  */
-const COVERAGE_TAIL = /,(substack(?:\+x(?:-from-\S+)?)?)\s*$/;
+const COVERAGE_TAIL = /,(substack(?:\+x(?:-from-\S+)?)?|x)\s*$/;
 
 /** `week,note,coverage`. Coverage is the trailing token so a note may contain commas. */
 export function parseCheckedWeekRows(text: string): CheckedWeek[] {

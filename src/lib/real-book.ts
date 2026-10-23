@@ -105,6 +105,7 @@ function realCheckpointNote(input: {
   rawMovePct: number;
   vixMovePct: number;
   score: number;
+  primary?: string;
 }): string {
   const when = {
     monday: "Monday 12:00 PM ET, the open of the 5-minute bar",
@@ -128,6 +129,9 @@ function realCheckpointNote(input: {
         : input.score < WEAK_LINE
           ? " That score is WEAK."
           : " That score is PROVISIONAL.";
+  if (input.primary === "VIX") {
+    return `${when}: VIX is ${pct} from Friday's close, ${relation} this ${input.direction} call.${territory} This is a scorecard, not a signal.`;
+  }
   return `${when}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's regular-session close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;
 }
 
@@ -237,6 +241,7 @@ export function gradeRealPosts(posts: IntakePost[]): RealCallView[] {
             rawMovePct: row.parts.rawMovePct,
             vixMovePct: row.parts.vixMovePct,
             score: row.parts.score,
+            primary: row.item.review.symbol,
           }),
         };
         gradesById.set(row.item.post.id, bag);

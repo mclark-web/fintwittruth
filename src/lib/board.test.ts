@@ -4,14 +4,36 @@ import {
   gradesOnPrimaryBoard,
   handleBoardStats,
   isDirectionHit,
+  leadReadout,
+  leadScores,
   pendingReadoutKinds,
   settledReadoutKinds,
+  weekendLead,
 } from "./board";
+import { buildCohortWindow } from "./calendar";
 import { FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG } from "./demo-data";
 import { buildDataset } from "./dataset";
+import { formatWeekday } from "./format";
+import { gcBoardGrade } from "./grades";
 import { READOUTS } from "./scoring";
 
 const data = buildDataset();
+
+test("the closed October 19 lead is the latest settled checkpoint", () => {
+  const week = data.cohorts.find((cohort) => cohort.slug === "2026-10-19" && cohort.dataset === "live");
+  assert.ok(week);
+  const grades = week.calls.map((call) => {
+    const settled = week.grades.filter((item) => item.callId === call.id);
+    return settled.map((item) => ({ readout: item.readout, score: item.score }));
+  });
+  assert.equal(grades.length, 3);
+  assert.equal(leadReadout(grades), "wednesday");
+  const scores = leadScores(grades);
+  assert.deepEqual([...scores].sort((a, b) => a - b), [4, 66, 66]);
+  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 45% PROVISIONAL");
+  const open = buildCohortWindow({ year: 2026, month: 10, day: 26 });
+  assert.equal(formatWeekday(open.collectEnd), "Sun Oct 25");
+});
 
 test("a scheduled readout contributes nothing to the primary board", () => {
   const latest = data.cohorts.find((cohort) => cohort.slug === LATEST_COHORT_SLUG);
@@ -87,8 +109,8 @@ test("an account with only unscored calls is not a graded handle", () => {
   assert.equal(stats.hitRate, 0);
 });
 
-test("STRONG, WEAK, and hit rate use every settled grade and skip the mature-only shortcut", () => {
-  const stats = handleBoardStats([
+test("the call score is the furthest settled checkpoint, and account grade averages those", () => {
+  const one = handleBoardStats([
     {
       grades: [
         { readout: "monday", score: 40, isStrong: false, isWeak: true, signedMovePct: -0.02 },
@@ -96,11 +118,24 @@ test("STRONG, WEAK, and hit rate use every settled grade and skip the mature-onl
       ],
     },
   ]);
-  assert.equal(stats.avgScore, 80);
-  assert.equal(stats.callCount, 1);
-  assert.equal(stats.strongRate, 0.5);
-  assert.equal(stats.weakRate, 0);
-  assert.equal(stats.hitRate, 0.5);
+  assert.equal(one.avgScore, 80);
+  assert.equal(one.callCount, 1);
+  assert.equal(one.bestScore, 80);
+  assert.equal(one.worstScore, 80);
+  assert.equal(one.strongRate, 0.5);
+  assert.equal(one.weakRate, 0);
+  assert.equal(one.hitRate, 0.5);
+
+  const account = handleBoardStats([
+    { grades: [{ readout: "monday", score: 90, isStrong: true, isWeak: false, signedMovePct: 0.02 }] },
+    { grades: [{ readout: "wednesday", score: 30, isStrong: false, isWeak: true, signedMovePct: -0.02 }] },
+    { grades: [] },
+  ]);
+  assert.equal(account.callCount, 2);
+  assert.equal(account.pendingCount, 1);
+  assert.equal(account.avgScore, 60);
+  assert.equal(account.bestScore, 90);
+  assert.equal(account.worstScore, 30);
 });
 
 test("a flat tape is not a hit", () => {

@@ -89,11 +89,11 @@ export default function DisclaimerPage() {
         </p>
       </LegalSection>
 
-      <LegalSection id="demo" title="The demo is labeled">
+      <LegalSection id="sourced" title="Sourced posts only">
         <p>
-          Fictional accounts and posts are labeled demo and kept on the demo weeks. They are not quotes from real
-          people. The latest board quotes verified public posts and links each source. The market prints
-          underneath a published grade are the recorded prices for that date. A missing print stays blank.
+          The board quotes public posts and links each source. It does not publish fictional accounts or posts.
+          The market prints underneath a published grade are the recorded prices for that date. A missing print
+          stays blank.
         </p>
       </LegalSection>
 

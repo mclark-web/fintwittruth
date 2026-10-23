@@ -6,11 +6,11 @@ import { CallCard } from "@/components/call-card";
 import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { GcTube } from "@/components/gc-tube";
 import { mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
-import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
+import { callHasSettledGrade, matureScore, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { closedPendingLiveWeeks, emptyLiveWeeks, futureLiveWeek, resolveLiveWeek } from "@/lib/empty-weeks";
 import { formatScopeWhen, formatShortDay } from "@/lib/format";
 import { gradedSymbols } from "@/lib/prints";
-import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
+import { getCohort, listCohortSlugs } from "@/lib/queries";
 import { OCT19_X_SCOPE, emptyWeekHeading, emptyWeekSearchLine } from "@/lib/search-scope";
 
 /** Re-read the clock so a future week stops saying it is open after Sunday 5:00 PM ET. */
@@ -124,8 +124,8 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
   const rows = cohort.calls
     .filter((call) => callHasSettledGrade(call.grades))
     .sort((a, b) => {
-      const left = matureGrade(a)?.score ?? -1;
-      const right = matureGrade(b)?.score ?? -1;
+      const left = matureScore(a.grades) ?? -1;
+      const right = matureScore(b.grades) ?? -1;
       return right - left || a.handle.localeCompare(b.handle);
     });
 
@@ -137,7 +137,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
         </Link>
       </p>
       <p className="mt-4 text-xs uppercase tracking-wide text-muted">
-        {cohort.dataset === "demo" ? "DEMO" : "Live week"}
+        Live week
         {cohort.isLatest ? " · latest" : ""}
       </p>
       <h1 className="mt-1 font-serif text-4xl text-ink [text-wrap:balance] sm:text-5xl">{cohort.title}</h1>
@@ -180,7 +180,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
           Settled grades
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          Watchlist and viral posts share this weekly board. Each card shows the Monday noon, Wednesday close, and Friday close prices, plus one GC Scale grade.
+          Watchlist and viral posts share this weekly board. Each card shows the Monday noon, Wednesday close, and Friday close prices, plus one GC Scale grade. The call score is the furthest settled checkpoint.
         </p>
         {rows.length === 0 || settled.length === 0 ? (
           <div className="mt-4">

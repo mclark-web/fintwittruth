@@ -81,13 +81,15 @@ test("an empty week names recorded coverage and does not assume X for a later we
   const beforeWindow = buildCohortWindow(parseCalendarDay("2026-10-12"));
   const recorded = checkedWeekRows();
   const oct12 = recorded.find((row) => row.slug === "2026-10-12");
-  assert.equal(oct12?.coverage, "substack");
+  assert.equal(oct12?.coverage, "substack+x");
   const before = emptyWeekSearchLine(beforeWindow, oct12?.coverage ?? "");
   assert.equal(formatScopeWhen(X_SEARCH_START), "Friday, October 16 at 10:22\u00a0AM\u00a0ET");
   assert.equal(formatScopeWhen(beforeWindow.collectEnd), "Sunday, October 11 at 5:00\u00a0PM\u00a0ET");
   assert.match(before, /^Searched Substack from Wednesday, October 7 at 12:00\u00a0PM\u00a0ET through Sunday, October 11 at 5:00\u00a0PM\u00a0ET\./);
-  assert.match(before, /X was not searched\./);
-  assert.doesNotMatch(before, /X was searched|EDT|EST|Sun, Oct/);
+  assert.match(before, /X was searched from Wednesday, October 7 at 12:00\u00a0PM\u00a0ET through Sunday, October 11 at 5:00\u00a0PM\u00a0ET\./);
+  assert.doesNotMatch(before, /X was not searched|EDT|EST|Sun, Oct/);
+  const substackOnly = emptyWeekSearchLine(beforeWindow, "substack");
+  assert.match(substackOnly, /X was not searched\./);
   const assumed = emptyWeekSearchLine(beforeWindow);
   assert.match(assumed, /No search coverage is recorded for this week, so there is nothing to grade\. This is not a 0% grade\./);
   assert.doesNotMatch(assumed, /Searched Substack|X was not searched|No post read|were read/);
@@ -125,19 +127,18 @@ test("an empty week names recorded coverage and does not assume X for a later we
   assert.doesNotMatch(covered, /EDT|EST/);
 });
 
-test("the open week steps to the first Monday whose collect window is still open", () => {
+test("the open week steps to the first Monday after the last recorded week", () => {
   const beforeClose = new Date("2026-10-25T20:57:00.000Z");
   assert.equal(formatScopeWhen(beforeClose), "Sunday, October 25 at 4:57\u00a0PM\u00a0ET");
-  const stillOpen = resolveLiveWeek("2026-10-26", beforeClose);
+  assert.equal(resolveLiveWeek("2026-10-26", beforeClose).status, 404);
+  const stillOpen = resolveLiveWeek("2026-11-02", beforeClose);
   assert.equal(stillOpen.status, 200);
   if (stillOpen.status === 200) assert.equal(stillOpen.kind, "future");
-  assert.equal(resolveLiveWeek("2026-11-02", beforeClose).status, 404);
+  assert.equal(resolveLiveWeek("2026-11-09", beforeClose).status, 404);
 
   const justClosed = new Date("2026-10-25T21:01:00.000Z");
   assert.equal(formatScopeWhen(justClosed), "Sunday, October 25 at 5:01\u00a0PM\u00a0ET");
-  const closed = resolveLiveWeek("2026-10-26", justClosed);
-  assert.equal(closed.status, 200);
-  if (closed.status === 200) assert.equal(closed.kind, "closed");
+  assert.equal(resolveLiveWeek("2026-10-26", justClosed).status, 404);
   const rolled = resolveLiveWeek("2026-11-02", justClosed);
   assert.equal(rolled.status, 200);
   if (rolled.status === 200) assert.equal(rolled.kind, "future");
@@ -193,14 +194,19 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   const lead = methodologySourceLead(checkedWeekRows());
   assert.equal(
     lead,
-    "The weeks of September 28, October 5, and October 12 are Substack only (X not searched). For the week of October 19, 2026, Substack covers the whole Wednesday noon to Sunday 5:00 PM ET window.",
+    "For the week of October 19, 2026, Substack covers the whole Wednesday noon to Sunday 5:00 PM ET window.",
   );
   assert.equal(lead.split("For the week of October 19").length - 1, 1);
   assert.match(methodology, /\{GRADED_PRINT_LIST\}/);
+  assert.match(methodology, /no auto-grade cascade/i);
+  assert.match(methodology, /latest settled checkpoint/);
   assert.match(sitemap, /export const revalidate = 60/);
   assert.doesNotMatch(sitemap, /futureLiveWeek/);
   assert.ok(readme.includes(OCT19_X_SCOPE));
   assert.ok(csv.includes(OCT19_X_SCOPE));
+  assert.match(home, /has not closed/);
+  assert.match(home, /5:00 PM ET/);
+  assert.match(home, /weekendLead/);
   assert.match(home, /latest collect window that has closed|No qualifying calls in the/);
   assert.match(css, /h1,\s*\n\s*h2,\s*\n\s*h3 \{\s*\n\s*text-wrap: balance;/);
 });
@@ -209,4 +215,5 @@ test("an empty week's heading names a search result only when coverage is record
   assert.equal(emptyWeekHeading(""), "No search on record");
   assert.equal(emptyWeekHeading("substack"), "No qualifying calls");
   assert.equal(emptyWeekHeading("substack+x-from-2026-10-16T14:22:00.000Z"), "No qualifying calls");
+  assert.equal(emptyWeekHeading("x"), "No qualifying calls");
 });

@@ -49,7 +49,7 @@ export default async function WatchlistPage() {
         {gradedCount === 0
           ? "None has a verified, graded call yet."
           : `${gradedCount} ${gradedCount === 1 ? "has" : "have"} a verified, graded call.`}{" "}
-        A call is graded once its post URL is confirmed. Demo handles stay on the demo board.
+        A call is graded once its post URL is confirmed. An account with no confirmed call stays ungraded.
       </p>
       <p className="mt-3 text-sm">
         <Link href="/real" className="accent-link underline-offset-4 hover:underline">
@@ -62,7 +62,7 @@ export default async function WatchlistPage() {
         {roster.map((account) => {
           const graded = gradedHandles.has(account.handle.toLowerCase());
           return (
-            <li key={account.handle} className="panel p-4">
+            <li key={account.handle} className="panel min-w-0 p-4 [overflow-wrap:anywhere]">
               <p className="text-xs uppercase tracking-wide text-muted">{graded ? "Graded call" : "Not graded yet"}</p>
               <h2 className="mt-2 text-xl text-ink">
                 <Link href={`/accounts/${account.handle}`} className="hover:underline">
@@ -71,7 +71,7 @@ export default async function WatchlistPage() {
               </h2>
               {account.profileUrl ? (
                 <p className="mt-2 text-sm">
-                  <a href={account.profileUrl} className="accent-link hit-44 underline-offset-4 hover:underline">
+                  <a href={account.profileUrl} className="accent-link hit-44 min-w-0 max-w-full underline-offset-4 [overflow-wrap:anywhere] hover:underline">
                     {account.profileUrl.includes("substack.com") ? (
                       <>
                         Read on Substack&nbsp;<span aria-hidden="true">↗</span>

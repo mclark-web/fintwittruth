@@ -147,10 +147,10 @@ export default async function LeaderboardPage() {
         <Link href="/methodology" className="accent-link underline-offset-4 hover:underline">
           methodology
         </Link>{" "}
-        page. Fictional ranks live on the demo board.
+        page.
       </p>
       <div className="mt-7">
-        <PendingSettleLink href="/pending" />
+        <PendingSettleLink href="/weeks" />
       </div>
       <Board
         title="Tracked accounts"

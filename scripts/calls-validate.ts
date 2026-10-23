@@ -1,6 +1,6 @@
 /**
  * Check the calls ledger with the same grade, bubble, and calendar code the site uses.
- * The fictional demo book stays in src/lib/demo-data.ts and is not part of this file.
+ * data_source=demo is rejected. The production book is this file.
  */
 import { readFileSync } from "node:fs";
 import {
@@ -53,7 +53,13 @@ function main() {
     (sum, row) => sum + CHECKPOINTS.filter((kind) => row[`${kind}_status`] === "GRADED").length,
     0,
   );
+  const demo = rows.filter((row) => row.data_source === "demo").length;
+  const publicRows = rows.filter((row) => row.data_source === "public").length;
+  const licensed = rows.filter((row) => row.data_source === "licensed").length;
   console.log(`rows: ${rows.length}`);
+  console.log(`data_source demo: ${demo}`);
+  console.log(`data_source public: ${publicRows}`);
+  console.log(`data_source licensed: ${licensed}`);
   console.log(`graded checkpoints: ${graded}`);
   console.log(`json derived from csv: ${rendered === jsonText ? "byte-identical" : "MISMATCH"}`);
   console.log(`bookkeeping stays csv-only: ${renderLiveJson(wiped) === rendered ? "yes" : "MISMATCH"}`);
