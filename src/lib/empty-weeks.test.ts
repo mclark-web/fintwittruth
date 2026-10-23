@@ -125,19 +125,18 @@ test("an empty week names recorded coverage and does not assume X for a later we
   assert.doesNotMatch(covered, /EDT|EST/);
 });
 
-test("the open week steps to the first Monday whose collect window is still open", () => {
+test("the open week steps to the first Monday after the last recorded week", () => {
   const beforeClose = new Date("2026-10-25T20:57:00.000Z");
   assert.equal(formatScopeWhen(beforeClose), "Sunday, October 25 at 4:57\u00a0PM\u00a0ET");
-  const stillOpen = resolveLiveWeek("2026-10-26", beforeClose);
+  assert.equal(resolveLiveWeek("2026-10-26", beforeClose).status, 404);
+  const stillOpen = resolveLiveWeek("2026-11-02", beforeClose);
   assert.equal(stillOpen.status, 200);
   if (stillOpen.status === 200) assert.equal(stillOpen.kind, "future");
-  assert.equal(resolveLiveWeek("2026-11-02", beforeClose).status, 404);
+  assert.equal(resolveLiveWeek("2026-11-09", beforeClose).status, 404);
 
   const justClosed = new Date("2026-10-25T21:01:00.000Z");
   assert.equal(formatScopeWhen(justClosed), "Sunday, October 25 at 5:01\u00a0PM\u00a0ET");
-  const closed = resolveLiveWeek("2026-10-26", justClosed);
-  assert.equal(closed.status, 200);
-  if (closed.status === 200) assert.equal(closed.kind, "closed");
+  assert.equal(resolveLiveWeek("2026-10-26", justClosed).status, 404);
   const rolled = resolveLiveWeek("2026-11-02", justClosed);
   assert.equal(rolled.status, 200);
   if (rolled.status === 200) assert.equal(rolled.kind, "future");

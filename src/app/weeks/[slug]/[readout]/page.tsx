@@ -170,7 +170,7 @@ export default async function ReadoutPage({
           quotes={cohort.quotes}
           tapeKind={kind}
           calls={cohort.calls}
-          feed={calls}
+          feed={settled ? calls : cohort.calls}
           readout={kind}
           pendingHref={pendingCount > 0 ? `/weeks/${cohort.slug}/pending` : undefined}
           marketClosed={marketClosed || (closure.closed > 0 && closure.upcoming === 0)}

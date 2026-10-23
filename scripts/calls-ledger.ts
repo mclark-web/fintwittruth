@@ -189,6 +189,7 @@ export type CallClass = {
   proxy: boolean;
   tapeDefault: boolean;
   /** Set only when the post names exactly one print and that print is the row's primary. */
+  unquotedTicker: boolean;
   autoPrint: string | null;
 };
 
@@ -264,7 +265,7 @@ export function resolvedPrints(text: string): string[] {
   return [...prints].sort();
 }
 
-export function classifyCall(row: Pick<CallRow, "body" | "primary" | "tickers" | "explicit">): CallClass {
+export function classifyCall(row: Pick<CallRow, "body" | "primary" | "tickers" | "explicit" | "verification">): CallClass {
   const mentions = mentionedSymbols(row.body);
   const prints = resolvedPrints(row.body);
   const tickers = splitTickers(row.tickers);
@@ -275,7 +276,15 @@ export function classifyCall(row: Pick<CallRow, "body" | "primary" | "tickers" |
     }
   }
   const tapeDefault = prints.length === 0 && row.primary === "SPY" && row.explicit === "false" && tickers.length === 0;
-  if (!prints.includes(row.primary) && !tapeDefault) {
+  const unquotedTicker =
+    tickers.length === 0 &&
+    row.explicit === "false" &&
+    row.verification.includes("does not name it") &&
+    row.primary !== "" &&
+    !tapeDefault &&
+    !mentions.includes(row.primary) &&
+    !prints.includes(row.primary);
+  if (!prints.includes(row.primary) && !mentions.includes(row.primary) && !tapeDefault && !unquotedTicker) {
     errors.push(`primary ${row.primary || "(blank)"} does not match a ticker or index the post called`);
   }
   if (tapeDefault && row.explicit === "true") {
@@ -284,12 +293,13 @@ export function classifyCall(row: Pick<CallRow, "body" | "primary" | "tickers" |
   const proxy = prints.includes(row.primary) && !mentions.includes(row.primary);
   const ambiguous = prints.length > 1;
   const autoPrint = prints.length === 1 && prints[0] === row.primary ? row.primary : null;
-  return { mentions, prints, tickers, errors, ambiguous, proxy, tapeDefault, autoPrint };
+  return { mentions, prints, tickers, errors, ambiguous, proxy, tapeDefault, unquotedTicker, autoPrint };
 }
 
 export function expectedFlags(row: CallRow): string {
   const call = classifyCall(row);
   const flags: string[] = [];
+  if (call.unquotedTicker) flags.push("unquoted-ticker");
   if (call.ambiguous) flags.push("ambiguous-symbol");
   if (call.proxy) flags.push("index-proxy");
   if (call.tapeDefault) flags.push("tape-default");
@@ -697,6 +707,14 @@ function rowLabel(row: CallRow, index: number): string {
   return row.call_id || `row ${index + 2}`;
 }
 
+function callIdMatches(row: CallRow): boolean {
+  const simple = `${row.cohort_slug}__${row.handle}`;
+  if (row.call_id === simple) return true;
+  const prefix = `${simple}__`;
+  if (!row.call_id.startsWith(prefix)) return false;
+  return /^[0-9]+__[A-Z]{1,5}(?:__[0-9]+)?$/.test(row.call_id.slice(prefix.length));
+}
+
 function sameCohortMeta(rows: CallRow[], errors: string[]) {
   const groups = new Map<string, CallRow[]>();
   for (const row of rows) {
@@ -839,8 +857,8 @@ export function collectIssues(rows: CallRow[]): LedgerIssues {
   rows.forEach((row, index) => {
     const label = rowLabel(row, index);
     if (row.call_id === "") errors.push(`${label}: call_id is required`);
-    if (row.call_id !== `${row.cohort_slug}__${row.handle}`) {
-      errors.push(`${label}: call_id must be cohort_slug__handle`);
+    if (!callIdMatches(row)) {
+      errors.push(`${label}: call_id must be cohort_slug__handle, or cohort_slug__handle__status__ticker when one handle has more than one post`);
     }
     if (seenIds.has(row.call_id)) errors.push(`${label}: duplicate call_id`);
     else if (row.call_id !== "") seenIds.add(row.call_id);

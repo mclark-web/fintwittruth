@@ -5,6 +5,7 @@ import { pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { etYmd } from "@/lib/format";
 import { UNGRADED_HORIZON, pendingClosure, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
+import { loadPendingApproval } from "@/lib/pending-approval";
 import { getCohort, listCohortSlugs, type CohortView } from "@/lib/queries";
 
 export const metadata: Metadata = {
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function PendingPage() {
+  const approval = loadPendingApproval();
   const slugs = await listCohortSlugs();
   const cohorts = (await Promise.all(slugs.map((slug) => getCohort(slug)))).filter(
     (cohort): cohort is CohortView => cohort != null && cohort.dataset === "live",
@@ -99,6 +101,34 @@ export default async function PendingPage() {
           })}
         </ul>
       )}
+      <section className="mt-10" aria-labelledby="approval-heading">
+        <h2 id="approval-heading" className="font-serif text-3xl text-ink">Pending approval</h2>
+        <p className="mt-2 max-w-3xl text-sm text-muted">
+          {approval.length} posts are waiting. An ambiguous scan row is not graded. Each line is the verbatim quote and the status link.
+        </p>
+        <ul className="mt-4 grid gap-3">
+          {approval.map((post) => (
+            <li key={`${post.postUrl}-${post.ticker}-${post.quote.slice(0, 24)}`} className="panel p-4">
+              <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">Not graded yet</p>
+              <h3 className="mt-1 text-lg text-ink">
+                @{post.handle}
+                {post.ticker ? ` · ${post.ticker}` : ""}
+                {post.direction ? ` · ${post.direction}` : ""}
+              </h3>
+              <p className="mt-2 text-sm text-ink">“{post.quote}”</p>
+              <p className="mt-2 text-xs text-muted">{post.postedAtEt}</p>
+              <p className="mt-1 text-sm text-muted">{post.reason}</p>
+              {post.postUrl ? (
+                <p className="mt-2 text-sm">
+                  <a href={post.postUrl} className="accent-link hit-44 underline-offset-4 hover:underline">
+                    Status
+                  </a>
+                </p>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }

@@ -124,6 +124,13 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
                           {call.body}
                         </Link>
                       </p>
+                      {call.sourceUrl ? (
+                        <p className="mt-2 text-sm">
+                          <a href={call.sourceUrl} className="accent-link hit-44 underline-offset-4 hover:underline">
+                            Source
+                          </a>
+                        </p>
+                      ) : null}
                     </li>
                   ))}
                 </ul>

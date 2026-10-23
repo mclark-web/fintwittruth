@@ -11,7 +11,7 @@ import {
   type CohortSpec,
 } from "./demo-data";
 import { assertLiveFile, type LiveCallRecord, type LiveCohortRecord } from "./live-book";
-import { quotesForCohort, sessionFor } from "./quotes";
+import { hasMarketHistory, quotesForCohort, sessionFor } from "./quotes";
 import {
   CONVICTION_WEIGHT,
   EQUITY_TAPE,
@@ -336,7 +336,9 @@ export function buildDataset(): BuiltDataset {
   const cohorts = rows.map((spec) => {
     const window = buildCohortWindow(spec.monday);
     const id = `cohort_${spec.slug}`;
-    const quotes: BuiltQuote[] = quotesForCohort(spec.historySlug, SYMBOLS).map((quote) => ({
+    const priced = hasMarketHistory(spec.historySlug);
+    const quotes: BuiltQuote[] = priced
+      ? quotesForCohort(spec.historySlug, SYMBOLS).map((quote) => ({
       id: `${spec.slug}__${quote.symbol}`,
       cohortId: id,
       symbol: quote.symbol,
@@ -346,7 +348,8 @@ export function buildDataset(): BuiltDataset {
       monday: quote.monday,
       wednesday: quote.wednesday,
       friday: quote.friday,
-    }));
+    }))
+      : [];
     for (const quote of quotes) {
       if (quote.symbol !== "SPY") continue;
       for (const price of [quote.ref, quote.mondayOpen, quote.monday, quote.wednesday, quote.friday]) {
@@ -372,10 +375,10 @@ export function buildDataset(): BuiltDataset {
         const quote = quotes.find((item) => item.symbol === symbol);
         return quote ? quoteAt(quote, kind) : null;
       };
-      const needed = [...EQUITY_TAPE, "VIX", ...calls.map((call) => call.primary)];
+      const needed = [...EQUITY_TAPE, "VIX"];
       const published = needed.every((symbol) => priceOf(symbol) != null);
       const sessionKind = kind === "monday-gap" ? "monday" : kind;
-      const session = sessionFor(spec.historySlug, sessionKind);
+      const session = priced ? sessionFor(spec.historySlug, sessionKind) : null;
       const sessionReason = session?.reason;
       const noise = weekendNoise(calls.map((call) => call.sentiment));
 
@@ -419,15 +422,10 @@ export function buildDataset(): BuiltDataset {
       });
       const vixMove = moveOf("VIX");
 
-      const scored = calls.map((call) => {
+      const scored = calls.flatMap((call) => {
         const quote = quotes.find((item) => item.symbol === call.primary);
-        if (!quote) {
-          throw new Error(`Missing ${call.primary} quote on ${spec.slug}`);
-        }
-        const now = quoteAt(quote, kind);
-        if (now == null) {
-          throw new Error(`Missing ${kind} price for ${call.primary} on ${spec.slug}`);
-        }
+        const now = quote ? quoteAt(quote, kind) : null;
+        if (!quote || now == null) return [];
         const parts = scoreCall(
           {
             direction: call.direction,
@@ -444,7 +442,7 @@ export function buildDataset(): BuiltDataset {
             vixMove,
           },
         );
-        return { call, parts, tieBreak: call.handle };
+        return [{ call, parts, tieBreak: call.handle }];
       });
 
       const ranked = rankPeers(

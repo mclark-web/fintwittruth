@@ -256,7 +256,7 @@ export default async function HomePage({
           {latest ? (
             <p className="mt-1 text-xs text-muted">{priceMoveLabel(latest, readout)}</p>
           ) : null}
-          {latest ? (
+          {latest && latest.quotes.length > 0 ? (
             <div className="mt-3">
               <QuoteTape
                 quotes={latest.quotes}
@@ -267,9 +267,9 @@ export default async function HomePage({
               />
             </div>
           ) : (
-            <p className="mt-2 text-sm text-muted">No prices are on the board yet.</p>
+            <p className="mt-2 text-sm text-muted">No checkpoint prices are in yet.</p>
           )}
-          {latest && calls.length >= 10 ? (
+          {latest && graded.length >= 10 ? (
             <div className="mt-4">
               <NoiseIndex calls={calls} quotes={latest.quotes} mondayAt={latest.mondayAt} />
             </div>

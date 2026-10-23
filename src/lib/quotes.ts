@@ -114,6 +114,10 @@ export function noonOpen(symbol: string, date: string): number {
   return value;
 }
 
+export function hasMarketHistory(slug: string): boolean {
+  return file.cohorts[slug] != null;
+}
+
 export function sessionFor(slug: string, kind: "monday" | "wednesday" | "friday"): ReadoutPrint | null {
   const cohort = file.cohorts[slug];
   if (!cohort) throw new Error(`No market history for cohort ${slug}.`);

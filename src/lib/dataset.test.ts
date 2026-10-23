@@ -8,6 +8,7 @@ import {
   adjustedClose,
   assertHistoricalPrint,
   noonOpen,
+  hasMarketHistory,
   quotesForCohort,
   sessionClose,
   sessionOpen,
@@ -70,7 +71,7 @@ test("every demo post sits inside the Wednesday-to-Sunday collect window", () =>
   }
 });
 
-test("the latest live week publishes Monday and Wednesday and leaves Friday scheduled", () => {
+test("the October 19 week publishes Monday and Wednesday and leaves Friday scheduled", () => {
   const prior = data.cohorts.find((cohort) => cohort.slug === "2026-09-28");
   assert.ok(prior);
   assert.match(prior.summary, /Wednesday, September 23, 2026 at 12:00 PM ET through Sunday, September 27 at 5:00 PM ET/);
@@ -85,7 +86,7 @@ test("the latest live week publishes Monday and Wednesday and leaves Friday sche
   assert.equal(october5.grades.length, october5.calls.length * 4);
   const latest = data.cohorts.find((cohort) => cohort.slug === "2026-10-19");
   assert.ok(latest);
-  assert.equal(latest.isLatest, true);
+  assert.equal(latest.isLatest, false);
   assert.equal(latest.dataset, "live");
   assert.equal(latest.calls.length, 2);
   assert.match(latest.summary, /Wednesday, October 14, 2026 at 12:00 PM ET through Sunday, October 18 at 5:00 PM ET/);
@@ -144,6 +145,10 @@ test("STRONG is 70 or more and WEAK is under 40 on every board", () => {
 
 test("every published quote is the recorded Yahoo print", () => {
   for (const cohort of data.cohorts) {
+    if (!hasMarketHistory(cohort.historySlug)) {
+      assert.equal(cohort.quotes.length, 0);
+      continue;
+    }
     const recorded = quotesForCohort(cohort.historySlug, SYMBOLS);
     assert.equal(cohort.quotes.length, recorded.length);
     for (const quote of cohort.quotes) {

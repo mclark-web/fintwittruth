@@ -36,7 +36,11 @@ export function FinTwitBoard({
   mondayAt?: Date;
   titleHeading?: "h1" | "p";
 }) {
-  const graded = (feed ?? calls).filter((call) => call.grades[readout] != null);
+  const source = feed ?? calls;
+  const graded = source.filter((call) => call.grades[readout] != null);
+  const waiting = source
+    .filter((call) => call.grades[readout] == null)
+    .sort((a, b) => a.handle.localeCompare(b.handle) || a.id.localeCompare(b.id));
   const horizonGraded = calls.some((call) => call.grades[readout] != null);
   const calibration = gcBoardGrade(
     calls.filter((call) => call.grades[readout] != null).map((call) => call.grades[readout]?.score ?? 0),
@@ -72,7 +76,9 @@ export function FinTwitBoard({
       {toolbar}
 
       <div className="mt-4 flex flex-col gap-3.5">
-        {ranked.length === 0 ? (
+        {ranked.length === 0 && waiting.length > 0 && !horizonGraded ? (
+          waiting.map((call) => <CallCard key={call.id} call={call} readout={readout} quotes={quotes} />)
+        ) : ranked.length === 0 ? (
           calls.some((call) => call.grades[readout] != null) ? (
             <div className="panel p-5">
               <h2 className="text-xl text-ink">No posts in this filter</h2>
