@@ -91,7 +91,7 @@ test("data_source=demo is rejected and a sourced row stays public", () => {
   assert.ok(collectIssues(demo).errors.some((error) => error.includes("data_source=demo is rejected")));
 });
 
-test("an approved call ages at the next due checkpoint and an unapproved ambiguous call stays pending", () => {
+test("a recorded ambiguous call does not auto-grade a later checkpoint", () => {
   const ambiguous = callRow({
     primary: "SPY",
     direction: "bullish",
@@ -112,9 +112,9 @@ test("an approved call ages at the next due checkpoint and an unapproved ambiguo
     due: true,
     tape: OPEN_TAPE,
   });
-  assert.equal(wednesday.action, "graded");
+  assert.equal(wednesday.action, "flagged");
   assert.equal(wednesday.row.grade_method, "recorded");
-  assert.equal(wednesday.row.wednesday_status, "GRADED");
+  assert.equal(wednesday.row.wednesday_status, "PENDING");
 
   const unapproved = callRow({
     primary: "SPY",

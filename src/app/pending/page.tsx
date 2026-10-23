@@ -38,7 +38,7 @@ export default async function PendingPage() {
       <p className="mt-3 max-w-3xl text-muted">
         These checkpoints are not on the home board, the weekly boards, or the leaderboard. A call joins those
         rankings after Monday&apos;s open, Monday noon, the Wednesday close, or the Friday close is graded. This page is the waiting
-        list, not a score. Demo weeks are not listed here.
+        list, not a score.
       </p>
       {waiting.length === 0 ? (
         <p className="panel mt-8 p-5 text-sm text-muted">

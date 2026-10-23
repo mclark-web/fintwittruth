@@ -833,32 +833,57 @@ p:has(a) + p:has(a),
   font-variant-numeric: tabular-nums;
 }
 
+/* Locked heat system (bank_troof #20): warm #ee9a44 ▲, 40–69 #c9c9cf ◆,
+   cold #9a9aa3 ▼ with a short #eb6505 bar. A graded 0% prints "0%". */
+.tf-pill {
+  position: relative;
+  overflow: hidden;
+}
+
+.tf-glyph {
+  margin-right: 4px;
+  font-size: 12px;
+}
+
 .tf-strong {
-  color: #eb6505;
-  border-color: rgba(235, 101, 5, 0.45);
-  background: linear-gradient(rgba(235, 101, 5, 0.18), rgba(235, 101, 5, 0.18)), #14171e;
+  color: #ee9a44;
+  border-color: rgba(238, 154, 68, 0.45);
+  background: linear-gradient(rgba(238, 154, 68, 0.12), rgba(238, 154, 68, 0.12)), #14171e;
 }
 
 .tf-provisional {
-  color: #ee9a44;
-  border-color: rgba(238, 154, 68, 0.4);
-  background: linear-gradient(rgba(238, 154, 68, 0.14), rgba(238, 154, 68, 0.14)), #14171e;
+  color: #c9c9cf;
+  border-color: rgba(201, 201, 207, 0.35);
+  background: #14171e;
 }
 
-.tf-weak {
+.tf-weak,
+.tf-exit {
   color: #9a9aa3;
   border-color: rgba(154, 154, 163, 0.22);
   background: #14171e;
 }
 
-.tf-exit,
-.tf-open {
-  color: #9a9aa3;
-  background: transparent;
+.tf-bar {
+  position: absolute;
+  left: 18px;
+  bottom: 0;
+  width: 14px;
+  height: 3px;
+  background: #eb6505;
 }
 
 .tf-open {
+  color: #9a9aa3;
+  background: transparent;
   border-style: dashed;
+}
+
+.tf-key {
+  margin-top: 6px;
+  color: #9a9aa3;
+  font-size: 12px;
+  line-height: 18px;
 }
 
 @media (min-width: 820px) {

@@ -141,9 +141,9 @@ export default async function LeaderboardPage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-serif text-4xl text-ink">Leaderboard</h1>
       <p className="mt-3 max-w-3xl text-muted">
-        Live accounts only. An account grade is the average of each completed call, and a call score is the
-        average of its graded timeframes. Hit is the share of graded calls that were right. STRONG rate and WEAK
-        rate count graded calls only. An account with no graded call is not in this rank. Bands are on the{" "}
+        Live accounts only. An average grade uses the furthest graded checkpoint on each call. Hit is the share
+        of graded calls that were right. STRONG rate and WEAK rate count graded calls only. An account with no
+        graded call is not in this rank. Bands are on the{" "}
         <Link href="/methodology" className="accent-link underline-offset-4 hover:underline">
           methodology
         </Link>{" "}

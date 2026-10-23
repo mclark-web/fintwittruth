@@ -32,20 +32,20 @@ test("the October 22 scan adds clear FinTwit rows and queues ambiguous rows", ()
     assert.equal(row.ref_price, "");
     assert.equal(row.body.length > 0, true);
   }
-  const twoSided = [
+  const unnamed = [
     "2113248938786713626",
     "2113249165413396631",
     "2113256079505420587",
     "2113267856234238328",
     "2113430455991009647",
   ];
-  for (const status of twoSided) {
-    const sides = week.filter((row) => row.source_url.endsWith(`/${status}`));
-    const directions = [...new Set(sides.map((row) => row.direction))].sort();
-    assert.ok(sides.length >= 2, status);
-    assert.deepEqual(directions, ["bearish", "bullish"]);
-    assert.equal(new Set(sides.map((row) => row.body)).size, sides.length / 2);
+  for (const status of unnamed) {
+    assert.equal(week.some((row) => row.source_url.endsWith(`/${status}`)), false);
+    const queued = ingested.pending.filter((row) => row.post_url.endsWith(`/${status}`));
+    assert.ok(queued.length >= 1, status);
+    assert.ok(queued.every((row) => row.reason.includes("does not name the ticker")));
   }
+  assert.equal(week.some((row) => row.flags.includes("unquoted-ticker") || row.flags.includes("tape-default")), false);
   const held = [
     "2113291700189696089",
     "2113278596781408266",

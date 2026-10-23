@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { callRollupScore } from "@/lib/board";
+import { matureScore } from "@/lib/board";
 import { ReadoutBubbles, TimeframePills } from "@/components/call-readouts";
 import { disputePath } from "@/lib/dispute";
 import { formatScopeWhen } from "@/lib/format";
@@ -27,7 +27,7 @@ function quotesFor(call: RealCallView): QuoteView[] {
 }
 
 export function RealCallCard({ call }: { call: RealCallView }) {
-  const rollup = callRollupScore(call.grades);
+  const score = matureScore(call.grades);
   const quotes = quotesFor(call);
   const direction: Direction | undefined = call.direction === "bullish" || call.direction === "bearish" ? call.direction : undefined;
   const xProfile = profileUrl(call.handle);
@@ -52,7 +52,7 @@ export function RealCallCard({ call }: { call: RealCallView }) {
       </p>
       <TimeframePills grades={call.grades} />
       <ReadoutBubbles grades={call.grades} quotes={quotes} primary={call.symbol} direction={direction} />
-      {rollup == null ? <p className="mt-3 text-sm text-muted">{call.ungradedReason ?? "Not graded yet"}</p> : null}
+      {score == null ? <p className="mt-3 text-sm text-muted">{call.ungradedReason ?? "Not graded yet"}</p> : null}
       <p className="post-meta">
         <a href={call.sourceUrl} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
           Original post
@@ -65,7 +65,7 @@ export function RealCallCard({ call }: { call: RealCallView }) {
         <Link href={`/real/${call.id}`} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
           Call detail
         </Link>
-        {rollup != null ? (
+        {score != null ? (
           <a href={disputePath(call.id)} className="hit-44 underline-offset-4 hover:text-ink hover:underline">
             Dispute this grade
           </a>

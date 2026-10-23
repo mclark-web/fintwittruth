@@ -104,7 +104,7 @@ test("an account with only unscored calls is not a graded handle", () => {
   assert.equal(stats.hitRate, 0);
 });
 
-test("timeframe grades roll up into the call score and completed calls roll up into the account grade", () => {
+test("the call score is the furthest settled checkpoint, and account grade averages those", () => {
   const one = handleBoardStats([
     {
       grades: [
@@ -113,10 +113,10 @@ test("timeframe grades roll up into the call score and completed calls roll up i
       ],
     },
   ]);
-  assert.equal(one.avgScore, 60);
+  assert.equal(one.avgScore, 80);
   assert.equal(one.callCount, 1);
-  assert.equal(one.bestScore, 60);
-  assert.equal(one.worstScore, 60);
+  assert.equal(one.bestScore, 80);
+  assert.equal(one.worstScore, 80);
   assert.equal(one.strongRate, 0.5);
   assert.equal(one.weakRate, 0);
   assert.equal(one.hitRate, 0.5);

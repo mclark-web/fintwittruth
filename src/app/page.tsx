@@ -3,7 +3,7 @@ import { CallCard } from "@/components/call-card";
 import { GradePill, GcTube } from "@/components/gc-tube";
 import { NoiseIndex, QuoteTape } from "@/components/market";
 import { Avatar } from "@/components/score";
-import { callRollupScore, weekendLead } from "@/lib/board";
+import { matureScore, weekendLead } from "@/lib/board";
 import { closedPendingLiveWeeks, emptyLiveWeeks } from "@/lib/empty-weeks";
 import { parseWeekCoverage } from "@/lib/search-scope";
 import { formatAsOf, formatDay, formatRate, formatScore, formatScopeWhen, formatShortDay, formatWeekday, referenceCloseDay } from "@/lib/format";
@@ -59,7 +59,7 @@ function headlineKind(calls: CallView[]): ReadoutKind {
 }
 
 function hasGrade(call: CallView): boolean {
-  return callRollupScore(call.grades) != null;
+  return matureScore(call.grades) != null;
 }
 
 /** Newest closed week that already has a grade. An open collect window is not the board. */
@@ -97,7 +97,15 @@ export default async function HomePage({
     return score == null ? [] : [score];
   });
   const calibration = gcBoardGrade(headlineScores);
-  const lanes = bestWorst(graded, (call) => callRollupScore(call.grades) ?? 0);
+  const filtered = graded.filter((call) => {
+    if (query.side === "bullish" || query.side === "bearish") {
+      if (call.direction !== query.side) return false;
+    }
+    if (query.index === "1" && !INDEX.has(call.primary)) return false;
+    return true;
+  });
+  const filterOn = Boolean(query.side || query.index);
+  const lanes = bestWorst(filtered, (call) => matureScore(call.grades) ?? 0);
   const asOf = board
     ? board.readouts.friday.status === "published"
       ? board.fridayAt
@@ -110,14 +118,6 @@ export default async function HomePage({
     live.flatMap((cohort) => cohort.calls.map((call) => ({ handle: call.handle, sourceUrl: call.sourceUrl }))),
   );
   const ungraded = roster.filter((account) => !rankedHandles.has(account.handle.toLowerCase()));
-  const filtered = graded.filter((call) => {
-    if (query.side === "bullish" || query.side === "bearish") {
-      if (call.direction !== query.side) return false;
-    }
-    if (query.index === "1" && !INDEX.has(call.primary)) return false;
-    return true;
-  });
-  const filterOn = Boolean(query.side || query.index);
   const emptyWeeks = emptyLiveWeeks();
   const pendingWeeks = closedPendingLiveWeeks();
 
@@ -220,7 +220,7 @@ export default async function HomePage({
             Graded calls
           </h2>
           <p className="mt-1 text-sm text-muted">
-            {graded.length} graded {graded.length === 1 ? "call" : "calls"} this weekend. Too few to split into best and worst.
+            {filtered.length} graded {filtered.length === 1 ? "call" : "calls"} this weekend. Too few to split into best and worst.
           </p>
           <div className="mt-4 flex flex-col gap-3.5">
             {filtered.length === 0 ? (

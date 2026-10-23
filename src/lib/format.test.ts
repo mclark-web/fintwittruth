@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { zonedToUtc } from "./calendar";
-import { etYmd, formatScopeWhen, formatScore, formatWeekday, lastTradingDayBeforeWeekend, referenceCloseDay } from "./format";
+import { etYmd, formatScopeWhen, initials, formatScore, formatWeekday, lastTradingDayBeforeWeekend, referenceCloseDay } from "./format";
 
 test("a UTC fetch time is shown in ET", () => {
   assert.equal(formatScopeWhen("2026-10-19T19:29:44.258Z"), "Monday, October 19 at 3:29\u00a0PM\u00a0ET");
@@ -26,4 +26,11 @@ test("the weekend reference is the last trading day, including a Friday holiday"
   assert.equal(formatWeekday(lastTradingDayBeforeWeekend(goodFridayWeek)), "Thu Apr 2");
   assert.equal(etYmd(referenceCloseDay(goodFridayWeek, "2026-04-03")), "2026-04-02");
   assert.equal(etYmd(referenceCloseDay(ordinary, "2026-09-18")), "2026-09-18");
+});
+
+test("initials never split an emoji into a lone surrogate", () => {
+  const out = initials("da_trader 🇺🇸");
+  assert.equal(out, "D🇺");
+  assert.ok(!/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.test(out));
+  assert.equal(initials("Drew Kane"), "DK");
 });

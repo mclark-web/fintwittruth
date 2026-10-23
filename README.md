@@ -113,7 +113,7 @@ The ledger does not scrape X and it does not add a market-data vendor. Prints co
 - `src/lib/dataset.ts` — applies the locked calendar and the scorer
 - `prisma/seed.ts` — writes the production book with Prisma
 
-The seeded weeks are `2026-09-21`, `2026-09-28`, `2026-10-05`, `2026-10-12`, and `2026-10-19`. A call score is the mean of its graded Monday noon, Wednesday close, and Friday close. An account grade is the mean of those call scores. Conviction weights stay high 3, medium 2, low 1. Grades use the Yahoo regular-session close (Monday noon is the 12:00 PM ET print). `adjclose` is stored beside the close for audit. On the October 21, 2026 session the close and adjclose matched.
+The seeded weeks are `2026-09-21`, `2026-09-28`, `2026-10-05`, `2026-10-12`, and `2026-10-19`. A call score is the furthest settled checkpoint: Friday close, else Wednesday close, else Monday noon. An account grade is the mean of those call scores. Conviction weights stay high 3, medium 2, low 1. Grades use the Yahoo regular-session close (Monday noon is the 12:00 PM ET print). `adjclose` is stored beside the close for audit. On the October 21, 2026 session the close and adjclose matched.
 
 Cohort slugs are the readout Monday (`YYYY-MM-DD`).
 

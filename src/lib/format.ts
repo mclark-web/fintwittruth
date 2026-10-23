@@ -168,6 +168,7 @@ export function initials(name: string): string {
   const parts = name.split(/\s+/).filter(Boolean);
   return parts
     .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
+    // Code points, not UTF-16 units: a leading emoji must not split into a lone surrogate (React #418).
+    .map((part) => Array.from(part)[0]?.toUpperCase() ?? "")
     .join("");
 }

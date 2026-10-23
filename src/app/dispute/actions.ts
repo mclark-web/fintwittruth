@@ -15,10 +15,8 @@ export async function submitDisputeAction(formData: FormData) {
       reason: String(formData.get("reason") ?? ""),
       company: String(formData.get("company") ?? ""),
     });
-    const notice = result.stored
-      ? "Dispute stored. It stays open until an operator marks it resolved."
-      : "Received.";
-    redirect(`${back}&notice=${encodeURIComponent(notice)}`);
+    if (!result.stored) redirect(back);
+    redirect(`${back}&notice=${encodeURIComponent("Dispute stored. It stays open until an operator marks it resolved.")}`);
   } catch (error) {
     if (error instanceof DisputeError || error instanceof IntakeStoreError) {
       const message = error.message;

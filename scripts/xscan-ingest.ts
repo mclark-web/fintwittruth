@@ -169,7 +169,7 @@ export function ingestXScan(scanText: string, template: CallRow): XScanIngest {
       pending.push({ ...pendingShape(row), reason: "Direction is not long or short. Not graded." });
       continue;
     }
-    if (!row.quote || !/^https:\/\/x\.com\/[^/]+\/status\/\d+$/.test(row.post_url)) {
+    if (!row.quote.trim() || !/^https:\/\/x\.com\/[^/]+\/status\/\d+$/.test(row.post_url)) {
       pending.push({ ...pendingShape(row), reason: "Missing a verbatim quote or a public status URL. Not graded." });
       continue;
     }
@@ -196,8 +196,18 @@ export function ingestXScan(scanText: string, template: CallRow): XScanIngest {
     const used = new Map<string, number>();
     list.forEach((row, index) => {
       const status = statusId(row.post_url);
-      if (!status) return;
+      if (!status) {
+        pending.push({ ...pendingShape(row), reason: "Missing a public status URL. Not graded." });
+        return;
+      }
       const named = mentionedSymbols(row.quote).includes(row.ticker);
+      if (!named) {
+        pending.push({
+          ...pendingShape(row),
+          reason: "The verbatim quote does not name the ticker. Not graded.",
+        });
+        return;
+      }
       let primary = named ? (INDEX_PRINT[row.ticker] ?? row.ticker) : row.ticker;
       if (handle === "Staticether" && row.ticker === "SPX" && named) primary = "SPX";
       const direction = row.direction === "long" ? "bullish" : "bearish";

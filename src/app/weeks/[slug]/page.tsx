@@ -6,11 +6,10 @@ import { CallCard } from "@/components/call-card";
 import { CohortWindow, NoiseIndex, PriceSource, QuoteTape, ReadoutCards } from "@/components/market";
 import { GcTube } from "@/components/gc-tube";
 import { mondayTapeClosedLine, pendingClosure } from "@/lib/grades";
-import { callHasSettledGrade, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
+import { callHasSettledGrade, matureScore, pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
 import { closedPendingLiveWeeks, emptyLiveWeeks, futureLiveWeek, resolveLiveWeek } from "@/lib/empty-weeks";
 import { formatScopeWhen, formatShortDay } from "@/lib/format";
 import { gradedSymbols } from "@/lib/prints";
-import { callRollupScore } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 import { OCT19_X_SCOPE, emptyWeekHeading, emptyWeekSearchLine } from "@/lib/search-scope";
 
@@ -125,8 +124,8 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
   const rows = cohort.calls
     .filter((call) => callHasSettledGrade(call.grades))
     .sort((a, b) => {
-      const left = callRollupScore(a.grades) ?? -1;
-      const right = callRollupScore(b.grades) ?? -1;
+      const left = matureScore(a.grades) ?? -1;
+      const right = matureScore(b.grades) ?? -1;
       return right - left || a.handle.localeCompare(b.handle);
     });
 
@@ -181,7 +180,7 @@ export default async function CohortPage({ params }: { params: Promise<{ slug: s
           Settled grades
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          Watchlist and viral posts share this weekly board. Each card shows Mon noon, Wed close, and Fri close in that order. Those grades roll up into the call score.
+          Watchlist and viral posts share this weekly board. Each card shows the Monday noon, Wednesday close, and Friday close prices, plus one GC Scale grade. The call score is the furthest settled checkpoint.
         </p>
         {rows.length === 0 || settled.length === 0 ? (
           <div className="mt-4">

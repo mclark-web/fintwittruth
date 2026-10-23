@@ -22,14 +22,25 @@ function timeframeStep(grade: GradeLike): "open" | "exit" | "strong" | "provisio
 
 function timeframeValue(grade: GradeLike, step: ReturnType<typeof timeframeStep>): string {
   if (step === "open" || grade == null) return UNGRADED_HORIZON;
-  if (step === "exit") return GC_GRADE_LABEL.exit;
+  if (step === "exit") return "0%";
   return `${formatScore(grade.score)}%`;
 }
+
+/** Locked heat glyphs (#20): warm ▲, middle ◆, cold ▼. Ungraded has none. */
+const HEAT_GLYPH: Record<ReturnType<typeof timeframeStep>, string> = {
+  strong: "▲",
+  provisional: "◆",
+  weak: "▼",
+  exit: "▼",
+  open: "",
+};
+
+export const EXIT_LEGEND = "0% = EXIT LIQUIDITY";
 
 function timeframeName(kind: CallTimeframe, grade: GradeLike, step: ReturnType<typeof timeframeStep>): string {
   const label = TIMEFRAME_LABEL[kind];
   if (step === "open") return `GC Scale, ${label}: ${UNGRADED_HORIZON}`;
-  if (step === "exit") return `GC Scale, ${label}: ${GC_GRADE_LABEL.exit}`;
+  if (step === "exit") return `GC Scale, ${label}: 0% ${GC_GRADE_LABEL.exit}`;
   return `GC Scale, ${label}: ${timeframeValue(grade, step)} ${GC_GRADE_LABEL[step]}`;
 }
 
@@ -39,20 +50,33 @@ export function TimeframePills({
 }: {
   grades: Partial<Record<ReadoutKind, GradeLike>>;
 }) {
+  const steps = CALL_TIMEFRAMES.map((kind) => timeframeStep(grades[kind]));
   return (
-    <ol className="tf-pills" aria-label="GC Scale by timeframe">
-      {CALL_TIMEFRAMES.map((kind) => {
-        const grade = grades[kind];
-        const step = timeframeStep(grade);
-        const name = timeframeName(kind, grade, step);
-        return (
-          <li key={kind} className={`tf-pill tf-${step}`} aria-label={name} title={name}>
-            <span className="tf-h">{TIMEFRAME_LABEL[kind]}</span>
-            <span className="tf-v">{timeframeValue(grade, step)}</span>
-          </li>
-        );
-      })}
-    </ol>
+    <>
+      <ol className="tf-pills" aria-label="GC Scale by timeframe">
+        {CALL_TIMEFRAMES.map((kind, i) => {
+          const grade = grades[kind];
+          const step = steps[i];
+          const name = timeframeName(kind, grade, step);
+          const glyph = HEAT_GLYPH[step];
+          return (
+            <li key={kind} className={`tf-pill tf-${step}`} aria-label={name} title={name}>
+              <span className="tf-h">{TIMEFRAME_LABEL[kind]}</span>
+              <span className="tf-v">
+                {glyph ? (
+                  <span className="tf-glyph" aria-hidden>
+                    {glyph}
+                  </span>
+                ) : null}
+                {timeframeValue(grade, step)}
+              </span>
+              {step === "weak" || step === "exit" ? <span className="tf-bar" aria-hidden /> : null}
+            </li>
+          );
+        })}
+      </ol>
+      {steps.includes("exit") ? <p className="tf-key">{EXIT_LEGEND}</p> : null}
+    </>
   );
 }
 

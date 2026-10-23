@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { callRollupScore } from "@/lib/board";
+import { matureScore } from "@/lib/board";
 import { ReadoutBubbles, TimeframePills } from "@/components/call-readouts";
 import { disputePath } from "@/lib/dispute";
 import { formatScopeWhen, formatScore } from "@/lib/format";
@@ -19,8 +19,8 @@ export function CallCard({
   quotes?: QuoteView[];
   clampQuote?: boolean;
 }) {
-  const rollup = callRollupScore(call.grades);
-  const pill = rollup == null ? null : gcGrade({ score: rollup });
+  const score = matureScore(call.grades);
+  const pill = score == null ? null : gcGrade({ score });
 
   return (
     <article className="panel p-5">
@@ -34,10 +34,10 @@ export function CallCard({
             <p className="mt-0.5 text-xs text-[#c9c9cf]">{formatScopeWhen(call.postedAt)}</p>
           </div>
         </div>
-        {rollup != null && pill ? (
+        {score != null && pill ? (
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="font-mono text-2xl text-ink">
-              {formatScore(rollup)}
+              {formatScore(score)}
               <span className="text-sm text-muted">%</span>
             </span>
             <GradePill grade={pill} />
@@ -64,7 +64,7 @@ export function CallCard({
         <Link href={`/calls/${call.id}`} className="accent-link hit-44 underline-offset-4 hover:underline">
           Call detail
         </Link>
-        {call.sourceUrl && rollup != null ? (
+        {call.sourceUrl && score != null ? (
           <a href={disputePath(call.id)} className="accent-link hit-44 underline-offset-4 hover:underline">
             Dispute this grade
           </a>

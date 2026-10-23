@@ -184,7 +184,13 @@ test("timeframe pills keep one order and paint cold scores dim grey", () => {
   assert.doesNotMatch(html, /EXIT LIQUIDITY/);
   const zero = renderToStaticMarkup(createElement(TimeframePills, { grades: { monday: { score: 0 } } }));
   assert.match(zero, /tf-exit/);
-  assert.match(zero, /EXIT LIQUIDITY/);
+  assert.match(zero, /<span class="tf-v"><span class="tf-glyph" aria-hidden="true">▼<\/span>0%<\/span>/);
+  assert.match(zero, /aria-label="GC Scale, Mon noon: 0% EXIT LIQUIDITY"/);
+  assert.match(zero, /<p class="tf-key">0% = EXIT LIQUIDITY<\/p>/);
+  assert.match(zero, /tf-bar/);
+  assert.match(html, /▲<\/span>80%/);
+  assert.match(html, /▼<\/span>20%/);
+  assert.doesNotMatch(html, /tf-key/);
   assert.match(zero, /Wed close/);
   assert.match(zero, /Fri close/);
 });

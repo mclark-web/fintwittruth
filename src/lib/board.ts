@@ -47,8 +47,7 @@ export function weekendLead(mondayAt: Date, calibration: BoardCalibration): stri
   return `Week of ${formatShortDay(mondayAt)} · ${formatScore(calibration.fill)}% ${GC_GRADE_LABEL[calibration.grade]}`;
 }
 
-/** Mean of the graded timeframe pills. No graded pill is ungraded, not a zero. */
-export function callRollupScore(grades: RollupInput): number | null {
+function scoresByKind(grades: RollupInput): Map<string, number> {
   const byKind = new Map<string, number>();
   if (isGradeList(grades)) {
     for (const item of grades) {
@@ -59,11 +58,20 @@ export function callRollupScore(grades: RollupInput): number | null {
       if (grade != null && Number.isFinite(grade.score)) byKind.set(kind, grade.score);
     }
   }
-  const scores = CALL_TIMEFRAMES.flatMap((kind) => {
+  return byKind;
+}
+
+/**
+ * Call score is the furthest settled checkpoint: Friday, else Wednesday, else Monday.
+ * It is not the mean of the timeframe pills.
+ */
+export function matureScore(grades: RollupInput): number | null {
+  const byKind = scoresByKind(grades);
+  for (const kind of MATURE_ORDER) {
     const score = byKind.get(kind);
-    return score != null ? [score] : [];
-  });
-  return average(scores);
+    if (score != null) return score;
+  }
+  return null;
 }
 
 export function isSettledStatus(status: string): boolean {
@@ -89,12 +97,12 @@ export function matureSettledGrade(call: GradedCallInput): SettledGrade | null {
 }
 
 export function handleBoardStats(calls: GradedCallInput[]) {
-  const graded = calls.filter((call) => callRollupScore(call.grades) != null);
+  const graded = calls.filter((call) => matureScore(call.grades) != null);
   const grades = graded.flatMap((call) => settledGrades(call));
-  const rollups = graded
-    .map((call) => callRollupScore(call.grades))
+  const matureScores = graded
+    .map((call) => matureScore(call.grades))
     .filter((score): score is number => score != null);
-  const avgScore = average(rollups) ?? 0;
+  const avgScore = average(matureScores) ?? 0;
   const rate = (pick: (grade: SettledGrade) => boolean) =>
     grades.length === 0 ? 0 : grades.filter(pick).length / grades.length;
   return {
@@ -106,8 +114,8 @@ export function handleBoardStats(calls: GradedCallInput[]) {
     strongRate: rate((grade) => gcGrade(grade) === "strong"),
     weakRate: rate((grade) => gcGrade(grade) === "weak"),
     hitRate: rate((grade) => isDirectionHit(grade.signedMovePct)),
-    bestScore: rollups.length ? Math.max(...rollups) : 0,
-    worstScore: rollups.length ? Math.min(...rollups) : 0,
+    bestScore: matureScores.length ? Math.max(...matureScores) : 0,
+    worstScore: matureScores.length ? Math.min(...matureScores) : 0,
   };
 }
 

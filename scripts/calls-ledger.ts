@@ -944,10 +944,7 @@ export function considerCheckpoint(
   if (status === "PENDING") {
     if (!input.due) return { row, action: "unchanged", detail: "" };
     const call = classifyCall(row);
-    const earlierApproved =
-      row.grade_method === "recorded" &&
-      CHECKPOINTS.some((prior) => prior !== kind && row[field(prior, "status")] === "GRADED");
-    if (!call.autoPrint && !earlierApproved) {
+    if (!call.autoPrint) {
       const why = call.tapeDefault
         ? "post names no ticker or index"
         : call.ambiguous
@@ -961,7 +958,7 @@ export function considerCheckpoint(
     }
     const next = { ...row };
     applyComputed(next, kind, computed);
-    if (!earlierApproved && next.grade_method !== "recorded") next.grade_method = "auto-yahoo";
+    if (next.grade_method !== "recorded") next.grade_method = "auto-yahoo";
     next.flags = expectedFlags(next);
     next.graded_at = latestGradedAt(next.cohort_slug, next);
     return { row: next, action: "graded", detail: `${label}: ${computed.text} ${computed.grade}` };
