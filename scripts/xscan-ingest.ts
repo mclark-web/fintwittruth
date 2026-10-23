@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 import { zonedToUtc } from "../src/lib/calendar";
 import { mentionedSymbols } from "../src/lib/extract-call";
 import { loadWatchlist } from "../src/lib/watchlist";
+import { partitionBook, pendingFromCall, stampPending, twoSidedQuote } from "./book-policy";
 import {
   INDEX_PRINT,
   checkpointCalendar,
@@ -30,14 +31,6 @@ const HOLD_STATUS: Record<string, string> = {
   "2113416016013467825":
     "The excerpt is a share purchase and the full post also says down 20% tomorrow, so direction is not settled. Not graded.",
 };
-
-/** One verbatim quote that states both a long trigger and a short trigger. */
-function twoSidedQuote(quote: string): boolean {
-  const text = quote.toLowerCase();
-  const longSide = /\blong\s*:/.test(text) || /\bcalls?\s+above\b/.test(text);
-  const shortSide = /\bshort\s*:/.test(text) || /\bputs?\s+below\b/.test(text);
-  return longSide && shortSide;
-}
 
 const COHORT_TITLE = "Verified weekend book";
 const COHORT_SUMMARY =
@@ -317,21 +310,36 @@ export function ingestXScan(scanText: string, template: CallRow): XScanIngest {
     });
   }
 
+  const book = partitionBook(calls);
+  for (const item of book.queue) pending.push(pendingFromCall(item.row, item.reason));
+  const stamped = dedupePending(pending.map(stampPending));
   return {
-    calls,
-    pending,
+    calls: book.keep,
+    pending: stamped,
     counts: {
       scanRows: rows.length,
       fintwitRows,
       clearRows,
-      calls: calls.length,
+      calls: book.keep.length,
       quotedCalls,
       unquotedCalls,
       ambiguousRows,
-      pendingRows: pending.length,
+      pendingRows: stamped.length,
       bankRows,
     },
   };
+}
+
+function dedupePending(rows: PendingApprovalRow[]): PendingApprovalRow[] {
+  const seen = new Set<string>();
+  const out: PendingApprovalRow[] = [];
+  for (const row of rows) {
+    const key = `${row.post_url}\n${row.ticker}\n${row.direction}\n${row.reason}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+  return out;
 }
 
 function pendingShape(row: ScanRow): PendingApprovalRow {

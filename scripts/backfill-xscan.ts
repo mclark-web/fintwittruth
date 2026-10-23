@@ -29,6 +29,7 @@ import {
   type CallRow,
   type Checkpoint,
 } from "./calls-ledger";
+import { LATER_CALL_REASON, exclusionReason, stampPending } from "./book-policy";
 import { etLabelToIso, serializePending, type PendingApprovalRow } from "./xscan-ingest";
 
 const SOURCE_PATH = join(process.cwd(), "data/calls/sources/x-call-backfill-2026-07-27_10-21.csv");
@@ -368,6 +369,12 @@ export function planBackfill(scanText: string, existing: CallRow[], now: Date): 
       pending.push(pendingShape(item.row, `Ledger refused the row (${issues.errors.join("; ")}). Not graded.`));
       continue;
     }
+    const policy = exclusionReason(call);
+    if (policy) {
+      notGradeable += 1;
+      pending.push(pendingShape(item.row, policy));
+      continue;
+    }
     const open = buildCohortWindow(parseCalendarDay(item.cohort)).collectEnd.getTime() > now.getTime();
     let settled = call;
     if (!open) {
@@ -394,6 +401,18 @@ export function planBackfill(scanText: string, existing: CallRow[], now: Date): 
       deduped += 1;
       continue;
     }
+    const earlier = [...existing, ...calls].some(
+      (row) =>
+        row.cohort_slug === settled.cohort_slug &&
+        row.handle.toLowerCase() === settled.handle.toLowerCase() &&
+        exclusionReason(row) == null &&
+        (row.posted_at < settled.posted_at || (row.posted_at === settled.posted_at && row.call_id < settled.call_id)),
+    );
+    if (earlier) {
+      notGradeable += 1;
+      pending.push(pendingShape(item.row, LATER_CALL_REASON));
+      continue;
+    }
     seen.add(key);
     usedIds.add(settled.call_id);
     calls.push(settled);
@@ -401,7 +420,7 @@ export function planBackfill(scanText: string, existing: CallRow[], now: Date): 
 
   return {
     calls,
-    pending,
+    pending: pending.map(stampPending),
     counts: {
       scanRows: rows.length,
       clearRows,

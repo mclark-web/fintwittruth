@@ -4,6 +4,8 @@ import {
   gradesOnPrimaryBoard,
   handleBoardStats,
   isDirectionHit,
+  leadReadout,
+  leadScores,
   pendingReadoutKinds,
   settledReadoutKinds,
   weekendLead,
@@ -17,16 +19,18 @@ import { READOUTS } from "./scoring";
 
 const data = buildDataset();
 
-test("the closed October 19 lead is the Monday noon board grade", () => {
+test("the closed October 19 lead is the latest settled checkpoint", () => {
   const week = data.cohorts.find((cohort) => cohort.slug === "2026-10-19" && cohort.dataset === "live");
   assert.ok(week);
-  const scores = week.calls.map((call) => {
-    const grade = week.grades.find((item) => item.callId === call.id && item.readout === "monday");
-    assert.ok(grade);
-    return grade.score;
+  const grades = week.calls.map((call) => {
+    const settled = week.grades.filter((item) => item.callId === call.id);
+    return settled.map((item) => ({ readout: item.readout, score: item.score }));
   });
-  assert.equal(scores.length, 10);
-  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 52% PROVISIONAL");
+  assert.equal(grades.length, 3);
+  assert.equal(leadReadout(grades), "wednesday");
+  const scores = leadScores(grades);
+  assert.deepEqual([...scores].sort((a, b) => a - b), [4, 66, 66]);
+  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 45% PROVISIONAL");
   const open = buildCohortWindow({ year: 2026, month: 10, day: 26 });
   assert.equal(formatWeekday(open.collectEnd), "Sun Oct 25");
 });

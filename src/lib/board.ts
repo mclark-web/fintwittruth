@@ -41,7 +41,7 @@ function isGradeList(grades: RollupInput): grades is readonly GradeScore[] {
   return Array.isArray(grades);
 }
 
-/** Home lead for a closed graded week. The percent is the headline readout's board grade. */
+/** Home lead for a closed graded week. The percent is the mean of the call scores. */
 export function weekendLead(mondayAt: Date, calibration: BoardCalibration): string {
   if (calibration.ungraded) return "No graded calls yet this week";
   return `Week of ${formatShortDay(mondayAt)} · ${formatScore(calibration.fill)}% ${GC_GRADE_LABEL[calibration.grade]}`;
@@ -63,7 +63,8 @@ function scoresByKind(grades: RollupInput): Map<string, number> {
 
 /**
  * Call score is the furthest settled checkpoint: Friday, else Wednesday, else Monday.
- * It is not the mean of the timeframe pills.
+ * It is not the mean of the timeframe pills. A later checkpoint is not filled just because
+ * an earlier one was recorded.
  */
 export function matureScore(grades: RollupInput): number | null {
   const byKind = scoresByKind(grades);
@@ -72,6 +73,28 @@ export function matureScore(grades: RollupInput): number | null {
     if (score != null) return score;
   }
   return null;
+}
+
+const LEAD_ORDER: ReadoutKind[] = ["friday", "wednesday", "monday"];
+
+/**
+ * Furthest checkpoint that every graded call has settled.
+ * The market-move tape under the home lead uses this stamp.
+ */
+export function leadReadout(gradesList: RollupInput[]): ReadoutKind {
+  const settled = gradesList.filter((grades) => matureScore(grades) != null);
+  for (const kind of LEAD_ORDER) {
+    if (settled.length > 0 && settled.every((grades) => scoresByKind(grades).has(kind))) return kind;
+  }
+  return "monday";
+}
+
+/** Home-lead inputs. Each number is that call's latest settled checkpoint. */
+export function leadScores(gradesList: RollupInput[]): number[] {
+  return gradesList.flatMap((grades) => {
+    const score = matureScore(grades);
+    return score == null ? [] : [score];
+  });
 }
 
 export function isSettledStatus(status: string): boolean {

@@ -198,6 +198,8 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   );
   assert.equal(lead.split("For the week of October 19").length - 1, 1);
   assert.match(methodology, /\{GRADED_PRINT_LIST\}/);
+  assert.match(methodology, /no auto-grade cascade/i);
+  assert.match(methodology, /latest settled checkpoint/);
   assert.match(sitemap, /export const revalidate = 60/);
   assert.doesNotMatch(sitemap, /futureLiveWeek/);
   assert.ok(readme.includes(OCT19_X_SCOPE));
@@ -213,4 +215,5 @@ test("an empty week's heading names a search result only when coverage is record
   assert.equal(emptyWeekHeading(""), "No search on record");
   assert.equal(emptyWeekHeading("substack"), "No qualifying calls");
   assert.equal(emptyWeekHeading("substack+x-from-2026-10-16T14:22:00.000Z"), "No qualifying calls");
+  assert.equal(emptyWeekHeading("x"), "No qualifying calls");
 });

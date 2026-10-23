@@ -20,6 +20,7 @@ export const OCT19_X_SCOPE =
  * `substack` — Substack for the whole window, X not searched.
  * `substack+x` — both sources for the whole window.
  * `substack+x-from-<ISO>` — Substack for the whole window, X only from that instant through the end.
+ * `x` — X posts in the window were read. Substack was not searched.
  */
 export type WeekCoverage = {
   substack: boolean;
@@ -30,7 +31,7 @@ export type WeekCoverage = {
 export function parseWeekCoverage(value: string): WeekCoverage | null {
   const text = value.trim();
   if (text === "substack") return { substack: true, x: "none" };
-  if (text === "substack+x") return { substack: true, x: "full" };
+  if (text === "substack+x" || text === "x") return { substack: text !== "x", x: "full" };
   const from = /^substack\+x-from-(\S+)$/.exec(text);
   if (!from) return null;
   const xFrom = new Date(from[1] ?? "");

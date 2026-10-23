@@ -80,7 +80,7 @@ test("the October 19 week publishes Monday and Wednesday and leaves Friday sched
   const october5 = data.cohorts.find((cohort) => cohort.slug === "2026-10-05");
   assert.ok(october5);
   assert.equal(october5.isLatest, false);
-  assert.equal(october5.calls.length, 8);
+  assert.equal(october5.calls.length, 4);
   assert.match(october5.summary, /Wednesday, September 30, 2026 at 12:00 PM ET through Sunday, October 4 at 5:00 PM ET/);
   assert.doesNotMatch(october5.summary, /X watchlist not covered this week; Substack only/);
   assert.equal(october5.grades.length, october5.calls.length * 4);
@@ -88,7 +88,7 @@ test("the October 19 week publishes Monday and Wednesday and leaves Friday sched
   assert.ok(latest);
   assert.equal(latest.isLatest, false);
   assert.equal(latest.dataset, "live");
-  assert.equal(latest.calls.length, 10);
+  assert.equal(latest.calls.length, 3);
   assert.match(latest.summary, /Wednesday, October 14, 2026 at 12:00 PM ET through Sunday, October 18 at 5:00 PM ET/);
   assert.ok(latest.summary.includes(OCT19_X_SCOPE));
   assert.doesNotMatch(latest.summary, /not fully verified/);

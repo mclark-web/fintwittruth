@@ -197,5 +197,18 @@ test("timeframe pills keep one order and paint cold scores dim grey", () => {
 
 test("production does not serve the fictional Labor Day cohort", { skip: skipWithoutDb }, async () => {
   const { getCohort } = await import("./queries");
-  assert.equal(await getCohort("2026-09-07"), null);
+  const cohort = await getCohort("2026-09-07");
+  assert.ok(cohort);
+  assert.equal(
+    cohort.calls.some((call) => call.handle === "doomscroll"),
+    false,
+  );
+  assert.equal(
+    cohort.calls.every((call) => !call.body.includes("WWIII")),
+    true,
+  );
+  assert.equal(
+    cohort.calls.some((call) => call.handle === "TraderJonesy" && call.primary === "SPY"),
+    true,
+  );
 });

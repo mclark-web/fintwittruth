@@ -146,6 +146,12 @@ export default function MethodologyPage() {
           The board shows one GC Scale percent. Parts add to that percent: direction {DIRECTION_MAX}, levels{" "}
           {LEVEL_MAX}, specificity {SPECIFICITY_MAX}, VIX {VIX_MAX}.
         </p>
+        <p className="mt-3 text-ink/80">
+          There is no auto-grade cascade. A later checkpoint is not filled just because an earlier one was
+          recorded. A missing print stays pending and is not invented. The call score is the latest settled checkpoint:
+          Friday close, else Wednesday close, else Monday noon. It is not the mean of those pills. The home lead
+          is the mean of those call scores on the newest closed week that already has a grade.
+        </p>
         <h3 className="mt-6 font-medium text-ink">Direction versus the equity tape</h3>
         <p className="mt-1 text-sm text-muted">
           The tape is the equal-weight percent move of SPY, QQQ, and DIA from Friday&apos;s regular-session

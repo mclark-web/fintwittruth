@@ -3,7 +3,7 @@ import { CallCard } from "@/components/call-card";
 import { GradePill, GcTube } from "@/components/gc-tube";
 import { NoiseIndex, QuoteTape } from "@/components/market";
 import { Avatar } from "@/components/score";
-import { matureScore, weekendLead } from "@/lib/board";
+import { leadReadout, leadScores, matureScore, weekendLead } from "@/lib/board";
 import { closedPendingLiveWeeks, emptyLiveWeeks } from "@/lib/empty-weeks";
 import { parseWeekCoverage } from "@/lib/search-scope";
 import { formatAsOf, formatDay, formatRate, formatScore, formatScopeWhen, formatShortDay, formatWeekday, referenceCloseDay } from "@/lib/format";
@@ -52,12 +52,6 @@ function emptyWeeksLine(weeks: { coverage: string; window: { mondayAt: Date } }[
   return parts.join(" ");
 }
 
-function headlineKind(calls: CallView[]): ReadoutKind {
-  if (calls.some((call) => call.grades.monday)) return "monday";
-  if (calls.some((call) => call.grades.wednesday)) return "wednesday";
-  return "friday";
-}
-
 function hasGrade(call: CallView): boolean {
   return matureScore(call.grades) != null;
 }
@@ -90,12 +84,9 @@ export default async function HomePage({
     .filter((cohort) => cohort.collectEnd.getTime() <= now.getTime() && !cohort.calls.some(hasGrade))
     .sort((a, b) => b.mondayAt.getTime() - a.mondayAt.getTime());
   const calls = board?.calls ?? [];
-  const readout = headlineKind(calls);
   const graded = calls.filter(hasGrade);
-  const headlineScores = graded.flatMap((call) => {
-    const score = call.grades[readout]?.score;
-    return score == null ? [] : [score];
-  });
+  const readout = leadReadout(graded.map((call) => call.grades));
+  const headlineScores = leadScores(graded.map((call) => call.grades));
   const calibration = gcBoardGrade(headlineScores);
   const filtered = graded.filter((call) => {
     if (query.side === "bullish" || query.side === "bearish") {
@@ -266,7 +257,7 @@ export default async function HomePage({
         </h2>
         <ol className="mt-3 max-w-3xl space-y-2 text-sm leading-relaxed text-muted">
           <li>1. A post is captured Wednesday noon through Sunday 5 PM ET.</li>
-          <li>2. It is graded at Monday noon (the headline), then Wednesday close and Friday close.</li>
+          <li>2. It is graded at Monday noon, Wednesday close, and Friday close. The score is the latest checkpoint that has settled.</li>
           <li>3. 70% and up is STRONG, 40–69% is PROVISIONAL, and under 40% is WEAK.</li>
         </ol>
         <p className="mt-3 text-sm">

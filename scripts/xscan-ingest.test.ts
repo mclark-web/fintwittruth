@@ -12,7 +12,7 @@ const ingested = ingestXScan(scan, rows[0]);
 
 test("the October 22 scan adds clear FinTwit rows and queues ambiguous rows", () => {
   const week = rows.filter((row) => row.cohort_slug === "2026-10-26");
-  assert.ok(week.length > ingested.counts.calls);
+  assert.ok(week.length >= ingested.counts.calls);
   for (const call of ingested.calls) {
     assert.ok(week.some((row) => row.call_id === call.call_id && row.source_url === call.source_url));
   }
@@ -71,15 +71,25 @@ test("the October 22 scan adds clear FinTwit rows and queues ambiguous rows", ()
     assert.equal(week.some((row) => row.source_url.endsWith(`/${status}`)), false);
     assert.equal(ingested.pending.some((row) => row.post_url.endsWith(`/${status}`)), true);
   }
-  assert.equal(week.some((row) => row.source_url.endsWith("/2113401290227437964")), true);
+  assert.equal(week.some((row) => row.source_url.endsWith("/2113401290227437964")), false);
+  assert.ok(
+    ingested.pending.some(
+      (row) => row.post_url.endsWith("/2113401290227437964") && row.reason.includes("Single-name call"),
+    ),
+  );
   const spx = week.find((row) => row.handle === "Staticether");
   assert.equal(spx?.primary, "SPX");
   assert.equal(spx?.flags, "");
   assert.equal(spx?.tickers, "SPX");
-  const vix = week.find((row) => row.handle === "JaffreyTrades");
-  assert.equal(vix?.primary, "VIX");
-  assert.equal(vix?.monday_status, "PENDING");
-  assert.equal(vix?.monday_score, "");
+  assert.equal(week.some((row) => row.handle === "JaffreyTrades"), false);
+  assert.ok(ingested.pending.some((row) => row.handle === "JaffreyTrades" && row.ticker === "VIX"));
+  const twoSided = ingested.pending.filter((row) =>
+    ["2113248938786713626", "2113249165413396631", "2113256079505420587", "2113267856234238328", "2113430455991009647"].some(
+      (status) => row.post_url.endsWith(`/${status}`),
+    ),
+  );
+  assert.ok(twoSided.length >= 5);
+  assert.ok(twoSided.every((row) => row.direction === "two-sided" && row.reason.startsWith("Two-sided.")));
 });
 
 test("the October 26 week is on the board and has no checkpoint grade", () => {
