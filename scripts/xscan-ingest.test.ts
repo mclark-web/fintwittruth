@@ -32,6 +32,40 @@ test("the October 22 scan adds clear FinTwit rows and queues ambiguous rows", ()
     assert.equal(row.ref_price, "");
     assert.equal(row.body.length > 0, true);
   }
+  const twoSided = [
+    "2113248938786713626",
+    "2113249165413396631",
+    "2113256079505420587",
+    "2113267856234238328",
+    "2113430455991009647",
+  ];
+  for (const status of twoSided) {
+    const sides = week.filter((row) => row.source_url.endsWith(`/${status}`));
+    const directions = [...new Set(sides.map((row) => row.direction))].sort();
+    assert.ok(sides.length >= 2, status);
+    assert.deepEqual(directions, ["bearish", "bullish"]);
+    assert.equal(new Set(sides.map((row) => row.body)).size, sides.length / 2);
+  }
+  const held = [
+    "2113291700189696089",
+    "2113278596781408266",
+    "2113392133591732357",
+    "2113222345447841905",
+    "2113416016013467825",
+  ];
+  for (const status of held) {
+    assert.equal(week.some((row) => row.source_url.endsWith(`/${status}`)), false);
+    assert.equal(ingested.pending.some((row) => row.post_url.endsWith(`/${status}`)), true);
+  }
+  assert.equal(week.some((row) => row.source_url.endsWith("/2113401290227437964")), true);
+  const spx = week.find((row) => row.handle === "Staticether");
+  assert.equal(spx?.primary, "SPX");
+  assert.equal(spx?.flags, "");
+  assert.equal(spx?.tickers, "SPX");
+  const vix = week.find((row) => row.handle === "JaffreyTrades");
+  assert.equal(vix?.primary, "VIX");
+  assert.equal(vix?.monday_status, "PENDING");
+  assert.equal(vix?.monday_score, "");
 });
 
 test("the October 26 week is on the board and has no checkpoint grade", () => {

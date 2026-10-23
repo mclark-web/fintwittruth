@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { adminConfigured, ADMIN_COOKIE, sessionMatches } from "@/lib/admin-auth";
 import { getIntakeStore, UNCONFIGURED_DETAIL } from "@/lib/intake-store";
 import type { Dispute, IntakePost } from "@/lib/intake-types";
+import { loadPendingApproval } from "@/lib/pending-approval";
 import { disputeStatusAction, ingestAction, loginAction, logoutAction, manualIngestAction, reviewAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +86,40 @@ function ReviewForm({ post }: { post: IntakePost }) {
         </button>
       </div>
     </form>
+  );
+}
+
+function ApprovalQueue() {
+  const approval = loadPendingApproval();
+  return (
+    <section className="grid gap-3" aria-labelledby="approval-queue">
+      <h2 id="approval-queue" className="font-serif text-2xl text-ink">Approval queue</h2>
+      <p className="text-sm text-muted">
+        {approval.length} posts are not graded. This queue is not on the public board.
+      </p>
+      <ul className="grid gap-3">
+        {approval.map((post) => (
+          <li key={`${post.postUrl}-${post.ticker}-${post.quote.slice(0, 24)}`} className="panel p-4">
+            <p className="text-xs uppercase tracking-wide text-[#9a9aa3]">Not graded</p>
+            <p className="mt-1 text-sm text-ink">
+              @{post.handle}
+              {post.ticker ? ` · ${post.ticker}` : ""}
+              {post.direction ? ` · ${post.direction}` : ""}
+            </p>
+            <p className="mt-2 text-sm text-ink">“{post.quote}”</p>
+            <p className="mt-2 text-xs text-muted">{post.postedAtEt}</p>
+            <p className="mt-1 text-sm text-muted">{post.reason}</p>
+            {post.postUrl ? (
+              <p className="mt-2 text-sm">
+                <a href={post.postUrl} className="text-pine underline-offset-4 hover:underline">
+                  Status
+                </a>
+              </p>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -257,6 +292,7 @@ export default async function AdminPage({
               ))}
             </ul>
           </section>
+          <ApprovalQueue />
         </div>
       ) : null}
     </div>

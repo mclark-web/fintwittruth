@@ -144,7 +144,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
               </div>
             ) : (
               <div className="mt-4">
-                <NothingGraded href="/pending" />
+                <NothingGraded href="/weeks" />
               </div>
             )}
           </div>
@@ -168,7 +168,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       </p>
       {row && pendingCount > 0 ? (
         <div className="mt-3">
-          <PendingSettleLink href="/pending" />
+          <PendingSettleLink href="/weeks" />
         </div>
       ) : null}
 

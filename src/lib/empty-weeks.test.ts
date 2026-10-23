@@ -200,6 +200,9 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   assert.doesNotMatch(sitemap, /futureLiveWeek/);
   assert.ok(readme.includes(OCT19_X_SCOPE));
   assert.ok(csv.includes(OCT19_X_SCOPE));
+  assert.match(home, /has not closed/);
+  assert.match(home, /5:00 PM ET/);
+  assert.match(home, /weekendLead/);
   assert.match(home, /latest collect window that has closed|No qualifying calls in the/);
   assert.match(css, /h1,\s*\n\s*h2,\s*\n\s*h3 \{\s*\n\s*text-wrap: balance;/);
 });

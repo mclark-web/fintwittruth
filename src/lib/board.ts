@@ -1,4 +1,5 @@
-import { gcGrade } from "./grades";
+import { formatScore, formatShortDay } from "./format";
+import { GC_GRADE_LABEL, type BoardCalibration, gcGrade } from "./grades";
 import { READOUTS, scoreToBadge, tapeDirection, type ReadoutKind } from "./scoring";
 
 function average(values: number[]): number | null {
@@ -38,6 +39,12 @@ type RollupInput = readonly GradeScore[] | Partial<Record<string, { score: numbe
 
 function isGradeList(grades: RollupInput): grades is readonly GradeScore[] {
   return Array.isArray(grades);
+}
+
+/** Home lead for a closed graded week. The percent is the headline readout's board grade. */
+export function weekendLead(mondayAt: Date, calibration: BoardCalibration): string {
+  if (calibration.ungraded) return "No graded calls yet this week";
+  return `Week of ${formatShortDay(mondayAt)} · ${formatScore(calibration.fill)}% ${GC_GRADE_LABEL[calibration.grade]}`;
 }
 
 /** Mean of the graded timeframe pills. No graded pill is ungraded, not a zero. */

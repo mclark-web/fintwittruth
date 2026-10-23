@@ -150,7 +150,7 @@ export default async function LeaderboardPage() {
         page.
       </p>
       <div className="mt-7">
-        <PendingSettleLink href="/pending" />
+        <PendingSettleLink href="/weeks" />
       </div>
       <Board
         title="Tracked accounts"

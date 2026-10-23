@@ -128,11 +128,11 @@ export default function MethodologyPage() {
               The home tape, weekly rankings, leaderboards, and account scorecards list a call only after a
               readout has settled. Monday&apos;s open, Monday noon, the Wednesday close, and the Friday close are those horizons.
               Hit rate, STRONG rate, and WEAK rate use settled grades only. While a readout is still scheduled,
-              the calls sit on{" "}
-              <Link href="/pending" className="accent-link underline-offset-4 hover:underline">
-                Not graded yet
+              the calls sit on that week&apos;s Not graded yet list.{" "}
+              <Link href="/weeks" className="accent-link underline-offset-4 hover:underline">
+                All weeks
               </Link>
-              . That page is not part of the ranking.
+              . That list is not part of the ranking.
             </dd>
           </div>
         </dl>

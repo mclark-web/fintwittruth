@@ -184,11 +184,18 @@ export type ScoreParts = {
 };
 
 export function scoreCall(call: CallDraft, input: ScoreInput): ScoreParts {
-  const signedMovePct = call.direction === "bullish" ? input.tapeMove : -input.tapeMove;
+  // A call whose primary is VIX is a call on VIX. Direction points follow that
+  // move (bullish means VIX up). The sentiment factor is for equity calls,
+  // where panic wants VIX up and melt-up wants VIX down. Applying it here
+  // would score the same move twice, and a bullish melt-up row would treat a
+  // VIX spike as a miss. Equity-tape grades are unchanged.
+  const vixCall = call.primary === "VIX";
+  const basis = vixCall ? input.vixMove : input.tapeMove;
+  const signedMovePct = call.direction === "bullish" ? basis : -basis;
   const direction = directionPoints(signedMovePct);
   const levels = levelPoints(call, input.primaryRef, input.primaryNow);
   const specificity = specificityParts(call).total;
-  const vix = vixPoints(call.sentiment, input.vixMove);
+  const vix = vixCall ? 0 : vixPoints(call.sentiment, input.vixMove);
   const score = Math.max(0, Math.min(100, direction + levels + specificity + vix));
   return {
     score,
@@ -197,7 +204,7 @@ export function scoreCall(call: CallDraft, input: ScoreInput): ScoreParts {
     levelPoints: levels,
     specificityPoints: specificity,
     vixPoints: vix,
-    rawMovePct: input.tapeMove,
+    rawMovePct: basis,
     signedMovePct,
     vixMovePct: input.vixMove,
     isWeak: score > 0 && score < WEAK_LINE,
@@ -258,6 +265,7 @@ export function gradeNote(input: {
   rawMovePct: number;
   vixMovePct: number;
   score: number;
+  primary?: string;
 }): string {
   const when = {
     "monday-gap": "Monday gap, from Friday's regular-session close to the regular-session open",
@@ -282,6 +290,9 @@ export function gradeNote(input: {
         : input.score < WEAK_LINE
           ? " That score is WEAK."
           : " That score is PROVISIONAL.";
+  if (input.primary === "VIX") {
+    return `${when}: VIX is ${pct} from Friday's close, ${relation} this ${input.direction} call.${territory} This is a scorecard, not a signal.`;
+  }
   return `${when}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's regular-session close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;
 }
 

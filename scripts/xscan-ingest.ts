@@ -18,6 +18,27 @@ import {
 
 export const XSCAN_COHORT = "2026-10-26";
 
+/**
+ * Clear scan rows that are not forward calls. They stay in the queue.
+ * 2113401290227437964 is a KiLevels TSLA call, not the trdr_d recap.
+ */
+const HOLD_STATUS: Record<string, string> = {
+  "2113291700189696089": "Recap of a closed trade, not a forward call. Not graded.",
+  "2113278596781408266": "Promotional recap of an earlier entry. Not graded.",
+  "2113392133591732357": "Promotional recap of an earlier entry. Not graded.",
+  "2113222345447841905": "Headline-style post, not the author's own call. Not graded.",
+  "2113416016013467825":
+    "The excerpt is a share purchase and the full post also says down 20% tomorrow, so direction is not settled. Not graded.",
+};
+
+/** One verbatim quote that states both a long trigger and a short trigger. */
+function twoSidedQuote(quote: string): boolean {
+  const text = quote.toLowerCase();
+  const longSide = /\blong\s*:/.test(text) || /\bcalls?\s+above\b/.test(text);
+  const shortSide = /\bshort\s*:/.test(text) || /\bputs?\s+below\b/.test(text);
+  return longSide && shortSide;
+}
+
 const COHORT_TITLE = "Verified weekend book";
 const COHORT_SUMMARY =
   "Public X posts from October 22, 2026, inside the Wednesday, October 21, 12:00 PM ET through Sunday, October 25, 5:00 PM ET collect window. Each card quotes the scan text and links the status. Monday, October 26 at noon is not graded yet. This is not a complete scrape.";
@@ -152,6 +173,11 @@ export function ingestXScan(scanText: string, template: CallRow): XScanIngest {
       pending.push({ ...pendingShape(row), reason: "Missing a verbatim quote or a public status URL. Not graded." });
       continue;
     }
+    const held = statusId(row.post_url);
+    if (held && HOLD_STATUS[held]) {
+      pending.push({ ...pendingShape(row), reason: HOLD_STATUS[held] });
+      continue;
+    }
     chosen.push(row);
   }
 
@@ -172,7 +198,8 @@ export function ingestXScan(scanText: string, template: CallRow): XScanIngest {
       const status = statusId(row.post_url);
       if (!status) return;
       const named = mentionedSymbols(row.quote).includes(row.ticker);
-      const primary = named ? (INDEX_PRINT[row.ticker] ?? row.ticker) : row.ticker;
+      let primary = named ? (INDEX_PRINT[row.ticker] ?? row.ticker) : row.ticker;
+      if (handle === "Staticether" && row.ticker === "SPX" && named) primary = "SPX";
       const direction = row.direction === "long" ? "bullish" : "bearish";
       let id = list.length === 1 ? `${XSCAN_COHORT}__${handle}` : `${XSCAN_COHORT}__${handle}__${status}__${row.ticker}`;
       const seen = used.get(id) ?? 0;
@@ -220,27 +247,63 @@ export function ingestXScan(scanText: string, template: CallRow): XScanIngest {
       call.grade_method = "";
       call.notes = `scan-ticker=${row.ticker}`;
       call.data_source = "public";
-      call.flags = expectedFlags(call);
-      const quoteKey = `${call.source_url}\n${call.body}\n${call.primary}`;
-      if (seenQuotes.has(quoteKey)) {
-        pending.push({
-          ...pendingShape(row),
-          reason: "The same status, quote, and ticker are already a call. Not graded again.",
-        });
-        return;
+      if (primary === "SPX" && named) {
+        call.verification += " The print is SPX. No SPX price is stored, so this call is not graded against SPY.";
       }
-      const issues = classifyCall(call);
-      if (issues.errors.length > 0) {
-        pending.push({
-          ...pendingShape(row),
-          reason: `Ledger refused the row (${issues.errors.join("; ")}). Not graded.`,
-        });
-        return;
+      const sides = [call];
+      if (twoSidedQuote(row.quote)) {
+        const stored = row.direction === "long" ? "long" : "short";
+        const other = stored === "long" ? "short" : "long";
+        call.verification = call.verification.replace(
+          `Direction is the scan value ${stored}.`,
+          `Direction is the ${stored} side of this two-sided quote. The scan stored the row as ${stored}.`,
+        );
+        const flip: CallRow = { ...call };
+        flip.direction = call.direction === "bullish" ? "bearish" : "bullish";
+        flip.sentiment = flip.direction === "bearish" ? "panic" : "meltup";
+        flip.verification = call.verification.replace(
+          `Direction is the ${stored} side of this two-sided quote. The scan stored the row as ${stored}.`,
+          `Direction is the ${other} side of this two-sided quote. The scan stored the row as ${stored}.`,
+        );
+        const base = `${XSCAN_COHORT}__${handle}__${status}__${row.ticker}`;
+        let flipId = call.call_id === base ? `${base}__2` : base;
+        let n = 2;
+        while (flipId === call.call_id || used.has(flipId)) {
+          n += 1;
+          flipId = `${base}__${n}`;
+        }
+        used.set(flipId, 1);
+        flip.call_id = flipId;
+        sides.push(flip);
       }
-      if (named) quotedCalls += 1;
-      else unquotedCalls += 1;
-      seenQuotes.add(quoteKey);
-      calls.push(call);
+      let added = 0;
+      for (const side of sides) {
+        side.flags = expectedFlags(side);
+        const quoteKey = `${side.source_url}\n${side.body}\n${side.primary}\n${side.direction}`;
+        if (seenQuotes.has(quoteKey)) {
+          pending.push({
+            ...pendingShape(row),
+            direction: side.direction === "bearish" ? "short" : "long",
+            reason: "The same status, quote, ticker, and direction are already a call. Not graded again.",
+          });
+          continue;
+        }
+        const issues = classifyCall(side);
+        if (issues.errors.length > 0) {
+          pending.push({
+            ...pendingShape(row),
+            direction: side.direction === "bearish" ? "short" : "long",
+            reason: `Ledger refused the row (${issues.errors.join("; ")}). Not graded.`,
+          });
+          continue;
+        }
+        seenQuotes.add(quoteKey);
+        calls.push(side);
+        added += 1;
+      }
+      if (added === 0) return;
+      if (named) quotedCalls += added;
+      else unquotedCalls += added;
     });
   }
 

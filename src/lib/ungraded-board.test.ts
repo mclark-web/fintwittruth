@@ -155,6 +155,8 @@ test("the pending counter uses Not graded yet", { skip: skipWithoutDb }, async (
   const html = renderToStaticMarkup(await PendingPage());
   assert.match(html, /2026-10-19\/pending/);
   assert.match(html, /Not graded yet/);
+  assert.doesNotMatch(html, /Pending approval/);
+  assert.doesNotMatch(html, /ambiguous=true/);
   assert.doesNotMatch(html, /Nothing is waiting/);
   assert.doesNotMatch(html, /aria-label="0% GC Scale, EXIT LIQUIDITY"/);
   assert.doesNotMatch(html, /NOT GRADED/);

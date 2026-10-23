@@ -75,9 +75,9 @@ export function assertLiveCall(
   if (!/^https:\/\/\S+$/.test(call.sourceUrl)) {
     throw new Error(`Call ${call.id} needs an https source URL. Refusing to invent one.`);
   }
-  const sourceKey = `${call.sourceUrl}\n${call.body}\n${call.primary}`;
+  const sourceKey = `${call.sourceUrl}\n${call.body}\n${call.primary}\n${call.direction}`;
   if (seenUrls.has(sourceKey)) {
-    throw new Error(`Source URL and quote are already in the book: ${call.sourceUrl}`);
+    throw new Error(`Source URL, quote, ticker, and direction are already in the book: ${call.sourceUrl}`);
   }
   seenUrls.add(sourceKey);
   if (!/^[A-Za-z0-9_]{2,30}$/.test(call.handle)) {

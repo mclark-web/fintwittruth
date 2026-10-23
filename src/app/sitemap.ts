@@ -20,7 +20,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/watchlist` },
     { url: `${base}/real` },
     { url: `${base}/leaderboard` },
-    { url: `${base}/pending` },
     { url: `${base}/methodology` },
     { url: `${base}/disclaimer` },
     { url: `${base}/terms` },

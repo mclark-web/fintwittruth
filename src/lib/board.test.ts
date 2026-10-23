@@ -6,12 +6,29 @@ import {
   isDirectionHit,
   pendingReadoutKinds,
   settledReadoutKinds,
+  weekendLead,
 } from "./board";
+import { buildCohortWindow } from "./calendar";
 import { FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG } from "./demo-data";
 import { buildDataset } from "./dataset";
+import { formatWeekday } from "./format";
+import { gcBoardGrade } from "./grades";
 import { READOUTS } from "./scoring";
 
 const data = buildDataset();
+
+test("the closed October 19 lead is the Monday noon board grade", () => {
+  const week = data.cohorts.find((cohort) => cohort.slug === "2026-10-19" && cohort.dataset === "live");
+  assert.ok(week);
+  const scores = week.calls.map((call) => {
+    const grade = week.grades.find((item) => item.callId === call.id && item.readout === "monday");
+    assert.ok(grade);
+    return grade.score;
+  });
+  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 32% WEAK");
+  const open = buildCohortWindow({ year: 2026, month: 10, day: 26 });
+  assert.equal(formatWeekday(open.collectEnd), "Sun Oct 25");
+});
 
 test("a scheduled readout contributes nothing to the primary board", () => {
   const latest = data.cohorts.find((cohort) => cohort.slug === LATEST_COHORT_SLUG);

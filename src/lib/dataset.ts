@@ -477,6 +477,7 @@ export function buildDataset(): BuiltDataset {
             rawMovePct: row.parts.rawMovePct,
             vixMovePct: row.parts.vixMovePct,
             score: row.parts.score,
+            primary: row.call.primary,
           }),
         });
       }

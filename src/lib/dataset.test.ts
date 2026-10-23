@@ -379,13 +379,19 @@ test("direction matches the tape on every published readout", () => {
       if (board?.status !== "published") continue;
       const grades = cohort.grades.filter((grade) => grade.readout === kind);
       assert.ok(grades.length > 0);
-      const tape = grades[0].rawMovePct;
+      const equity = grades.find((grade) => {
+        const call = cohort.calls.find((item) => item.id === grade.callId);
+        return call != null && call.primary !== "VIX";
+      });
+      const tape = equity?.rawMovePct ?? grades[0].rawMovePct;
       for (const grade of grades) {
-        assert.equal(grade.rawMovePct, tape);
         const call = cohort.calls.find((item) => item.id === grade.callId);
         assert.ok(call);
-        const expectedSigned = call.direction === "bullish" ? tape : -tape;
+        const basis = call.primary === "VIX" ? grade.vixMovePct : tape;
+        assert.equal(grade.rawMovePct, basis);
+        const expectedSigned = call.direction === "bullish" ? basis : -basis;
         assert.ok(Math.abs(grade.signedMovePct - expectedSigned) < 1e-12);
+        if (call.primary === "VIX") continue;
         if (tape >= 0.01 && call.direction === "bearish") {
           assert.equal(grade.isStrong, false);
           assert.ok(grade.score < STRONG_LINE);
