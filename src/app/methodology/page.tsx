@@ -100,7 +100,7 @@ export default function MethodologyPage() {
           </div>
           <div className="panel p-4">
             <dt className="font-medium text-ink [text-wrap:balance]">Monday 12:00 PM ET — weekend-noise grade</dt>
-            <dd className="mt-1 text-sm text-muted">
+            <dd className="mt-1 text-sm text-muted [overflow-wrap:anywhere]">
               The primary score. It asks whether the weekend doom, war panic, sell-the-open calls, and melt-up
               calls were still there at noon. The print is the open of the Yahoo Finance 5-minute bar stamped
               12:00 PM America/New_York. The chart endpoint is
