@@ -29,8 +29,8 @@ test("the closed October 19 lead is the latest settled checkpoint", () => {
   assert.equal(grades.length, 3);
   assert.equal(leadReadout(grades), "wednesday");
   const scores = leadScores(grades);
-  assert.deepEqual([...scores].sort((a, b) => a - b), [4, 66, 66]);
-  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 45% PROVISIONAL");
+  assert.deepEqual([...scores].sort((a, b) => a - b), [4, 24, 66]);
+  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 31% WEAK");
   const open = buildCohortWindow({ year: 2026, month: 10, day: 26 });
   assert.equal(formatWeekday(open.collectEnd), "Sun Oct 25");
 });
@@ -73,7 +73,16 @@ test("finished published readouts stay on the board", () => {
       assert.ok(readout);
       const grades = cohort.grades.filter((grade) => grade.readout === kind);
       const onBoard = gradesOnPrimaryBoard(grades, readout.status);
-      assert.equal(onBoard.length, readout.status === "published" ? cohort.calls.length : 0);
+      if (readout.status !== "published") {
+        assert.equal(onBoard.length, 0);
+        continue;
+      }
+      if (cohort.dataset === "demo") {
+        assert.equal(onBoard.length, cohort.calls.length);
+        continue;
+      }
+      assert.ok(onBoard.length <= cohort.calls.length);
+      assert.equal(onBoard.length, grades.length);
     }
   }
 });

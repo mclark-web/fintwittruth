@@ -11,6 +11,9 @@ import {
   type CohortSpec,
 } from "./demo-data";
 import { assertLiveFile, type LiveCallRecord, type LiveCohortRecord } from "./live-book";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { parseCallCsv } from "../../scripts/calls-ledger";
 import { hasMarketHistory, quotesForCohort, sessionFor } from "./quotes";
 import {
   CONVICTION_WEIGHT,
@@ -215,6 +218,30 @@ function buildCalls(
       toneLabel: "",
     };
   });
+}
+
+const CALL_CHECKPOINTS = ["monday", "wednesday", "friday"] as const;
+
+/**
+ * The CSV is the grade ledger. A live call is scored at a checkpoint only when
+ * that cell is GRADED. A pending cell stays off the board even after the print
+ * is recorded, so an ambiguous or tape-default post is not filled in later.
+ */
+let gradedCells: Map<string, Set<string>> | null = null;
+
+function gradedCellsFor(callId: string): Set<string> | null {
+  if (!gradedCells) {
+    gradedCells = new Map();
+    const csv = readFileSync(join(process.cwd(), "data/calls/calls.csv"), "utf8");
+    for (const row of parseCallCsv(csv)) {
+      const graded = new Set<string>();
+      for (const kind of CALL_CHECKPOINTS) {
+        if (row[`${kind}_status`] === "GRADED") graded.add(kind);
+      }
+      gradedCells.set(row.call_id, graded);
+    }
+  }
+  return gradedCells.get(callId) ?? null;
 }
 
 function liveCalls(spec: LiveCohortRecord, cohortId: string): BuiltCall[] {
@@ -423,6 +450,13 @@ export function buildDataset(): BuiltDataset {
       const vixMove = moveOf("VIX");
 
       const scored = calls.flatMap((call) => {
+        if (
+          spec.dataset === "live" &&
+          (kind === "monday" || kind === "wednesday" || kind === "friday") &&
+          !gradedCellsFor(call.id)?.has(kind)
+        ) {
+          return [];
+        }
         const quote = quotes.find((item) => item.symbol === call.primary);
         const now = quote ? quoteAt(quote, kind) : null;
         if (!quote || now == null) return [];

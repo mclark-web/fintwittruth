@@ -8,7 +8,7 @@ GradedCalls Analysts and GradedCalls Sports are sibling verticals. They are not 
 
 The npm package and the SQLite file stay named `fintwittruth`. That is the technical package name, not the public brand.
 
-Production shows sourced public posts only. Each graded card links its source. The latest board is the week of October 19, 2026. Monday noon and the Wednesday, October 21 official close are graded. Friday, October 23 stays ungraded until that close is in. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing. Fictional posts used to exercise the scorer stay in `src/lib/demo-data.ts` for unit tests. They are not seeded and they are not served.
+Production shows sourced public posts only. Each graded card links its source. The latest board is the week of October 19, 2026. Monday noon, the Wednesday, October 21 official close, and the Friday, October 23 official close are in the price file. Friday is graded only on the post that names one whitelist symbol. The ambiguous post and the tape-default post stay pending at Friday, so their call scores stay on Wednesday. The home lead is the mean of those call scores, 31% WEAK. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing. Fictional posts used to exercise the scorer stay in `src/lib/demo-data.ts` for unit tests. They are not seeded and they are not served.
 
 ## Evaluation calendar
 

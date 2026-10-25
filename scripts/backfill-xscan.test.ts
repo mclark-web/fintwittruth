@@ -33,7 +33,7 @@ const GRADED_CHECKPOINTS: Record<string, number> = {
   "2026-09-28": 12,
   "2026-10-05": 12,
   "2026-10-12": 9,
-  "2026-10-19": 6,
+  "2026-10-19": 7,
   "2026-10-26": 0,
 };
 
@@ -102,10 +102,17 @@ test("clear backfill rows are graded at the recorded checkpoints", () => {
   assert.equal(labor.friday_status, "GRADED");
 
   for (const row of rows.filter((item) => item.cohort_slug === "2026-10-19")) {
-    assert.equal(row.friday_status, "PENDING");
-    assert.equal(row.friday_score, "");
     assert.equal(row.monday_status, "GRADED");
     assert.equal(row.wednesday_status, "GRADED");
+    if (row.primary === "QQQ" && row.tickers === "QQQ") {
+      assert.equal(row.friday_status, "GRADED");
+      assert.equal(Number(row.friday_price), sessionClose(row.primary, row.friday_date));
+      assert.equal(row.friday_score, "24");
+      assert.equal(row.friday_grade, "WEAK");
+    } else {
+      assert.equal(row.friday_status, "PENDING");
+      assert.equal(row.friday_score, "");
+    }
   }
   for (const row of backfill.filter((item) => item.cohort_slug === "2026-10-26")) {
     for (const kind of CHECKPOINTS) assert.equal(row[`${kind}_status`], "PENDING");

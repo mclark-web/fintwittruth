@@ -71,7 +71,7 @@ test("every demo post sits inside the Wednesday-to-Sunday collect window", () =>
   }
 });
 
-test("the October 19 week publishes Monday and Wednesday and leaves Friday scheduled", () => {
+test("the October 19 week publishes the Friday close and grades only the recorded Friday cell", () => {
   const prior = data.cohorts.find((cohort) => cohort.slug === "2026-09-28");
   assert.ok(prior);
   assert.match(prior.summary, /Wednesday, September 23, 2026 at 12:00 PM ET through Sunday, September 27 at 5:00 PM ET/);
@@ -96,8 +96,9 @@ test("the October 19 week publishes Monday and Wednesday and leaves Friday sched
   assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
-  assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "scheduled");
-  assert.equal(latest.grades.length, latest.calls.length * 3);
+  assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "published");
+  assert.equal(latest.grades.filter((grade) => grade.readout === "friday").length, 1);
+  assert.equal(latest.grades.length, 10);
 });
 
 test("production keeps sourced calls and drops fictional accounts", () => {
