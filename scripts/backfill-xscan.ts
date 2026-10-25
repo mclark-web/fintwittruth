@@ -29,7 +29,7 @@ import {
   type CallRow,
   type Checkpoint,
 } from "./calls-ledger";
-import { LATER_CALL_REASON, exclusionReason, stampPending } from "./book-policy";
+import { LATER_CALL_REASON, exclusionReason, stampPending } from "../src/lib/book-policy";
 import { etLabelToIso, serializePending, type PendingApprovalRow } from "./xscan-ingest";
 
 const SOURCE_PATH = join(process.cwd(), "data/calls/sources/x-call-backfill-2026-07-27_10-21.csv");

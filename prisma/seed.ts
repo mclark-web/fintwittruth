@@ -64,6 +64,7 @@ async function main() {
             explicit: call.explicit,
             sourceUrl: call.sourceUrl,
             toneLabel: call.toneLabel,
+            posture: call.posture,
           })),
         },
         readouts: {

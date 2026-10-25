@@ -64,11 +64,12 @@ export function formatPct(value: number, digits = 2): string {
 /**
  * Unsigned share, for rates such as "Hit 50%". A plus sign is never added.
  * The percent floors, the same way a GC percent floors, so 12.5% reads 12%.
+ * A binary fraction such as 29/50 is 57.999... in IEEE math; the epsilon keeps that floor at 58.
  */
 export function formatRate(value: number, digits = 0): string {
   const percent = Math.abs(value) * 100;
   const factor = 10 ** digits;
-  const floored = Math.floor(percent * factor) / factor;
+  const floored = Math.floor(percent * factor + 1e-6) / factor;
   return `${floored.toFixed(digits)}%`;
 }
 

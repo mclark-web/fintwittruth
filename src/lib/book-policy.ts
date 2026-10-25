@@ -6,8 +6,23 @@
  * IWM is priced in the symbol list and is not on the graded-print list, so it is queued.
  * A same-day or 0DTE trade is queued instead of graded at the week's later checkpoints.
  */
-import { addCalendarDays, calendarDayString, parseCalendarDay } from "../src/lib/calendar";
-import type { CallRow } from "./calls-ledger";
+import { addCalendarDays, calendarDayString, parseCalendarDay } from "./calendar";
+
+/** The ledger fields the expiry rule reads. One row, not the account's earlier posture. */
+export type BookCall = {
+  call_id: string;
+  cohort_slug: string;
+  handle: string;
+  display_name: string;
+  source_url: string;
+  posted_at: string;
+  direction: string;
+  primary: string;
+  tickers: string;
+  body: string;
+  tone_label?: string;
+  posture?: string;
+};
 
 export type PolicyPendingRow = {
   handle: string;
@@ -28,7 +43,7 @@ export const UNPRICED_INDEX = new Set(["SPX", "NDX", "DJI", "ES", "NQ"]);
 
 export const LATER_CALL_REASON = "Later than the first index call from this handle in the week. Not graded.";
 
-export type QueuedCall = { row: CallRow; reason: string };
+export type QueuedCall = { row: BookCall; reason: string };
 
 /** One verbatim quote that states both a long trigger and a short trigger. */
 export function twoSidedQuote(quote: string): boolean {
@@ -78,7 +93,7 @@ function etCalendarDate(iso: string): string {
  * An intraday label from earlier in the window is not expired by the label alone.
  */
 export function expiresBeforeReadout(
-  row: Pick<CallRow, "body" | "cohort_slug"> & Partial<Pick<CallRow, "tone_label" | "posture" | "posted_at">>,
+  row: Pick<BookCall, "body" | "cohort_slug"> & Partial<Pick<BookCall, "tone_label" | "posture" | "posted_at">>,
 ): boolean {
   const tone = `${row.tone_label ?? ""} ${row.posture ?? ""}`;
   if (/\b0\s*-?\s*dte\b/i.test(tone)) return true;
@@ -86,6 +101,24 @@ export function expiresBeforeReadout(
   if (!/\bintraday\b/i.test(tone) || !row.posted_at) return false;
   const friday = calendarDayString(addCalendarDays(parseCalendarDay(row.cohort_slug), -3));
   return etCalendarDate(row.posted_at) === friday;
+}
+
+/** The call page passes that row's tone and posture. The account posture is a different field. */
+export function rowExpiresBeforeReadout(row: {
+  body: string;
+  cohortSlug: string;
+  toneLabel: string;
+  posture: string;
+  postedAt: Date | string;
+}): boolean {
+  const postedAt = row.postedAt instanceof Date ? row.postedAt.toISOString() : row.postedAt;
+  return expiresBeforeReadout({
+    body: row.body,
+    cohort_slug: row.cohortSlug,
+    tone_label: row.toneLabel,
+    posture: row.posture,
+    posted_at: postedAt,
+  });
 }
 
 function expiryOnOrBeforeMonday(quote: string, monday: string): boolean {
@@ -110,7 +143,7 @@ function expiryOnOrBeforeMonday(quote: string, monday: string): boolean {
   return false;
 }
 
-function firstTicker(row: Pick<CallRow, "tickers" | "primary">): string {
+function firstTicker(row: Pick<BookCall, "tickers" | "primary">): string {
   const named = row.tickers
     .split(";")
     .map((ticker) => ticker.trim().toUpperCase())
@@ -123,8 +156,8 @@ function firstTicker(row: Pick<CallRow, "tickers" | "primary">): string {
  * Null means it is an index call that can compete for the one slot.
  */
 export function exclusionReason(
-  row: Pick<CallRow, "body" | "primary" | "tickers" | "cohort_slug"> &
-    Partial<Pick<CallRow, "tone_label" | "posture" | "posted_at">>,
+  row: Pick<BookCall, "body" | "primary" | "tickers" | "cohort_slug"> &
+    Partial<Pick<BookCall, "tone_label" | "posture" | "posted_at">>,
 ): string | null {
   const ticker = firstTicker(row);
   const primary = row.primary.toUpperCase();
@@ -141,7 +174,7 @@ export function exclusionReason(
   return "Single-name call. Graded prints are SPY, QQQ, and DIA. Not graded.";
 }
 
-function byPosted(a: CallRow, b: CallRow): number {
+function byPosted(a: BookCall, b: BookCall): number {
   if (a.posted_at < b.posted_at) return -1;
   if (a.posted_at > b.posted_at) return 1;
   if (a.call_id < b.call_id) return -1;
@@ -150,22 +183,22 @@ function byPosted(a: CallRow, b: CallRow): number {
 }
 
 /** Keep the earliest index call per handle per week. Everything else is queued. */
-export function partitionBook(rows: CallRow[]): { keep: CallRow[]; queue: QueuedCall[] } {
-  const queue: QueuedCall[] = [];
-  const candidates: CallRow[] = [];
+export function partitionBook<T extends BookCall>(rows: T[]): { keep: T[]; queue: { row: T; reason: string }[] } {
+  const queue: { row: T; reason: string }[] = [];
+  const candidates: T[] = [];
   for (const row of rows) {
     const reason = exclusionReason(row);
     if (reason) queue.push({ row, reason });
     else candidates.push(row);
   }
-  const groups = new Map<string, CallRow[]>();
+  const groups = new Map<string, T[]>();
   for (const row of candidates) {
     const key = `${row.cohort_slug}\n${row.handle.toLowerCase()}`;
     const list = groups.get(key) ?? [];
     list.push(row);
     groups.set(key, list);
   }
-  const keep: CallRow[] = [];
+  const keep: T[] = [];
   for (const list of groups.values()) {
     list.sort(byPosted);
     const [first, ...rest] = list;
@@ -203,7 +236,7 @@ export function isoToEtLabel(iso: string): string {
   return `${get("year")}-${get("month")}-${get("day")} ${hour}:${get("minute")}:${get("second")} ET`;
 }
 
-export function pendingFromCall(row: CallRow, reason: string): PolicyPendingRow {
+export function pendingFromCall(row: BookCall, reason: string): PolicyPendingRow {
   const direction = row.direction === "bearish" ? "short" : row.direction === "bullish" ? "long" : row.direction;
   return stampPending({
     handle: row.handle,

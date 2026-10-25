@@ -7,7 +7,7 @@ import { PricePath, PriceSource, TapeMark } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ReadoutBubble, ReferenceLine, ScoreMark } from "@/components/score";
 import { disputePath } from "@/lib/dispute";
 import { etYmd, formatScopeWhen, formatSignedPct } from "@/lib/format";
-import { expiresBeforeReadout } from "../../../../scripts/book-policy";
+import { rowExpiresBeforeReadout } from "@/lib/book-policy";
 import { pendingClosure, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { settledGradeKinds } from "@/lib/board";
@@ -52,16 +52,7 @@ function gradeBasis(
   if (call.tickers.length === 0 && !call.explicit && call.primary === "SPY") {
     return "This post names no ticker. It stays pending and is not graded on SPY.";
   }
-  if (
-    !graded &&
-    expiresBeforeReadout({
-      body: call.body,
-      cohort_slug: call.cohortSlug,
-      tone_label: call.toneLabel,
-      posture: call.posture,
-      posted_at: call.postedAt.toISOString(),
-    })
-  ) {
+  if (!graded && rowExpiresBeforeReadout(call)) {
     return "This call is not graded. A same-day or expired trade stays off this week's checkpoints.";
   }
   const primary = call.primary;

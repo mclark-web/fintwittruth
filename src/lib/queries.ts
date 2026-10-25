@@ -207,6 +207,7 @@ type CallRecord = {
   explicit: boolean;
   sourceUrl: string;
   toneLabel: string;
+  posture: string;
   account: {
     handle: string;
     displayName: string;
@@ -262,7 +263,7 @@ function mapCall(call: CallRecord): CallView {
     handle: call.account.handle,
     displayName: call.account.displayName,
     accent: call.account.accent,
-    posture: call.account.posture,
+    posture: call.posture,
     bio: call.account.bio,
     bucket: asBucket(call.account.bucket),
     body: call.body,

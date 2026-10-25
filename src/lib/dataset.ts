@@ -75,6 +75,7 @@ export type BuiltCall = {
   explicit: boolean;
   sourceUrl: string;
   toneLabel: string;
+  posture: string;
 };
 
 export type BuiltGrade = {
@@ -216,6 +217,7 @@ function buildCalls(
       explicit: call.explicit,
       sourceUrl: "",
       toneLabel: "",
+      posture: account?.posture ?? "",
     };
   });
 }
@@ -263,6 +265,7 @@ function liveCalls(spec: LiveCohortRecord, cohortId: string): BuiltCall[] {
     explicit: call.explicit,
     sourceUrl: call.sourceUrl,
     toneLabel: call.toneLabel,
+    posture: call.posture,
   }));
 }
 

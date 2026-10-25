@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
-import { exclusionReason, expiresBeforeReadout, partitionBook, sameDayHorizon, stampPending, twoSidedQuote } from "./book-policy";
+import { exclusionReason, expiresBeforeReadout, partitionBook, rowExpiresBeforeReadout, sameDayHorizon, stampPending, twoSidedQuote } from "../src/lib/book-policy";
+import { productionBook } from "../src/lib/dataset";
 import type { CallRow } from "./calls-ledger";
 
 function row(partial: Partial<CallRow> & Pick<CallRow, "call_id" | "cohort_slug" | "handle" | "posted_at" | "primary" | "body">): CallRow {
@@ -126,4 +129,68 @@ test("a two-sided queue row is labeled two-sided and keeps the ticker sentence",
   });
   assert.equal(stamped.direction, "two-sided");
   assert.equal(stamped.reason, "Two-sided. The verbatim quote does not name the ticker. Not graded.");
+});
+
+test("Cruz's Oct 26 call uses that row's intraday fields, not the earlier 0DTE posture", () => {
+  const cruz = "2026-10-26__CruzMartnz1__2113296015025668443__SPY";
+  const stillUngraded = [
+    "2026-08-24__clintoptions__2090878128801591382__SPY",
+    "2026-09-28__BatsPortfolio__2103116800858919360__SPY",
+    "2026-10-05__BatsPortfolio__2106015781746364836__SPY",
+    "2026-10-05__buythedip82__2105365758872281310__SPY",
+    "2026-10-12__clintoptions__2108594736554541253__SPY",
+    "2026-10-26__CruzMartnz1__2113294984044839189__SPY",
+  ];
+  const book = productionBook();
+  const account = book.accounts.find((item) => item.handle === "CruzMartnz1");
+  assert.equal(account?.posture, "0DTE");
+  const calls = book.cohorts.flatMap((cohort) => cohort.calls.map((call) => ({ call, slug: cohort.slug })));
+  const row = calls.find((item) => item.call.id === cruz);
+  assert.ok(row);
+  assert.equal(row.call.posture, "intraday");
+  assert.equal(row.call.toneLabel, "intraday");
+  assert.equal(
+    rowExpiresBeforeReadout({
+      body: row.call.body,
+      cohortSlug: row.slug,
+      toneLabel: row.call.toneLabel,
+      posture: row.call.posture,
+      postedAt: row.call.postedAt,
+    }),
+    false,
+  );
+  assert.equal(
+    rowExpiresBeforeReadout({
+      body: row.call.body,
+      cohortSlug: row.slug,
+      toneLabel: row.call.toneLabel,
+      posture: account?.posture ?? "",
+      postedAt: row.call.postedAt,
+    }),
+    true,
+  );
+  for (const id of stillUngraded) {
+    const other = calls.find((item) => item.call.id === id);
+    assert.ok(other, id);
+    assert.equal(
+      rowExpiresBeforeReadout({
+        body: other.call.body,
+        cohortSlug: other.slug,
+        toneLabel: other.call.toneLabel,
+        posture: other.call.posture,
+        postedAt: other.call.postedAt,
+      }),
+      true,
+      id,
+    );
+  }
+  const root = process.cwd();
+  const queries = readFileSync(join(root, "src/lib/queries.ts"), "utf8");
+  const mapCall = queries.slice(queries.indexOf("function mapCall"), queries.indexOf("const callInclude"));
+  assert.match(mapCall, /posture: call\.posture/);
+  assert.doesNotMatch(mapCall, /account\.posture/);
+  const page = readFileSync(join(root, "src/app/calls/[id]/page.tsx"), "utf8");
+  assert.match(page, /rowExpiresBeforeReadout\(call\)/);
+  assert.doesNotMatch(page, /account\.posture/);
+  assert.doesNotMatch(page, /scripts\/book-policy/);
 });

@@ -69,6 +69,8 @@ model Call {
   explicit    Boolean
   sourceUrl   String   @default("")
   toneLabel   String   @default("")
+  // This row's posture. The account posture is the handle's first row and is not this call.
+  posture     String   @default("")
   cohort      Cohort   @relation(fields: [cohortId], references: [id], onDelete: Cascade)
   account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
   grades      Grade[]

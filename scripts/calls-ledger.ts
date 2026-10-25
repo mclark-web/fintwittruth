@@ -32,7 +32,7 @@ import {
   type Level,
   type Sentiment,
 } from "../src/lib/scoring";
-import { expiresBeforeReadout } from "./book-policy";
+import { expiresBeforeReadout } from "../src/lib/book-policy";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 

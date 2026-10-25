@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { zonedToUtc } from "../src/lib/calendar";
 import { mentionedSymbols } from "../src/lib/extract-call";
 import { loadWatchlist } from "../src/lib/watchlist";
-import { partitionBook, pendingFromCall, stampPending, twoSidedQuote } from "./book-policy";
+import { partitionBook, pendingFromCall, stampPending, twoSidedQuote } from "../src/lib/book-policy";
 import {
   INDEX_PRINT,
   checkpointCalendar,

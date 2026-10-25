@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { addCalendarDays, calendarDayString, parseCalendarDay } from "../src/lib/calendar";
-import { partitionBook, pendingFromCall, pendingKey, stampPending, type PolicyPendingRow } from "./book-policy";
+import { partitionBook, pendingFromCall, pendingKey, stampPending, type PolicyPendingRow } from "../src/lib/book-policy";
 import { CALLS_CSV_PATH, parseCallCsv, parseCsv, serializeCallCsv, type CallRow } from "./calls-ledger";
 import { planBackfill } from "./backfill-xscan";
 import { ingestXScan, readScanFile, serializePending } from "./xscan-ingest";
