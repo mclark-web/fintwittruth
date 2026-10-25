@@ -7,12 +7,17 @@ import { TAPE_DISPLAY } from "../src/lib/prints";
 import { planCheckpoint } from "../src/lib/settlement";
 import {
   NOON_LIVE_PULLS,
+  chartFromRaw,
+  expectedMinuteRequest,
+  loadMinuteReceipt,
   loadNoonReceipt,
   noonMajority,
   readNoonReading,
+  resolvedNoonOpen,
+  verifyMinuteReceipt,
   verifyNoonReceipt,
 } from "../src/lib/noon-receipt";
-import { etParts, fetchChart, pricesAgree, readDailyBar, readOfficialClose, unix } from "../src/lib/yahoo";
+import { etParts, fetchChart, fetchChartText, pricesAgree, readDailyBar, readOfficialClose, unix } from "../src/lib/yahoo";
 
 type HistoryCohort = {
   referenceDate: string;
@@ -188,6 +193,37 @@ async function adviseLiveNoon(symbol: string, ymd: string, committed: number) {
   );
 }
 
+/** Live 1-minute check for a filled 5-minute bar. A flip does not fail CI. The filled flag stays in the log. */
+async function adviseLiveMinute(symbol: string, ymd: string, committed: number) {
+  const opens: number[] = [];
+  const request = expectedMinuteRequest(symbol, ymd);
+  for (let pull = 1; pull <= NOON_LIVE_PULLS; pull += 1) {
+    if (pull > 1) await sleep(400);
+    try {
+      const raw = await fetchChartText(request.url);
+      const reading = readNoonReading(chartFromRaw(raw), ymd);
+      opens.push(reading.open);
+      if (reading.filled) {
+        console.log(
+          `advisory ${symbol} Monday noon 1-minute live pull ${pull} possible filled bar: 12:00 open equals the previous bar close`,
+        );
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.log(`advisory ${symbol} Monday noon 1-minute live pull ${pull} Yahoo unstable. ${message}`);
+    }
+  }
+  const vote = noonMajority(opens);
+  if (vote.status === "unstable") {
+    console.log(`advisory ${symbol} Monday noon 1-minute Yahoo unstable`);
+    return;
+  }
+  const same = pricesAgree(committed, vote.open) && formatPrice(committed) === formatPrice(vote.open);
+  console.log(
+    `advisory ${symbol} Monday noon 1-minute live majority ${formatPrice(vote.open)}; committed file ${formatPrice(committed)}${same ? "" : "; live print differs and does not change the grade"}`,
+  );
+}
+
 async function main() {
   const data = buildDataset();
   const liveCohorts = data.cohorts.filter((cohort) => cohort.dataset === "live");
@@ -234,31 +270,63 @@ async function main() {
       // Yahoo sometimes copies that close into the 12:00 open. That filled bar is not the grade.
       // The live re-check is advisory and cannot fail this guard.
       let committedOpen: number | null = null;
+      let filledBar = false;
       try {
         const receipt = loadNoonReceipt(spec.monday.date, quote.symbol);
         const noon = verifyNoonReceipt(receipt);
-        committedOpen = noon.open;
+        let gradeOpen = noon.open;
         if (noon.filled) {
+          filledBar = true;
           console.log(
             `advisory ${quote.symbol} Monday noon possible filled bar: 12:00 open equals the previous bar close`,
           );
+          const minute = verifyMinuteReceipt(loadMinuteReceipt(spec.monday.date, quote.symbol));
+          if (minute.filled) {
+            console.log(
+              `advisory ${quote.symbol} Monday noon 1-minute possible filled bar: 12:00 open equals the previous bar close`,
+            );
+          }
+          const resolved = resolvedNoonOpen(noon, minute);
+          if (!resolved.ok) {
+            mismatches.push(`${quote.symbol} Monday noon ${resolved.message}`);
+            gradeOpen = Number.NaN;
+          } else {
+            gradeOpen = resolved.open;
+            if (resolved.confirmed) {
+              console.log(
+                `advisory ${quote.symbol} Monday noon 1-minute 12:00 open ${formatPrice(minute.open)} confirms the 5-minute print. The filled flag stays. The grade stays ${formatPrice(resolved.open)}.`,
+              );
+            } else {
+              console.log(
+                `advisory ${quote.symbol} Monday noon filled 5-minute open ${formatPrice(noon.open)} is not the grade. The 1-minute 12:00 open ${formatPrice(resolved.open)} is the grade.`,
+              );
+            }
+          }
         }
-        if (
-          quote.monday == null ||
-          !pricesAgree(quote.monday, noon.open) ||
-          formatPrice(quote.monday) !== formatPrice(noon.open)
-        ) {
-          mismatches.push(
-            `${quote.symbol} Monday noon displayed ${quote.monday == null ? "blank" : formatPrice(quote.monday)} vs committed Yahoo ${formatPrice(noon.open)}`,
-          );
+        if (Number.isNaN(gradeOpen)) {
+          committedOpen = null;
         } else {
-          console.log(`ok ${quote.symbol} Monday noon ${formatPrice(quote.monday)}`);
+          committedOpen = gradeOpen;
+          if (
+            quote.monday == null ||
+            !pricesAgree(quote.monday, gradeOpen) ||
+            formatPrice(quote.monday) !== formatPrice(gradeOpen)
+          ) {
+            mismatches.push(
+              `${quote.symbol} Monday noon displayed ${quote.monday == null ? "blank" : formatPrice(quote.monday)} vs committed Yahoo ${formatPrice(gradeOpen)}`,
+            );
+          } else {
+            console.log(`ok ${quote.symbol} Monday noon ${formatPrice(quote.monday)}`);
+          }
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         mismatches.push(`${quote.symbol} Monday noon receipt failed. ${message}`);
       }
-      if (committedOpen != null) await adviseLiveNoon(quote.symbol, spec.monday.date, committedOpen);
+      if (committedOpen != null) {
+        await adviseLiveNoon(quote.symbol, spec.monday.date, committedOpen);
+        if (filledBar) await adviseLiveMinute(quote.symbol, spec.monday.date, committedOpen);
+      }
     }
     await checkClose({
       symbol: quote.symbol,

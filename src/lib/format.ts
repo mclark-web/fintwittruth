@@ -61,12 +61,18 @@ export function formatPct(value: number, digits = 2): string {
   return `${sign}${pct.toFixed(digits)}%`;
 }
 
-/** Unsigned share, for rates such as "Hit 50%". A plus sign is never added. */
+/**
+ * Unsigned share, for rates such as "Hit 50%". A plus sign is never added.
+ * The percent floors, the same way a GC percent floors, so 12.5% reads 12%.
+ */
 export function formatRate(value: number, digits = 0): string {
-  return `${(Math.abs(value) * 100).toFixed(digits)}%`;
+  const percent = Math.abs(value) * 100;
+  const factor = 10 ** digits;
+  const floored = Math.floor(percent * factor) / factor;
+  return `${floored.toFixed(digits)}%`;
 }
 
-/** "Hit 13% of 8 readouts". The percent stays on toFixed; the count is the denominator. */
+/** "Hit 12% of 8 readouts". The percent floors, the same way a GC percent floors. */
 export function hitRateLabel(rate: number, total: number): string {
   return `Hit ${formatRate(rate, 0)} of ${total} readouts`;
 }

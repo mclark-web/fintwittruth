@@ -115,6 +115,12 @@ export default function MethodologyPage() {
               The 11:55 5-minute bar closes at 769.45, which is also the 11:59 1-minute close. Yahoo
               sometimes serves that 769.45 figure as the 12:00 open. That filled open is not the grade.
               The stored Monday grade is the unfilled 12:00 5-minute open. VIX uses the same stamp.
+              On October 19, 2026 the VIX 12:00 open is 17.68. That open equals the previous 5-minute
+              close, so the filled flag stays. Three live pulls agreed, and the 1-minute bar at 12:00
+              also opens at 17.68, the same figure as the 11:59 close. There is no separate unfilled
+              open. The grade stays 17.68. A filled 5-minute open that does not match the 1-minute
+              12:00 open is not the grade. The Monday receipt step writes those raw Yahoo bodies, so a
+              later Monday does not wait on a hand edit.
             </dd>
           </div>
           <div className="panel p-4">
@@ -147,6 +153,7 @@ export default function MethodologyPage() {
               The home tape, weekly rankings, leaderboards, and account scorecards list a call only after a
               readout has settled. Monday&apos;s open, Monday noon, the Wednesday close, and the Friday close are those horizons.
               Hit rate, STRONG rate, and WEAK rate are the share of settled readouts, not the share of calls.
+              The hit percent on the board floors, the same way a GC percent floors, so 1 of 8 readouts reads 12%.
               A readout is Monday&apos;s open, Monday noon, the Wednesday close, or the Friday close. The graded-checkpoint
               count is Monday noon, Wednesday, and Friday only, so a hit rate can include the Monday open and
               still differ from that checkpoint total. While a readout is still scheduled,

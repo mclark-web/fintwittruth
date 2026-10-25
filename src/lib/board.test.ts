@@ -169,7 +169,7 @@ test("buythedip82 rate labels show the readout count", () => {
         })),
     );
   const stats = handleBoardStats(calls);
-  assert.equal(hitRateLabel(stats.hitRate, stats.readoutCount), "Hit 13% of 8 readouts");
+  assert.equal(hitRateLabel(stats.hitRate, stats.readoutCount), "Hit 12% of 8 readouts");
   assert.equal(bandRateLabel("WEAK", stats.weakCount, stats.readoutCount), "WEAK on 7 of 8");
   assert.equal(bandRateLabel("STRONG", stats.strongCount, stats.readoutCount), `STRONG on ${stats.strongCount} of 8`);
 });

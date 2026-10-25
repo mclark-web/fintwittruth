@@ -3,11 +3,16 @@ import test from "node:test";
 import { formatPrice } from "./format";
 import {
   chartFromRaw,
+  expectedMinuteRequest,
   expectedNoonRequest,
+  loadMinuteReceipt,
   loadNoonReceipt,
+  noonBarStamp,
   noonMajority,
   readNoonReading,
+  resolvedNoonOpen,
   sha256Text,
+  verifyMinuteReceipt,
   verifyNoonReceipt,
 } from "./noon-receipt";
 import { noonOpen } from "./quotes";
@@ -81,6 +86,55 @@ test("a receipt checksum covers the raw body", () => {
   );
 });
 
+test("a noon stamp keeps the ET offset", () => {
+  assert.equal(noonBarStamp("2026-10-19"), "2026-10-19T12:00:00-04:00");
+  assert.equal(noonBarStamp("2026-01-05"), "2026-01-05T12:00:00-05:00");
+});
+
+test("a filled 5-minute open is not the grade when the 1-minute open differs", () => {
+  const five = readNoonReading(filled, "2026-10-19");
+  const minuteChart: ChartResult = {
+    timestamp: [Date.parse("2026-10-19T15:59:00Z") / 1000, Date.parse("2026-10-19T16:00:00Z") / 1000],
+    indicators: { quote: [{ open: [769.45, 769.0723876953125], close: [769.45, 768.9] }] },
+  };
+  const minute = readNoonReading(minuteChart, "2026-10-19");
+  const resolved = resolvedNoonOpen(five, minute);
+  assert.equal(resolved.ok, true);
+  if (!resolved.ok) return;
+  assert.equal(resolved.confirmed, false);
+  assert.equal(resolved.open, 769.0723876953125);
+  assert.match(resolved.note, /possible filled bar/);
+  assert.match(resolved.note, /not the grade/);
+  const missing = resolvedNoonOpen(five, null);
+  assert.equal(missing.ok, false);
+});
+
+test("a filled open that matches the 1-minute open stays the grade and keeps the flag", () => {
+  const five = readNoonReading(
+    {
+      timestamp: [Date.parse("2026-10-19T15:55:00Z") / 1000, Date.parse("2026-10-19T16:00:00Z") / 1000],
+      indicators: { quote: [{ open: [17.53, 17.68000030517578], close: [17.68000030517578, 17.95] }] },
+    },
+    "2026-10-19",
+  );
+  const minute = readNoonReading(
+    {
+      timestamp: [Date.parse("2026-10-19T15:59:00Z") / 1000, Date.parse("2026-10-19T16:00:00Z") / 1000],
+      indicators: { quote: [{ open: [17.66, 17.68000030517578], close: [17.68000030517578, 17.71] }] },
+    },
+    "2026-10-19",
+  );
+  assert.equal(five.filled, true);
+  assert.equal(minute.filled, true);
+  const resolved = resolvedNoonOpen(five, minute);
+  assert.equal(resolved.ok, true);
+  if (!resolved.ok) return;
+  assert.equal(resolved.confirmed, true);
+  assert.equal(resolved.filled, true);
+  assert.equal(resolved.open, 17.68000030517578);
+  assert.match(resolved.note, /filled flag stays/);
+});
+
 test("committed October 19 noon receipts match the price file", () => {
   const held = {
     SPY: { open: 769.0723876953125, filled: false },
@@ -98,4 +152,24 @@ test("committed October 19 noon receipts match the price file", () => {
     assert.equal(formatPrice(stored), formatPrice(checked.open));
     assert.equal(chartFromRaw(receipt.raw).timestamp?.includes(1792425600), true);
   }
+});
+
+test("October 19 VIX noon stays 17.68 and the filled flag stays", () => {
+  const five = verifyNoonReceipt(loadNoonReceipt("2026-10-19", "VIX"));
+  const minuteReceipt = loadMinuteReceipt("2026-10-19", "VIX");
+  const minute = verifyMinuteReceipt(minuteReceipt);
+  assert.equal(minuteReceipt.interval, "1m");
+  assert.equal(minuteReceipt.url, expectedMinuteRequest("VIX", "2026-10-19").url);
+  assert.equal(five.filled, true);
+  assert.equal(minute.filled, true);
+  assert.equal(five.open, 17.68000030517578);
+  assert.equal(minute.open, 17.68000030517578);
+  assert.equal(minute.previousClose, 17.68000030517578);
+  const resolved = resolvedNoonOpen(five, minute);
+  assert.equal(resolved.ok, true);
+  if (!resolved.ok) return;
+  assert.equal(resolved.confirmed, true);
+  assert.equal(resolved.open, 17.68000030517578);
+  assert.match(resolved.note, /possible filled bar/);
+  assert.match(resolved.note, /filled flag stays/);
 });

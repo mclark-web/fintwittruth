@@ -8,7 +8,7 @@ test("a UTC fetch time is shown in ET", () => {
 });
 
 test("rate labels keep the readout count beside the rounded percent", () => {
-  assert.equal(hitRateLabel(1 / 8, 8), "Hit 13% of 8 readouts");
+  assert.equal(hitRateLabel(1 / 8, 8), "Hit 12% of 8 readouts");
   assert.equal(bandRateLabel("WEAK", 7, 8), "WEAK on 7 of 8");
   assert.equal(bandRateLabel("STRONG", 2, 8), "STRONG on 2 of 8");
 });

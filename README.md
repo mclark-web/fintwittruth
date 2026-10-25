@@ -8,7 +8,7 @@ GradedCalls Analysts and GradedCalls Sports are sibling verticals. They are not 
 
 The npm package and the SQLite file stay named `fintwittruth`. That is the technical package name, not the public brand.
 
-Production shows sourced public posts only. Each graded card links its source. The latest board is the week of October 19, 2026. Monday noon, the Wednesday, October 21 official close, and the Friday, October 23 official close are in the price file. Monday noon is the open of the 12:00 PM ET 5-minute bar. On October 19 that unfilled open is 769.07. 769.45 is the 11:55 close and the previous bar's close. Yahoo sometimes copies that close into the 12:00 open, and that filled bar is not the grade. The raw Yahoo response is committed, and the accuracy guard checks that file. A live re-check is advisory and does not fail when Yahoo flips. A call's direction score is the recorded primary's move, not the equal-weight SPY, QQQ, and DIA average. Friday is graded on that primary once an earlier checkpoint is graded. A post that names no ticker is not shown. It stays in the ledger with exclusion reason no-ticker and is left out of the pages, counts, ranks, lead, and sitemap. The home lead is the mean of the Friday call scores on the newest closed week, 22% WEAK. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing. Fictional posts used to exercise the scorer stay in `src/lib/demo-data.ts` for unit tests. They are not seeded and they are not served.
+Production shows sourced public posts only. Each graded card links its source. The latest board is the week of October 19, 2026. Monday noon, the Wednesday, October 21 official close, and the Friday, October 23 official close are in the price file. Monday noon is the open of the 12:00 PM ET 5-minute bar. On October 19 that unfilled open is 769.07. 769.45 is the 11:55 close and the previous bar's close. Yahoo sometimes copies that close into the 12:00 open, and that filled bar is not the grade. VIX on that Monday is 17.68. The 5-minute open equals the previous close, so the filled flag stays, and the 1-minute 12:00 open is the same 17.68, so the grade stays. A filled 5-minute open that differs from the 1-minute 12:00 open is not the grade. The raw Yahoo response is committed, and the accuracy guard checks that file. A live re-check is advisory and does not fail when Yahoo flips. A call's direction score is the recorded primary's move, not the equal-weight SPY, QQQ, and DIA average. Friday is graded on that primary once an earlier checkpoint is graded. A post that names no ticker is not shown. It stays in the ledger with exclusion reason no-ticker and is left out of the pages, counts, ranks, lead, and sitemap. The home lead is the mean of the Friday call scores on the newest closed week, 22% WEAK. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing. Fictional posts used to exercise the scorer stay in `src/lib/demo-data.ts` for unit tests. They are not seeded and they are not served.
 
 ## Evaluation calendar
 
@@ -41,7 +41,7 @@ The in-app methodology page states this again. The latest verified week publishe
 
 Founder choice: hide pending until settle. The home tape, weekly rankings, leaderboards, and account scorecards list only calls that already have a settled grade. A readout is settled when its status is `published` (Monday gap, Monday noon, Wednesday close, or Friday close). The scorer writes grade rows at that gate and leaves a scheduled horizon empty. The board layer drops those empty horizons from the primary rankings.
 
-Hit rate, STRONG rate, and WEAK rate are computed from settled grades only. A handle with no settled grade is not ranked. Hit rate is the share of settled grades where the tape moved with the call by at least 0.08%.
+Hit rate, STRONG rate, and WEAK rate are computed from settled grades only. A handle with no settled grade is not ranked. Hit rate is the share of settled grades where the tape moved with the call by at least 0.08%. The hit percent on the board floors, the same way a GC percent floors, so 1 of 8 readouts reads 12%.
 
 Calls still waiting on a tape are listed at `/pending` and `/weeks/[slug]/pending`. Those pages are linked from the boards and the footer. They are not in the primary nav and they are not mixed into the rankings. A cohort with nothing graded yet shows a short empty state instead of a table of blanks.
 
@@ -98,7 +98,8 @@ Weekly flow:
 2. Run `npm run calls:validate`. The run fails on a duplicate id, a missing source URL, a graded row without the price at the call and the price at the checkpoint, a ticker or index the post did not name, a checkpoint date outside that cohort's Monday, Wednesday, or Friday, or a value the scorer would not produce.
 3. Run `npm run calls:export`.
 4. On Wednesday and Friday the settle workflow writes the official Yahoo close into `src/lib/market-history.json`, then runs `npm run calls:settle -- --write`. That fills a due checkpoint when the post names exactly one whitelist symbol and that symbol is the row's primary. Once a primary is already graded, the next due checkpoint uses that same primary. A same-day or 0DTE trade stays pending. `npm run calls:settle` with no flag is a dry-run and does not write the CSV.
-5. Open a data pull request with the CSV and the exported JSON. If the call rows did not change, the JSON diff is empty.
+5. On Monday, after the 45-minute buffer, the noon workflow runs `npm run noon:receipts`. It writes the raw Yahoo 5-minute receipt for each symbol on the grade tape, and a 1-minute receipt when that 5-minute open is a possible filled bar. It records a missing Monday noon in the price file. It does not overwrite a noon print that is already stored. A same-day or expired call stays ungraded, and its page says so.
+6. Open a data pull request with the CSV and the exported JSON. If the call rows did not change, the JSON diff is empty.
 
 The ledger does not scrape X and it does not add a market-data vendor. Prints come from the Yahoo history the site already records. A post that names no ticker is not shown. It stays in `data/calls/calls.csv` with exclusion reason `no-ticker` and is not exported. A post that was never graded stays pending when it names more than one print. After a primary named in the post is recorded, later checkpoints grade on that primary. A missing print is not invented.
 
@@ -142,7 +143,7 @@ Use these settings. The defaults already match. Do not override the build comman
 | --- | --- |
 | Framework preset | Next.js |
 | Root directory | repository root |
-| Node.js version | 22.x (`engines` in `package.json`) |
+| Node.js version | 22 (`.nvmrc` and `engines`). Node 20 has no global WebSocket, so the pill contrast test fails there. |
 | Install command | `npm install` (leave the default) |
 | Build command | `npm run build` (leave the default) |
 | Output directory | leave the Next.js default |
