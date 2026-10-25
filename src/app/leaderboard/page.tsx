@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PendingSettleLink } from "@/components/board-state";
 import { GradePill } from "@/components/gc-tube";
-import { formatRate, formatScore } from "@/lib/format";
+import { bandRateLabel, formatScore, hitRateLabel } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import { getLeaderboard, type LeaderRow } from "@/lib/queries";
 
@@ -46,24 +46,16 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                   })}
                 />
               </div>
-              <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <dt className="text-xs text-[#9a9aa3]">Hit</dt>
-                  <dd className="font-mono">{formatRate(row.hitRate, 0)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-[#9a9aa3]">STRONG rate</dt>
-                  <dd className="font-mono">{formatRate(row.strongRate, 0)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-[#9a9aa3]">WEAK rate</dt>
-                  <dd className="font-mono">{formatRate(row.weakRate, 0)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-[#9a9aa3]">Graded calls</dt>
-                  <dd className="font-mono">{row.callCount}</dd>
-                </div>
-              </dl>
+              <ul className="mt-3 grid gap-1 text-sm">
+                <li className="font-mono [overflow-wrap:anywhere]">{hitRateLabel(row.hitRate, row.readoutCount)}</li>
+                <li className="font-mono [overflow-wrap:anywhere]">
+                  {bandRateLabel("STRONG", row.strongCount, row.readoutCount)}
+                </li>
+                <li className="font-mono [overflow-wrap:anywhere]">
+                  {bandRateLabel("WEAK", row.weakCount, row.readoutCount)}
+                </li>
+                <li className="font-mono text-muted">Graded calls {row.callCount}</li>
+              </ul>
               <p className="mt-2 font-mono text-xs text-muted">
                 Best {formatScore(row.bestScore)}% · worst {formatScore(row.worstScore)}%
               </p>
@@ -80,9 +72,15 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
               <th scope="col" className="px-4 py-3 font-medium">Account</th>
               <th scope="col" className="px-4 py-3 font-medium">Average grade</th>
               <th scope="col" className="px-4 py-3 font-medium">Grade</th>
-              <th scope="col" className="px-4 py-3 font-medium">Hit</th>
-              <th scope="col" className="px-4 py-3 font-medium">STRONG rate</th>
-              <th scope="col" className="px-4 py-3 font-medium">WEAK rate</th>
+              <th scope="col" className="px-2 py-3 font-medium [overflow-wrap:anywhere]">
+                Hit
+              </th>
+              <th scope="col" className="px-2 py-3 font-medium [overflow-wrap:anywhere]">
+                STRONG
+              </th>
+              <th scope="col" className="px-2 py-3 font-medium [overflow-wrap:anywhere]">
+                WEAK
+              </th>
               <th scope="col" className="px-4 py-3 font-medium">Graded calls</th>
               <th scope="col" className="px-4 py-3 font-medium">Best / worst</th>
             </tr>
@@ -119,9 +117,15 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                     })}
                   />
                 </td>
-                <td className="px-4 py-3 font-mono">{formatRate(row.hitRate, 0)}</td>
-                <td className="px-4 py-3 font-mono">{formatRate(row.strongRate, 0)}</td>
-                <td className="px-4 py-3 font-mono">{formatRate(row.weakRate, 0)}</td>
+                <td className="px-4 py-3 font-mono [overflow-wrap:anywhere]">
+                  {hitRateLabel(row.hitRate, row.readoutCount)}
+                </td>
+                <td className="px-4 py-3 font-mono [overflow-wrap:anywhere]">
+                  {bandRateLabel("STRONG", row.strongCount, row.readoutCount)}
+                </td>
+                <td className="px-4 py-3 font-mono [overflow-wrap:anywhere]">
+                  {bandRateLabel("WEAK", row.weakCount, row.readoutCount)}
+                </td>
                 <td className="px-4 py-3 font-mono">{row.callCount}</td>
                 <td className="px-4 py-3 font-mono text-xs">
                   {formatScore(row.bestScore)}% · {formatScore(row.worstScore)}%
@@ -136,21 +140,21 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
 }
 
 export default async function LeaderboardPage() {
-  const verified = await getLeaderboard("watchlist", "live");
+  const verified = await getLeaderboard(null, "live");
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-serif text-4xl text-ink">Leaderboard</h1>
       <p className="mt-3 max-w-3xl text-muted">
         Live accounts only. An average grade uses the furthest graded checkpoint on each call. Hit is the share
-        of graded calls that were right. STRONG rate and WEAK rate count graded calls only. An account with no
-        graded call is not in this rank. Bands are on the{" "}
+        of settled readouts that were right, including the Monday open. STRONG and WEAK rates count those readouts, not calls. An
+        account with no graded call is not in this rank. Bands are on the{" "}
         <Link href="/methodology" className="accent-link underline-offset-4 hover:underline">
           methodology
         </Link>{" "}
-        page. Fictional ranks live on the demo board.
+        page.
       </p>
       <div className="mt-7">
-        <PendingSettleLink href="/pending" />
+        <PendingSettleLink href="/weeks" />
       </div>
       <Board
         title="Tracked accounts"

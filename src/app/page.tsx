@@ -3,14 +3,15 @@ import { CallCard } from "@/components/call-card";
 import { GradePill, GcTube } from "@/components/gc-tube";
 import { NoiseIndex, QuoteTape } from "@/components/market";
 import { Avatar } from "@/components/score";
+import { leadReadout, leadScores, matureScore, weekendLead } from "@/lib/board";
 import { closedPendingLiveWeeks, emptyLiveWeeks } from "@/lib/empty-weeks";
 import { parseWeekCoverage } from "@/lib/search-scope";
-import { formatAsOf, formatDay, formatRate, formatScore, formatScopeWhen, formatShortDay, referenceCloseDay } from "@/lib/format";
+import { bandRateLabel, formatAsOf, formatDay, formatScore, formatScopeWhen, formatShortDay, formatWeekday, hitRateLabel, referenceCloseDay } from "@/lib/format";
 import { gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_SCALE_BANDS } from "@/lib/labels";
 import { bestWorst } from "@/lib/lanes";
 import { gradedSymbols } from "@/lib/prints";
-import { getLatestCohort, getLeaderboard, getLiveCohorts, type CallView, type CohortView, type LeaderRow } from "@/lib/queries";
+import { getLeaderboard, getLiveCohorts, type CallView, type CohortView, type LeaderRow } from "@/lib/queries";
 import { cohortReferenceDate } from "@/lib/quotes";
 import { EQUITY_TAPE, type ReadoutKind } from "@/lib/scoring";
 import { trackedRoster } from "@/lib/watchlist";
@@ -51,10 +52,17 @@ function emptyWeeksLine(weeks: { coverage: string; window: { mondayAt: Date } }[
   return parts.join(" ");
 }
 
-function headlineKind(calls: CallView[]): ReadoutKind {
-  if (calls.some((call) => call.grades.monday)) return "monday";
-  if (calls.some((call) => call.grades.wednesday)) return "wednesday";
-  return "friday";
+function hasGrade(call: CallView): boolean {
+  return matureScore(call.grades) != null;
+}
+
+/** Newest closed week that already has a grade. An open collect window is not the board. */
+function closedGradedCohort(live: CohortView[], now: Date): CohortView | null {
+  return (
+    live
+      .filter((cohort) => cohort.collectEnd.getTime() <= now.getTime() && cohort.calls.some(hasGrade))
+      .sort((a, b) => b.mondayAt.getTime() - a.mondayAt.getTime())[0] ?? null
+  );
 }
 
 export default async function HomePage({
@@ -63,28 +71,23 @@ export default async function HomePage({
   searchParams: Promise<HomeQuery>;
 }) {
   const query = await searchParams;
-  const [latest, ranked, live] = await Promise.all([
-    getLatestCohort(),
-    getLeaderboard("watchlist", "live"),
+  const now = new Date();
+  const [ranked, live] = await Promise.all([
+    getLeaderboard(null, "live"),
     getLiveCohorts(),
   ]);
-  const calls = latest?.calls ?? [];
-  const readout = headlineKind(calls);
-  const graded = calls.filter((call) => call.grades[readout] != null);
-  const calibration = gcBoardGrade(graded.map((call) => call.grades[readout]?.score ?? 0));
-  const lanes = bestWorst(graded, (call) => call.grades[readout]?.score ?? 0);
-  const asOf = latest
-    ? latest.readouts.friday.status === "published"
-      ? latest.fridayAt
-      : latest.readouts.wednesday.status === "published"
-        ? latest.wednesdayAt
-        : latest.mondayAt
-    : null;
-  const rankedHandles = new Set(ranked.map((row) => row.handle.toLowerCase()));
-  const roster = trackedRoster(
-    live.flatMap((cohort) => cohort.calls.map((call) => ({ handle: call.handle, sourceUrl: call.sourceUrl }))),
-  );
-  const ungraded = roster.filter((account) => !rankedHandles.has(account.handle.toLowerCase()));
+  const board = closedGradedCohort(live, now);
+  const open = live
+    .filter((cohort) => cohort.collectEnd.getTime() > now.getTime())
+    .sort((a, b) => a.mondayAt.getTime() - b.mondayAt.getTime());
+  const closedUngraded = live
+    .filter((cohort) => cohort.collectEnd.getTime() <= now.getTime() && !cohort.calls.some(hasGrade))
+    .sort((a, b) => b.mondayAt.getTime() - a.mondayAt.getTime());
+  const calls = board?.calls ?? [];
+  const graded = calls.filter(hasGrade);
+  const readout = leadReadout(graded.map((call) => call.grades));
+  const headlineScores = leadScores(graded.map((call) => call.grades));
+  const calibration = gcBoardGrade(headlineScores);
   const filtered = graded.filter((call) => {
     if (query.side === "bullish" || query.side === "bearish") {
       if (call.direction !== query.side) return false;
@@ -93,6 +96,19 @@ export default async function HomePage({
     return true;
   });
   const filterOn = Boolean(query.side || query.index);
+  const lanes = bestWorst(filtered, (call) => matureScore(call.grades) ?? 0);
+  const asOf = board
+    ? board.readouts.friday.status === "published"
+      ? board.fridayAt
+      : board.readouts.wednesday.status === "published"
+        ? board.wednesdayAt
+        : board.mondayAt
+    : null;
+  const rankedHandles = new Set(ranked.map((row) => row.handle.toLowerCase()));
+  const roster = trackedRoster(
+    live.flatMap((cohort) => cohort.calls.map((call) => ({ handle: call.handle, sourceUrl: call.sourceUrl }))),
+  );
+  const ungraded = roster.filter((account) => !rankedHandles.has(account.handle.toLowerCase()));
   const emptyWeeks = emptyLiveWeeks();
   const pendingWeeks = closedPendingLiveWeeks();
 
@@ -124,22 +140,30 @@ export default async function HomePage({
             Latest weekend
           </h2>
           <p className="mt-1 text-xs text-muted">
-            {latest ? `Week of ${formatAsOf(latest.mondayAt)} · n=${graded.length}` : "No graded weekend yet"}
+            {board && !calibration.ungraded ? weekendLead(board.mondayAt, calibration) : "No graded calls yet this week"}
           </p>
-          {pendingWeeks.length ? (
+          {open[0] ? (
+            <p className="mt-1 text-xs text-muted">
+              Week of {formatShortDay(open[0].mondayAt)} has not closed. The collect window closes {formatWeekday(open[0].collectEnd)} at 5:00 PM ET.
+            </p>
+          ) : closedUngraded[0] ? (
+            <p className="mt-1 text-xs text-muted">
+              Week of {formatShortDay(closedUngraded[0].mondayAt)} has closed and is not graded yet.
+            </p>
+          ) : pendingWeeks.length ? (
             <p className="mt-1 text-xs text-muted">
               {pendingWeeks.length === 1
                 ? `Week of ${formatShortDay(pendingWeeks[0]!.window.mondayAt)} has closed and is not graded yet.`
                 : `Weeks of ${pendingWeeks.map((week) => formatShortDay(week.window.mondayAt)).join(" and ")} have closed and are not graded yet.`}
-              {latest ? ` Week of ${formatAsOf(latest.mondayAt)} is the latest week with calls loaded.` : ""}
+              {board ? ` Week of ${formatAsOf(board.mondayAt)} is the latest graded week.` : ""}
             </p>
           ) : emptyWeeks.length ? (
             <p className="mt-1 text-xs text-muted">
               {emptyWeeksLine(emptyWeeks)}
             </p>
-          ) : latest ? (
+          ) : board ? (
             <p className="mt-1 text-xs text-muted">
-              Week of {formatAsOf(latest.mondayAt)} is the latest collect window that has closed.
+              Week of {formatAsOf(board.mondayAt)} is the latest collect window that has closed.
             </p>
           ) : null}
           <div className="mt-4">
@@ -160,7 +184,7 @@ export default async function HomePage({
           note="Highest GC Scale this weekend."
           calls={lanes.ready ? lanes.best : []}
           readout={readout}
-          quotes={latest?.quotes}
+          quotes={board?.quotes}
           empty={
             lanes.ready
               ? "No call sits clearly above the rest."
@@ -172,7 +196,7 @@ export default async function HomePage({
           note="Lowest GC Scale this weekend."
           calls={lanes.ready ? lanes.worst : []}
           readout={readout}
-          quotes={latest?.quotes}
+          quotes={board?.quotes}
           empty={
             lanes.ready
               ? "No call sits clearly below the rest."
@@ -181,19 +205,19 @@ export default async function HomePage({
         />
       </section>
 
-      {!lanes.ready && graded.length > 0 && latest ? (
+      {!lanes.ready && graded.length > 0 && board ? (
         <section className="mt-8" aria-labelledby="graded-calls">
           <h2 id="graded-calls" className="text-2xl text-ink">
             Graded calls
           </h2>
           <p className="mt-1 text-sm text-muted">
-            {graded.length} graded {graded.length === 1 ? "call" : "calls"} this weekend. Too few to split into best and worst.
+            {filtered.length} graded {filtered.length === 1 ? "call" : "calls"} this weekend. Too few to split into best and worst.
           </p>
           <div className="mt-4 flex flex-col gap-3.5">
             {filtered.length === 0 ? (
               <p className="text-sm text-muted">No calls match this filter.</p>
             ) : (
-              filtered.map((call) => <CallCard key={call.id} call={call} readout={readout} quotes={latest.quotes} />)
+              filtered.map((call) => <CallCard key={call.id} call={call} readout={readout} quotes={board.quotes} />)
             )}
           </div>
         </section>
@@ -209,7 +233,7 @@ export default async function HomePage({
           </Link>
         </div>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          {roster.length} accounts, live data only. Hit is the share of graded calls that were right. An account with no graded call reads Not graded yet.
+          {roster.length} accounts, live data only. Hit is the share of settled readouts that were right, including the Monday open. An account with no graded call reads Not graded yet.
         </p>
         <ol className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
           {ranked.map((row) => (
@@ -233,7 +257,7 @@ export default async function HomePage({
         </h2>
         <ol className="mt-3 max-w-3xl space-y-2 text-sm leading-relaxed text-muted">
           <li>1. A post is captured Wednesday noon through Sunday 5 PM ET.</li>
-          <li>2. It is graded at Monday noon (the headline), then Wednesday close and Friday close.</li>
+          <li>2. It is graded at Monday noon, Wednesday close, and Friday close. The score is the latest checkpoint that has settled.</li>
           <li>3. 70% and up is STRONG, 40–69% is PROVISIONAL, and under 40% is WEAK.</li>
         </ol>
         <p className="mt-3 text-sm">
@@ -247,13 +271,13 @@ export default async function HomePage({
         <summary className="cursor-pointer text-sm font-semibold text-ink">Prices, noise, and filters</summary>
         <div className="mt-4">
           <h3 className="text-sm font-semibold text-ink">Market move used for grading</h3>
-          {latest ? (
-            <p className="mt-1 text-xs text-muted">{priceMoveLabel(latest, readout)}</p>
+          {board ? (
+            <p className="mt-1 text-xs text-muted">{priceMoveLabel(board, readout)}</p>
           ) : null}
-          {latest ? (
+          {board && board.quotes.length > 0 ? (
             <div className="mt-3">
               <QuoteTape
-                quotes={latest.quotes}
+                quotes={board.quotes}
                 kind={readout}
                 variant="scoreboard"
                 caption="Market move used for grading"
@@ -261,11 +285,11 @@ export default async function HomePage({
               />
             </div>
           ) : (
-            <p className="mt-2 text-sm text-muted">No prices are on the board yet.</p>
+            <p className="mt-2 text-sm text-muted">No checkpoint prices are in yet.</p>
           )}
-          {latest && calls.length >= 10 ? (
+          {board && graded.length >= 10 ? (
             <div className="mt-4">
-              <NoiseIndex calls={calls} quotes={latest.quotes} mondayAt={latest.mondayAt} />
+              <NoiseIndex calls={calls} quotes={board.quotes} mondayAt={board.mondayAt} />
             </div>
           ) : (
             <p className="mt-4 text-sm text-muted">The noise index stays hidden until a weekend has at least 10 graded calls.</p>
@@ -331,7 +355,7 @@ function Lane({
   );
 }
 
-type HomeQuotes = NonNullable<Awaited<ReturnType<typeof getLatestCohort>>>["quotes"];
+type HomeQuotes = CohortView["quotes"];
 
 function AccountRow({ row }: { row: LeaderRow }) {
   const pill = gcGrade({ score: row.avgScore, isStrong: row.isStrong, isWeak: row.isWeak });
@@ -352,7 +376,9 @@ function AccountRow({ row }: { row: LeaderRow }) {
         </span>
         <GradePill grade={pill} />
         {row.callCount === 1 ? <span className="text-xs text-muted">n=1</span> : null}
-        <span className="text-xs text-muted">Hit {formatRate(row.hitRate, 0)}</span>
+        <span className="text-xs text-muted">{hitRateLabel(row.hitRate, row.readoutCount)}</span>
+        <span className="text-xs text-muted">{bandRateLabel("STRONG", row.strongCount, row.readoutCount)}</span>
+        <span className="text-xs text-muted">{bandRateLabel("WEAK", row.weakCount, row.readoutCount)}</span>
       </span>
     </li>
   );

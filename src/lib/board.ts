@@ -1,4 +1,5 @@
-import { gcGrade } from "./grades";
+import { formatScore, formatShortDay } from "./format";
+import { GC_GRADE_LABEL, type BoardCalibration, gcGrade } from "./grades";
 import { READOUTS, scoreToBadge, tapeDirection, type ReadoutKind } from "./scoring";
 
 function average(values: number[]): number | null {
@@ -29,6 +30,73 @@ export type GradedCallInput = {
 
 const MATURE_ORDER: ReadoutKind[] = ["friday", "wednesday", "monday", "monday-gap"];
 
+/** Pills on every call card, in this order. Monday's open is a tape print, not one of these grades. */
+export const CALL_TIMEFRAMES = ["monday", "wednesday", "friday"] as const satisfies readonly ReadoutKind[];
+export type CallTimeframe = (typeof CALL_TIMEFRAMES)[number];
+
+type GradeScore = { readout: string; score: number };
+type RollupInput = readonly GradeScore[] | Partial<Record<string, { score: number } | null | undefined>>;
+
+function isGradeList(grades: RollupInput): grades is readonly GradeScore[] {
+  return Array.isArray(grades);
+}
+
+/** Home lead for a closed graded week. The percent is the mean of the call scores. */
+export function weekendLead(mondayAt: Date, calibration: BoardCalibration): string {
+  if (calibration.ungraded) return "No graded calls yet this week";
+  return `Week of ${formatShortDay(mondayAt)} · ${formatScore(calibration.fill)}% ${GC_GRADE_LABEL[calibration.grade]}`;
+}
+
+function scoresByKind(grades: RollupInput): Map<string, number> {
+  const byKind = new Map<string, number>();
+  if (isGradeList(grades)) {
+    for (const item of grades) {
+      if (Number.isFinite(item.score)) byKind.set(item.readout, item.score);
+    }
+  } else {
+    for (const [kind, grade] of Object.entries(grades)) {
+      if (grade != null && Number.isFinite(grade.score)) byKind.set(kind, grade.score);
+    }
+  }
+  return byKind;
+}
+
+/**
+ * Call score is the furthest settled checkpoint: Friday, else Wednesday, else Monday.
+ * It is not the mean of the timeframe pills. A later checkpoint is filled on the
+ * recorded primary once an earlier one is graded and the print is in the file.
+ */
+export function matureScore(grades: RollupInput): number | null {
+  const byKind = scoresByKind(grades);
+  for (const kind of MATURE_ORDER) {
+    const score = byKind.get(kind);
+    if (score != null) return score;
+  }
+  return null;
+}
+
+const LEAD_ORDER: ReadoutKind[] = ["friday", "wednesday", "monday"];
+
+/**
+ * Furthest checkpoint that every graded call has settled.
+ * The market-move tape under the home lead uses this stamp.
+ */
+export function leadReadout(gradesList: RollupInput[]): ReadoutKind {
+  const settled = gradesList.filter((grades) => matureScore(grades) != null);
+  for (const kind of LEAD_ORDER) {
+    if (settled.length > 0 && settled.every((grades) => scoresByKind(grades).has(kind))) return kind;
+  }
+  return "monday";
+}
+
+/** Home-lead inputs. Each number is that call's latest settled checkpoint. */
+export function leadScores(gradesList: RollupInput[]): number[] {
+  return gradesList.flatMap((grades) => {
+    const score = matureScore(grades);
+    return score == null ? [] : [score];
+  });
+}
+
 export function isSettledStatus(status: string): boolean {
   return status === "published";
 }
@@ -51,24 +119,32 @@ export function matureSettledGrade(call: GradedCallInput): SettledGrade | null {
   return null;
 }
 
+/** Hit, STRONG, and WEAK rates count every settled readout, including the Monday open. */
 export function handleBoardStats(calls: GradedCallInput[]) {
-  const graded = calls.filter((call) => settledGrades(call).length > 0);
+  const graded = calls.filter((call) => matureScore(call.grades) != null);
   const grades = graded.flatMap((call) => settledGrades(call));
   const matureScores = graded
-    .map((call) => matureSettledGrade(call)?.score)
+    .map((call) => matureScore(call.grades))
     .filter((score): score is number => score != null);
   const avgScore = average(matureScores) ?? 0;
-  const rate = (pick: (grade: SettledGrade) => boolean) =>
-    grades.length === 0 ? 0 : grades.filter(pick).length / grades.length;
+  const hitCount = grades.filter((grade) => isDirectionHit(grade.signedMovePct)).length;
+  const strongCount = grades.filter((grade) => gcGrade(grade) === "strong").length;
+  const weakCount = grades.filter((grade) => gcGrade(grade) === "weak").length;
+  const readoutCount = grades.length;
+  const share = (count: number) => (readoutCount === 0 ? 0 : count / readoutCount);
   return {
     graded: graded.length > 0,
     callCount: graded.length,
     pendingCount: calls.length - graded.length,
     avgScore,
     badge: scoreToBadge(Math.round(avgScore)),
-    strongRate: rate((grade) => gcGrade(grade) === "strong"),
-    weakRate: rate((grade) => gcGrade(grade) === "weak"),
-    hitRate: rate((grade) => isDirectionHit(grade.signedMovePct)),
+    strongRate: share(strongCount),
+    weakRate: share(weakCount),
+    hitRate: share(hitCount),
+    hitCount,
+    strongCount,
+    weakCount,
+    readoutCount,
     bestScore: matureScores.length ? Math.max(...matureScores) : 0,
     worstScore: matureScores.length ? Math.min(...matureScores) : 0,
   };

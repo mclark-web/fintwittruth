@@ -64,15 +64,14 @@ export default function TermsPage() {
         </p>
       </LegalSection>
 
-      <LegalSection id="data" title="Demo posts, real outcomes">
+      <LegalSection id="data" title="Sourced posts, real outcomes">
         <p>
-          The latest week grades verified public posts from the live book. Each of those cards links its source.
-          The other cohorts are a labeled demo. Those handles and posts are fictional. They are not quotes
-          from real people. Market outcomes are not fictional. A published grade uses the recorded print for
-          that evaluation date: the prior Friday regular-session close as the weekend reference, the
-          regular-session open for Monday&apos;s gap, the 12:00 PM ET print on Monday, and the official close on
-          Wednesday and Friday when the cash market is open. VIX is part of every published grade. A closed session stays blank. A
-          future session stays blank. Missing history is not filled in.
+          The board grades verified public posts. Each card links its source. Market outcomes are recorded
+          prints, not illustrations. A published grade uses the recorded print for that evaluation date: the
+          prior Friday regular-session close as the weekend reference, the regular-session open for Monday&apos;s
+          gap, the 12:00 PM ET print on Monday, and the official close on Wednesday and Friday when the cash
+          market is open. VIX is part of every published grade. A closed session stays blank. A future session
+          stays blank. Missing history is not filled in.
         </p>
       </LegalSection>
 
@@ -136,15 +135,15 @@ export default function TermsPage() {
       <LegalSection id="use" title="Acceptable use">
         <p>
           You may read the board and share links to it. You may not present a grade as GradedCalls FinTwit’s advice
-          to buy or sell, scrape the site in order to resell the grades, or remove the demo label from demo
-          posts. You may not send private or unlawful material and ask for it to be published.
+          to buy or sell, or scrape the site in order to resell the grades. You may not send private or
+          unlawful material and ask for it to be published.
         </p>
       </LegalSection>
 
       <LegalSection id="warranty" title="No warranty">
         <p>
-          The site is provided as-is. Prints, timestamps, and scores can be wrong, late, or revised. The demo
-          can differ from a future live feed. GradedCalls FinTwit does not warrant that the board is complete,
+          The site is provided as-is. Prints, timestamps, and scores can be wrong, late, or revised.
+          GradedCalls FinTwit does not warrant that the board is complete,
           uninterrupted, or fit for a trading decision.
         </p>
       </LegalSection>

@@ -754,19 +754,25 @@ p:has(a) + p:has(a),
   min-width: 0;
   max-width: 100%;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 .readout-ticker {
   color: #f2f1ee;
+  font-size: 13px;
 }
 
-.readout-px,
+.readout-px {
+  color: #9a9aa3;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .readout-move {
   color: #9a9aa3;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -776,6 +782,114 @@ p:has(a) + p:has(a),
 
 .readout-move-against {
   color: #f26d7d;
+}
+
+.readout-bubbles {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.readout-bubble-slot {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tf-pills {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tf-pill {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(154, 154, 163, 0.35);
+  background: #14171e;
+  padding: 8px 10px;
+  line-height: 18px;
+}
+
+.tf-h {
+  color: #9a9aa3;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tf-v {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Locked heat system (bank_troof #20): warm #ee9a44 ▲, 40–69 #c9c9cf ◆,
+   cold #9a9aa3 ▼ with a short #eb6505 bar. A graded 0% prints "0%". */
+.tf-pill {
+  position: relative;
+  overflow: hidden;
+}
+
+.tf-glyph {
+  margin-right: 4px;
+  font-size: 12px;
+}
+
+.tf-strong {
+  color: #ee9a44;
+  border-color: rgba(238, 154, 68, 0.45);
+  background: linear-gradient(rgba(238, 154, 68, 0.12), rgba(238, 154, 68, 0.12)), #14171e;
+}
+
+.tf-provisional {
+  color: #c9c9cf;
+  border-color: rgba(201, 201, 207, 0.35);
+  background: #14171e;
+}
+
+.tf-weak,
+.tf-exit {
+  color: #9a9aa3;
+  border-color: rgba(154, 154, 163, 0.22);
+  background: #14171e;
+}
+
+.tf-bar {
+  position: absolute;
+  left: 18px;
+  bottom: 0;
+  width: 14px;
+  height: 3px;
+  background: #eb6505;
+}
+
+.tf-open {
+  color: #9a9aa3;
+  background: transparent;
+  border-style: dashed;
+}
+
+.tf-key {
+  margin-top: 6px;
+  color: #9a9aa3;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+@media (min-width: 820px) {
+  .readout-bubbles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .stance {

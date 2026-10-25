@@ -1,30 +1,26 @@
 import Link from "next/link";
+import { matureScore } from "@/lib/board";
+import { ReadoutBubbles, TimeframePills } from "@/components/call-readouts";
 import { disputePath } from "@/lib/dispute";
-import { formatPrice, formatScore, formatScopeWhen, formatSignedPct } from "@/lib/format";
+import { formatScopeWhen, formatScore } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
-import { READOUT_META } from "@/lib/labels";
-import { predictedReadout } from "@/lib/prints";
 import type { CallView, QuoteView } from "@/lib/queries";
 import type { ReadoutKind } from "@/lib/scoring";
 import { GradePill } from "./gc-tube";
 import { Avatar, DirectionChip } from "./score";
 
-/** Headline noon grade, then the two later closes. Monday open stays off the card. */
-const CARD_CHECKPOINTS: ReadoutKind[] = ["monday", "wednesday", "friday"];
-
 export function CallCard({
   call,
-  readout,
   quotes,
   clampQuote = false,
 }: {
   call: CallView;
-  readout: ReadoutKind;
+  readout?: ReadoutKind;
   quotes?: QuoteView[];
   clampQuote?: boolean;
 }) {
-  const grade = call.grades[readout] ?? call.grades.monday ?? call.grades.wednesday ?? call.grades.friday;
-  const pill = grade ? gcGrade(grade) : null;
+  const score = matureScore(call.grades);
+  const pill = score == null ? null : gcGrade({ score });
 
   return (
     <article className="panel p-5">
@@ -35,16 +31,13 @@ export function CallCard({
             <Link href={`/accounts/${call.handle}`} className="font-medium text-ink hover:underline">
               {call.displayName} <span className="font-normal text-muted">@{call.handle}</span>
             </Link>
-            <p className="mt-0.5 text-xs text-[#c9c9cf]">
-              {formatScopeWhen(call.postedAt)}
-              {call.dataset === "demo" ? " · DEMO" : " · verified"}
-            </p>
+            <p className="mt-0.5 text-xs text-[#c9c9cf]">{formatScopeWhen(call.postedAt)}</p>
           </div>
         </div>
-        {grade && pill ? (
+        {score != null && pill ? (
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="font-mono text-2xl text-ink">
-              {formatScore(grade.score)}
+              {formatScore(score)}
               <span className="text-sm text-muted">%</span>
             </span>
             <GradePill grade={pill} />
@@ -60,13 +53,8 @@ export function CallCard({
           {call.tickers.length > 0 ? call.tickers.join(", ") : "No ticker named"}
         </span>
       </p>
-      <ul className="checkpoint-bubbles mt-3">
-        {CARD_CHECKPOINTS.map((kind) => (
-          <li key={kind}>
-            <CheckpointBubble call={call} kind={kind} quotes={quotes} />
-          </li>
-        ))}
-      </ul>
+      <TimeframePills grades={call.grades} />
+      <ReadoutBubbles grades={call.grades} quotes={quotes} primary={call.primary} direction={call.direction} />
       <p className="post-meta">
         {call.sourceUrl ? (
           <a href={call.sourceUrl} className="accent-link hit-44 underline-offset-4 hover:underline">
@@ -76,45 +64,12 @@ export function CallCard({
         <Link href={`/calls/${call.id}`} className="accent-link hit-44 underline-offset-4 hover:underline">
           Call detail
         </Link>
-        {call.dataset !== "demo" && call.sourceUrl && grade ? (
+        {call.sourceUrl && score != null ? (
           <a href={disputePath(call.id)} className="accent-link hit-44 underline-offset-4 hover:underline">
             Dispute this grade
           </a>
         ) : null}
       </p>
     </article>
-  );
-}
-
-function CheckpointBubble({
-  call,
-  kind,
-  quotes,
-}: {
-  call: CallView;
-  kind: ReadoutKind;
-  quotes?: QuoteView[];
-}) {
-  const graded = call.grades[kind] != null;
-  const print = predictedReadout(quotes, call.primary, kind, call.direction);
-  const meta = READOUT_META[kind];
-  if (!graded || !print || print.price == null || print.move == null) {
-    return (
-      <span className="checkpoint-bubble">
-        <span>{meta.short}</span>
-        <span className="sr-only">, </span>
-        <span className="text-[#9a9aa3]">Not graded yet</span>
-      </span>
-    );
-  }
-  const tone = print.stance === "with" ? "right" : print.stance === "against" ? "wrong" : "flat";
-  return (
-    <span className={`checkpoint-bubble checkpoint-bubble-${tone}`}>
-      <span className="checkpoint-when">{meta.short}</span>
-      <span className="sr-only">, </span>
-      <span>
-        {print.symbol} (${formatPrice(print.price)}) {formatSignedPct(print.move)}
-      </span>
-    </span>
   );
 }

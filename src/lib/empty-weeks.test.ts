@@ -81,13 +81,15 @@ test("an empty week names recorded coverage and does not assume X for a later we
   const beforeWindow = buildCohortWindow(parseCalendarDay("2026-10-12"));
   const recorded = checkedWeekRows();
   const oct12 = recorded.find((row) => row.slug === "2026-10-12");
-  assert.equal(oct12?.coverage, "substack");
+  assert.equal(oct12?.coverage, "substack+x");
   const before = emptyWeekSearchLine(beforeWindow, oct12?.coverage ?? "");
   assert.equal(formatScopeWhen(X_SEARCH_START), "Friday, October 16 at 10:22\u00a0AM\u00a0ET");
   assert.equal(formatScopeWhen(beforeWindow.collectEnd), "Sunday, October 11 at 5:00\u00a0PM\u00a0ET");
   assert.match(before, /^Searched Substack from Wednesday, October 7 at 12:00\u00a0PM\u00a0ET through Sunday, October 11 at 5:00\u00a0PM\u00a0ET\./);
-  assert.match(before, /X was not searched\./);
-  assert.doesNotMatch(before, /X was searched|EDT|EST|Sun, Oct/);
+  assert.match(before, /X was searched from Wednesday, October 7 at 12:00\u00a0PM\u00a0ET through Sunday, October 11 at 5:00\u00a0PM\u00a0ET\./);
+  assert.doesNotMatch(before, /X was not searched|EDT|EST|Sun, Oct/);
+  const substackOnly = emptyWeekSearchLine(beforeWindow, "substack");
+  assert.match(substackOnly, /X was not searched\./);
   const assumed = emptyWeekSearchLine(beforeWindow);
   assert.match(assumed, /No search coverage is recorded for this week, so there is nothing to grade\. This is not a 0% grade\./);
   assert.doesNotMatch(assumed, /Searched Substack|X was not searched|No post read|were read/);
@@ -125,19 +127,18 @@ test("an empty week names recorded coverage and does not assume X for a later we
   assert.doesNotMatch(covered, /EDT|EST/);
 });
 
-test("the open week steps to the first Monday whose collect window is still open", () => {
+test("the open week steps to the first Monday after the last recorded week", () => {
   const beforeClose = new Date("2026-10-25T20:57:00.000Z");
   assert.equal(formatScopeWhen(beforeClose), "Sunday, October 25 at 4:57\u00a0PM\u00a0ET");
-  const stillOpen = resolveLiveWeek("2026-10-26", beforeClose);
+  assert.equal(resolveLiveWeek("2026-10-26", beforeClose).status, 404);
+  const stillOpen = resolveLiveWeek("2026-11-02", beforeClose);
   assert.equal(stillOpen.status, 200);
   if (stillOpen.status === 200) assert.equal(stillOpen.kind, "future");
-  assert.equal(resolveLiveWeek("2026-11-02", beforeClose).status, 404);
+  assert.equal(resolveLiveWeek("2026-11-09", beforeClose).status, 404);
 
   const justClosed = new Date("2026-10-25T21:01:00.000Z");
   assert.equal(formatScopeWhen(justClosed), "Sunday, October 25 at 5:01\u00a0PM\u00a0ET");
-  const closed = resolveLiveWeek("2026-10-26", justClosed);
-  assert.equal(closed.status, 200);
-  if (closed.status === 200) assert.equal(closed.kind, "closed");
+  assert.equal(resolveLiveWeek("2026-10-26", justClosed).status, 404);
   const rolled = resolveLiveWeek("2026-11-02", justClosed);
   assert.equal(rolled.status, 200);
   if (rolled.status === 200) assert.equal(rolled.kind, "future");
@@ -169,6 +170,7 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   const readme = readFileSync(join(process.cwd(), "README.md"), "utf8");
   const csv = readFileSync(join(process.cwd(), "data/calls/calls.csv"), "utf8");
   const home = readFileSync(join(root, "app/page.tsx"), "utf8");
+  const callPage = readFileSync(join(root, "app/calls/[id]/page.tsx"), "utf8");
   const css = readFileSync(join(root, "app/globals.css"), "utf8");
   assert.match(week, /\{emptyWeekHeading\(resolved\.week\.coverage\)\} this week/);
   assert.match(week, /emptyWeekSearchLine\(resolved\.week\.window, resolved\.week\.coverage\)/);
@@ -193,14 +195,63 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   const lead = methodologySourceLead(checkedWeekRows());
   assert.equal(
     lead,
-    "The weeks of September 28, October 5, and October 12 are Substack only (X not searched). For the week of October 19, 2026, Substack covers the whole Wednesday noon to Sunday 5:00 PM ET window.",
+    "For the week of October 19, 2026, Substack covers the whole Wednesday noon to Sunday 5:00 PM ET window.",
   );
   assert.equal(lead.split("For the week of October 19").length - 1, 1);
   assert.match(methodology, /\{GRADED_PRINT_LIST\}/);
+  assert.match(methodology, /later checkpoint is graded on/i);
+  assert.match(methodology, /never graded stays pending/i);
+  assert.match(methodology, /latest settled checkpoint/);
+  assert.match(methodology, /does not take the slot/);
+  assert.match(methodology, /Live accounts share one rank/);
+  assert.match(methodology, /share of settled readouts, not the share of calls/);
+  assert.match(methodology, /recorded primary/);
+  assert.match(methodology, /11:55/);
+  assert.match(methodology, /769\.45/);
+  assert.match(methodology, /769\.07/);
+  assert.match(methodology, /query1\.finance\.yahoo\.com/);
+  assert.match(methodology, /\$0\.05/);
+  assert.match(methodology, /Yahoo unstable/);
+  assert.match(methodology, /filled bar/);
+  assert.match(callPage, /Graded on \$\{primary\}'s move from Friday's close, plus a VIX factor\. The SPY, QQQ, and DIA average is the week's benchmark tape and is not this call's score\./);
+  assert.match(callPage, /This call is not graded\. A same-day or expired trade stays off this week's checkpoints\./);
+  assert.match(methodology, /The hit percent on the board floors/);
+  assert.match(methodology, /17\.68/);
+  assert.match(methodology, /filled flag stays/);
+  assert.match(callPage, /This post names no ticker\. It stays pending and is not graded on SPY\./);
+  assert.match(callPage, /Graded on VIX's move from Friday's close\. No separate VIX factor\./);
+  assert.match(callPage, /Direction vs \$\{primary\}/);
+  assert.match(callPage, /label=\{call\.primary\}/);
+  assert.match(callPage, /percent=\{formatSignedPct\}/);
+  assert.doesNotMatch(callPage, /Graded on the SPY, QQQ, and DIA average, plus VIX/);
+  assert.doesNotMatch(callPage, /quotes\[0\]/);
+  assert.doesNotMatch(callPage, /label="Market"/);
+  assert.match(methodology, /fill\s+note or an intraday label from earlier in the window stays graded/);
+  assert.doesNotMatch(methodology, /Leaderboards stay separate/);
+  assert.match(home, /share of settled readouts that were right, including the Monday open/);
+  assert.match(home, /hitRateLabel\(row\.hitRate, row\.readoutCount\)/);
+  assert.match(home, /bandRateLabel\("WEAK", row\.weakCount, row\.readoutCount\)/);
+  assert.doesNotMatch(home, /graded calls that were right/);
+  const leader = readFileSync(join(root, "app/leaderboard/page.tsx"), "utf8");
+  const account = readFileSync(join(root, "app/accounts/[handle]/page.tsx"), "utf8");
+  assert.match(leader, /getLeaderboard\(null, "live"\)/);
+  assert.match(leader, /hitRateLabel\(row\.hitRate, row\.readoutCount\)/);
+  assert.match(leader, /bandRateLabel\("WEAK", row\.weakCount, row\.readoutCount\)/);
+  assert.doesNotMatch(leader, /graded calls that were right/);
+  assert.match(account, /min-w-0/);
+  assert.match(account, /\[overflow-wrap:anywhere\]/);
+  assert.match(account, /on the board/);
+  assert.match(account, /hitRateLabel\(row\.hitRate, row\.readoutCount\)/);
+  assert.match(account, /bandRateLabel\("WEAK", row\.weakCount, row\.readoutCount\)/);
+  assert.match(readme, /does not take the slot/);
+  assert.match(readme, /Live accounts share one rank/);
   assert.match(sitemap, /export const revalidate = 60/);
   assert.doesNotMatch(sitemap, /futureLiveWeek/);
   assert.ok(readme.includes(OCT19_X_SCOPE));
   assert.ok(csv.includes(OCT19_X_SCOPE));
+  assert.match(home, /has not closed/);
+  assert.match(home, /5:00 PM ET/);
+  assert.match(home, /weekendLead/);
   assert.match(home, /latest collect window that has closed|No qualifying calls in the/);
   assert.match(css, /h1,\s*\n\s*h2,\s*\n\s*h3 \{\s*\n\s*text-wrap: balance;/);
 });
@@ -209,4 +260,5 @@ test("an empty week's heading names a search result only when coverage is record
   assert.equal(emptyWeekHeading(""), "No search on record");
   assert.equal(emptyWeekHeading("substack"), "No qualifying calls");
   assert.equal(emptyWeekHeading("substack+x-from-2026-10-16T14:22:00.000Z"), "No qualifying calls");
+  assert.equal(emptyWeekHeading("x"), "No qualifying calls");
 });

@@ -1,0 +1,53 @@
+name: noon
+
+on:
+  schedule:
+    # 18:15 UTC is 2:15 PM EDT and 1:15 PM EST, after the 12:45 PM ET buffer.
+    - cron: "15 18 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  receipts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Require Node 22
+        run: node -e 'const major = Number(process.versions.node.split(".")[0]); if (major !== 22) { console.error("CI is pinned to Node 22. Node " + process.versions.node + " has no global WebSocket, so scripts/pill-contrast.mjs fails the contrast test."); process.exit(1); }'
+      - run: npm install
+      - run: npm run noon:receipts
+      - name: Open a pull request for Monday noon receipts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- data/yahoo/noon src/lib/market-history.json; then
+            echo "Monday noon receipts already match."
+            exit 0
+          fi
+          npm test
+          npm run accuracy
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          branch="noon-receipts"
+          git fetch origin "$branch" || true
+          git switch -c "$branch"
+          git add data/yahoo/noon src/lib/market-history.json
+          git commit -m "Record Monday noon Yahoo receipts."
+          if git show-ref --verify --quiet refs/remotes/origin/noon-receipts; then
+            git push --force-with-lease=refs/heads/noon-receipts:refs/remotes/origin/noon-receipts origin HEAD:noon-receipts
+          else
+            git push -u origin HEAD:noon-receipts
+          fi
+          existing=$(gh pr list --head noon-receipts --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            echo "Updated pull request #$existing."
+            exit 0
+          fi
+          gh pr create --base "${{ github.event.repository.default_branch }}" --head noon-receipts --title "Record Monday noon Yahoo receipts" --body "The Monday noon workflow wrote the raw Yahoo receipts and the price file after the 45-minute buffer. Tests and the accuracy guard passed on this run. It does not push these files onto the default branch."

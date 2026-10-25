@@ -1,4 +1,4 @@
-const CHART = "https://query1.finance.yahoo.com/v8/finance/chart/";
+export const YAHOO_CHART_ENDPOINT = "https://query1.finance.yahoo.com/v8/finance/chart/";
 
 export const VIX_VENDOR_SYMBOL = "^VIX";
 
@@ -89,13 +89,35 @@ export function readNoonBar(result: ChartResult, ymd: string): { open: number; b
   return { open, bar };
 }
 
+export async function fetchChartText(url: string): Promise<string> {
+  const response = await fetch(url, {
+    headers: { "user-agent": "GradedCallsFinTwit/accuracy-guard" },
+  });
+  const raw = await response.text();
+  if (!response.ok) {
+    throw new Error(`Yahoo chart ${url} returned ${response.status}. Refusing to grade from a gap.`);
+  }
+  return raw;
+}
+
+export function chartResultFromRaw(raw: string, label: string): ChartResult {
+  const payload = JSON.parse(raw) as { chart?: { result?: ChartResult[]; error?: { description?: string } } };
+  const result = payload.chart?.result?.[0];
+  if (!result) {
+    throw new Error(
+      `${label} had no result. ${payload.chart?.error?.description ?? "Refusing to invent a print."}`,
+    );
+  }
+  return result;
+}
+
 export async function fetchChart(
   symbol: string,
   period1: number,
   period2: number,
-  interval: "1d" | "5m",
+  interval: "1d" | "5m" | "1m",
 ): Promise<ChartResult> {
-  const url = new URL(`${CHART}${encodeURIComponent(vendorSymbol(symbol))}`);
+  const url = new URL(`${YAHOO_CHART_ENDPOINT}${encodeURIComponent(vendorSymbol(symbol))}`);
   url.searchParams.set("period1", String(period1));
   url.searchParams.set("period2", String(period2));
   url.searchParams.set("interval", interval);
@@ -104,17 +126,11 @@ export async function fetchChart(
   const response = await fetch(url, {
     headers: { "user-agent": "GradedCallsFinTwit/accuracy-guard" },
   });
+  const raw = await response.text();
   if (!response.ok) {
     throw new Error(`Yahoo chart ${symbol} ${interval} returned ${response.status}. Refusing to grade from a gap.`);
   }
-  const payload = (await response.json()) as { chart?: { result?: ChartResult[]; error?: { description?: string } } };
-  const result = payload.chart?.result?.[0];
-  if (!result) {
-    throw new Error(
-      `Yahoo chart ${symbol} ${interval} had no result. ${payload.chart?.error?.description ?? "Refusing to invent a print."}`,
-    );
-  }
-  return result;
+  return chartResultFromRaw(raw, `Yahoo chart ${symbol} ${interval}`);
 }
 
 /** True when two prints show the same cent on the board. */

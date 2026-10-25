@@ -125,6 +125,10 @@ export type LeaderRow = {
   strongRate: number;
   weakRate: number;
   hitRate: number;
+  hitCount: number;
+  strongCount: number;
+  weakCount: number;
+  readoutCount: number;
   isStrong: boolean;
   isWeak: boolean;
   peerRank: number;
@@ -203,6 +207,7 @@ type CallRecord = {
   explicit: boolean;
   sourceUrl: string;
   toneLabel: string;
+  posture: string;
   account: {
     handle: string;
     displayName: string;
@@ -258,7 +263,7 @@ function mapCall(call: CallRecord): CallView {
     handle: call.account.handle,
     displayName: call.account.displayName,
     accent: call.account.accent,
-    posture: call.account.posture,
+    posture: call.posture,
     bio: call.account.bio,
     bucket: asBucket(call.account.bucket),
     body: call.body,
@@ -304,7 +309,7 @@ export const getCohort = cache(async (slug: string): Promise<CohortView | null> 
       calls: { include: callInclude, orderBy: { postedAt: "asc" } },
     },
   });
-  if (!cohort) return null;
+  if (!cohort || cohort.dataset === "demo") return null;
 
   const readouts = {} as Record<ReadoutKind, ReadoutView>;
   for (const readout of cohort.readouts) {
@@ -387,9 +392,10 @@ export const getLatestCohort = cache(async () => {
 
 export const getFeaturedCohort = cache(async () => getCohort(FEATURED_COHORT_SLUG));
 
-export const getLeaderboard = cache(async (bucket: Bucket, dataset: "live" | "demo" = "demo"): Promise<LeaderRow[]> => {
+/** `bucket: null` ranks every account with a graded call, watchlist and backfill alike. */
+export const getLeaderboard = cache(async (bucket: Bucket | null, dataset: "live" | "demo" = "live"): Promise<LeaderRow[]> => {
   const accounts = await prisma.account.findMany({
-    where: { bucket },
+    where: bucket ? { bucket } : {},
     include: {
       calls: { include: { grades: true, cohort: { select: { dataset: true } } } },
     },
@@ -412,6 +418,10 @@ export const getLeaderboard = cache(async (bucket: Bucket, dataset: "live" | "de
         strongRate: stats.strongRate,
         weakRate: stats.weakRate,
         hitRate: stats.hitRate,
+        hitCount: stats.hitCount,
+        strongCount: stats.strongCount,
+        weakCount: stats.weakCount,
+        readoutCount: stats.readoutCount,
         bestScore: stats.bestScore,
         worstScore: stats.worstScore,
         score: stats.avgScore,
@@ -432,6 +442,10 @@ export const getLeaderboard = cache(async (bucket: Bucket, dataset: "live" | "de
     strongRate: row.strongRate,
     weakRate: row.weakRate,
     hitRate: row.hitRate,
+    hitCount: row.hitCount,
+    strongCount: row.strongCount,
+    weakCount: row.weakCount,
+    readoutCount: row.readoutCount,
     isStrong: row.isStrong,
     isWeak: row.isWeak,
     peerRank: row.peerRank,
@@ -478,7 +492,7 @@ export const getAccount = cache(async (handle: string) => {
   if (!account) return null;
   const bucket = asBucket(account.bucket);
   const dataset = account.calls.some((call) => call.cohort.dataset === "live") ? "live" : "demo";
-  const board = await getLeaderboard(bucket, dataset);
+  const board = await getLeaderboard(dataset === "live" ? null : bucket, dataset);
   const row = board.find((item) => item.handle === handle) ?? null;
   const quotesBySlug: Record<string, QuoteView[]> = {};
   for (const call of account.calls) {
@@ -509,17 +523,23 @@ export const getCall = cache(async (id: string) => {
 });
 
 export async function listCohortSlugs() {
-  const cohorts = await prisma.cohort.findMany({ select: { slug: true } });
+  const cohorts = await prisma.cohort.findMany({ where: { dataset: "live" }, select: { slug: true } });
   return cohorts.map((cohort) => cohort.slug);
 }
 
 export async function listHandles() {
-  const accounts = await prisma.account.findMany({ select: { handle: true } });
+  const accounts = await prisma.account.findMany({
+    where: { calls: { some: { cohort: { dataset: "live" } } } },
+    select: { handle: true },
+  });
   return accounts.map((account) => account.handle);
 }
 
 export async function listCallIds() {
-  const calls = await prisma.call.findMany({ select: { id: true } });
+  const calls = await prisma.call.findMany({
+    where: { cohort: { dataset: "live" } },
+    select: { id: true },
+  });
   return calls.map((call) => call.id);
 }
 

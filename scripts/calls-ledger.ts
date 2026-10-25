@@ -32,6 +32,7 @@ import {
   type Level,
   type Sentiment,
 } from "../src/lib/scoring";
+import { expiresBeforeReadout } from "../src/lib/book-policy";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -95,8 +96,16 @@ export const CSV_COLUMNS = [
   "grade_method",
   "flags",
   "notes",
+  "data_source",
   "export_index",
 ] as const;
+
+/**
+ * `public` is a public post (a Substack page or a public status link).
+ * `licensed` stays available for a later feed the operator has rights to.
+ * `demo` is rejected wherever it appears in calls.csv.
+ */
+export const DATA_SOURCES = ["public", "licensed"] as const;
 
 /** Dropped on export. The site recomputes the bubble and the GC Scale from the price tape. */
 export const CSV_ONLY_COLUMNS = [
@@ -126,6 +135,7 @@ export const CSV_ONLY_COLUMNS = [
   "grade_method",
   "flags",
   "notes",
+  "data_source",
   "export_index",
 ] as const;
 
@@ -180,6 +190,7 @@ export type CallClass = {
   proxy: boolean;
   tapeDefault: boolean;
   /** Set only when the post names exactly one print and that print is the row's primary. */
+  unquotedTicker: boolean;
   autoPrint: string | null;
 };
 
@@ -255,7 +266,7 @@ export function resolvedPrints(text: string): string[] {
   return [...prints].sort();
 }
 
-export function classifyCall(row: Pick<CallRow, "body" | "primary" | "tickers" | "explicit">): CallClass {
+export function classifyCall(row: Pick<CallRow, "body" | "primary" | "tickers" | "explicit" | "verification">): CallClass {
   const mentions = mentionedSymbols(row.body);
   const prints = resolvedPrints(row.body);
   const tickers = splitTickers(row.tickers);
@@ -266,7 +277,15 @@ export function classifyCall(row: Pick<CallRow, "body" | "primary" | "tickers" |
     }
   }
   const tapeDefault = prints.length === 0 && row.primary === "SPY" && row.explicit === "false" && tickers.length === 0;
-  if (!prints.includes(row.primary) && !tapeDefault) {
+  const unquotedTicker =
+    tickers.length === 0 &&
+    row.explicit === "false" &&
+    row.verification.includes("does not name it") &&
+    row.primary !== "" &&
+    !tapeDefault &&
+    !mentions.includes(row.primary) &&
+    !prints.includes(row.primary);
+  if (!prints.includes(row.primary) && !mentions.includes(row.primary) && !tapeDefault && !unquotedTicker) {
     errors.push(`primary ${row.primary || "(blank)"} does not match a ticker or index the post called`);
   }
   if (tapeDefault && row.explicit === "true") {
@@ -275,15 +294,16 @@ export function classifyCall(row: Pick<CallRow, "body" | "primary" | "tickers" |
   const proxy = prints.includes(row.primary) && !mentions.includes(row.primary);
   const ambiguous = prints.length > 1;
   const autoPrint = prints.length === 1 && prints[0] === row.primary ? row.primary : null;
-  return { mentions, prints, tickers, errors, ambiguous, proxy, tapeDefault, autoPrint };
+  return { mentions, prints, tickers, errors, ambiguous, proxy, tapeDefault, unquotedTicker, autoPrint };
 }
 
 export function expectedFlags(row: CallRow): string {
   const call = classifyCall(row);
   const flags: string[] = [];
+  if (call.unquotedTicker) flags.push("unquoted-ticker");
   if (call.ambiguous) flags.push("ambiguous-symbol");
   if (call.proxy) flags.push("index-proxy");
-  if (call.tapeDefault) flags.push("tape-default");
+  if (call.tapeDefault) flags.push("no-ticker");
   return flags.join(";");
 }
 
@@ -439,6 +459,7 @@ function shellFromCall(cohort: LiveCohortRecord, call: LiveCallRecord, index: nu
   row.levels = JSON.stringify(call.levels);
   row.body = call.body;
   row.verification = call.verification;
+  row.data_source = "public";
   row.export_index = String(index);
   return row;
 }
@@ -454,6 +475,11 @@ export function gradedRowsFromLive(data: LiveFile = liveFile()): CallRow[] {
       index += 1;
       for (const kind of CHECKPOINTS) {
         row[field(kind, "date")] = dates[kind];
+        if (classifyCall(row).tapeDefault) {
+          clearGrade(row, kind);
+          row[field(kind, "status")] = "PENDING";
+          continue;
+        }
         const tape = loadTape(cohort.historySlug, call.primary, kind, dates[kind]);
         if (tape.closed) {
           clearGrade(row, kind);
@@ -549,7 +575,8 @@ function cohortGroups(rows: CallRow[]): CohortGroup[] {
 }
 
 export function renderLiveJson(rows: CallRow[]): string {
-  const cohorts = cohortGroups(rows).map((group) => {
+  const shown = rows.filter((row) => !classifyCall(row).tapeDefault);
+  const cohorts = cohortGroups(shown).map((group) => {
     const calls = group.calls.map((row) => renderCall(row)).join(",\n");
     return [
       "    {",
@@ -685,6 +712,14 @@ function finitePrice(value: string): number | null {
 
 function rowLabel(row: CallRow, index: number): string {
   return row.call_id || `row ${index + 2}`;
+}
+
+function callIdMatches(row: CallRow): boolean {
+  const simple = `${row.cohort_slug}__${row.handle}`;
+  if (row.call_id === simple) return true;
+  const prefix = `${simple}__`;
+  if (!row.call_id.startsWith(prefix)) return false;
+  return /^[0-9]+__[A-Z]{1,5}(?:__[0-9]+)?$/.test(row.call_id.slice(prefix.length));
 }
 
 function sameCohortMeta(rows: CallRow[], errors: string[]) {
@@ -829,8 +864,8 @@ export function collectIssues(rows: CallRow[]): LedgerIssues {
   rows.forEach((row, index) => {
     const label = rowLabel(row, index);
     if (row.call_id === "") errors.push(`${label}: call_id is required`);
-    if (row.call_id !== `${row.cohort_slug}__${row.handle}`) {
-      errors.push(`${label}: call_id must be cohort_slug__handle`);
+    if (!callIdMatches(row)) {
+      errors.push(`${label}: call_id must be cohort_slug__handle, or cohort_slug__handle__status__ticker when one handle has more than one post`);
     }
     if (seenIds.has(row.call_id)) errors.push(`${label}: duplicate call_id`);
     else if (row.call_id !== "") seenIds.add(row.call_id);
@@ -842,6 +877,11 @@ export function collectIssues(rows: CallRow[]): LedgerIssues {
     }
     if (row.source_url === "" || !/^https:\/\/\S+$/.test(row.source_url)) {
       errors.push(`${label}: missing source URL`);
+    }
+    if (row.data_source === "demo") {
+      errors.push(`${label}: data_source=demo is rejected`);
+    } else if (!DATA_SOURCES.includes(row.data_source as (typeof DATA_SOURCES)[number])) {
+      errors.push(`${label}: data_source must be ${DATA_SOURCES.join(" or ")}`);
     }
     if (row.graded_at !== "" && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(row.graded_at)) {
       errors.push(`${label}: graded_at must be an ISO timestamp when set`);
@@ -857,8 +897,11 @@ export function collectIssues(rows: CallRow[]): LedgerIssues {
     if (row.flags !== expectedFlags(row)) {
       errors.push(`${label}: flags must be ${expectedFlags(row) || "(none)"}`);
     }
-    if ((call.ambiguous || call.tapeDefault) && row.grade_method === "auto-yahoo") {
-      errors.push(`${label}: ambiguous-symbol and tape-default rows stay recorded. They are not auto-graded.`);
+    if (call.tapeDefault && graded.length > 0) {
+      errors.push(`${label}: a post that names no ticker is excluded (no-ticker). It is not shown and is not graded on SPY.`);
+    }
+    if (call.ambiguous && row.grade_method === "auto-yahoo") {
+      errors.push(`${label}: ambiguous-symbol rows stay recorded. They are not auto-graded.`);
     }
     for (const kind of CHECKPOINTS) checkCheckpoint(row, kind, errors);
     if (graded.length > 0 && finitePrice(row.ref_price) == null) {
@@ -910,8 +953,23 @@ export function considerCheckpoint(
   }
   if (status === "PENDING") {
     if (!input.due) return { row, action: "unchanged", detail: "" };
+    if (expiresBeforeReadout(row)) {
+      return {
+        row,
+        action: "flagged",
+        detail: `${label}: left pending, same-day or 0DTE trade is not graded at this week's checkpoints`,
+      };
+    }
     const call = classifyCall(row);
-    if (!call.autoPrint) {
+    if (call.tapeDefault) {
+      return {
+        row,
+        action: "flagged",
+        detail: `${label}: left pending, post names no ticker or index`,
+      };
+    }
+    const recordedPrimary = CHECKPOINTS.some((checkpoint) => row[field(checkpoint, "status")] === "GRADED");
+    if (!call.autoPrint && !recordedPrimary) {
       const why = call.tapeDefault
         ? "post names no ticker or index"
         : call.ambiguous

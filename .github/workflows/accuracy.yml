@@ -11,8 +11,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
+      - name: Require Node 22
+        run: node -e 'const major = Number(process.versions.node.split(".")[0]); if (major !== 22) { console.error("CI is pinned to Node 22. Node " + process.versions.node + " has no global WebSocket, so scripts/pill-contrast.mjs fails the contrast test."); process.exit(1); }'
       - run: npm install
       - run: npm test
       - run: npm run accuracy

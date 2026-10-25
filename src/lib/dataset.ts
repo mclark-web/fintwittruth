@@ -11,7 +11,10 @@ import {
   type CohortSpec,
 } from "./demo-data";
 import { assertLiveFile, type LiveCallRecord, type LiveCohortRecord } from "./live-book";
-import { quotesForCohort, sessionFor } from "./quotes";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { parseCallCsv } from "../../scripts/calls-ledger";
+import { hasMarketHistory, quotesForCohort, sessionFor } from "./quotes";
 import {
   CONVICTION_WEIGHT,
   EQUITY_TAPE,
@@ -72,6 +75,7 @@ export type BuiltCall = {
   explicit: boolean;
   sourceUrl: string;
   toneLabel: string;
+  posture: string;
 };
 
 export type BuiltGrade = {
@@ -213,8 +217,34 @@ function buildCalls(
       explicit: call.explicit,
       sourceUrl: "",
       toneLabel: "",
+      posture: account?.posture ?? "",
     };
   });
+}
+
+const CALL_CHECKPOINTS = ["monday", "wednesday", "friday"] as const;
+
+/**
+ * The CSV is the grade ledger. A live call is scored at Monday, Wednesday, or
+ * Friday only when that cell is GRADED. A pending cell stays off the board.
+ * The Monday gap has no CSV cell. It is scored only when the row already has
+ * a graded checkpoint, so a same-day row that was cleared stays off the board.
+ */
+let gradedCells: Map<string, Set<string>> | null = null;
+
+function gradedCellsFor(callId: string): Set<string> | null {
+  if (!gradedCells) {
+    gradedCells = new Map();
+    const csv = readFileSync(join(process.cwd(), "data/calls/calls.csv"), "utf8");
+    for (const row of parseCallCsv(csv)) {
+      const graded = new Set<string>();
+      for (const kind of CALL_CHECKPOINTS) {
+        if (row[`${kind}_status`] === "GRADED") graded.add(kind);
+      }
+      gradedCells.set(row.call_id, graded);
+    }
+  }
+  return gradedCells.get(callId) ?? null;
 }
 
 function liveCalls(spec: LiveCohortRecord, cohortId: string): BuiltCall[] {
@@ -235,6 +265,7 @@ function liveCalls(spec: LiveCohortRecord, cohortId: string): BuiltCall[] {
     explicit: call.explicit,
     sourceUrl: call.sourceUrl,
     toneLabel: call.toneLabel,
+    posture: call.posture,
   }));
 }
 
@@ -336,7 +367,9 @@ export function buildDataset(): BuiltDataset {
   const cohorts = rows.map((spec) => {
     const window = buildCohortWindow(spec.monday);
     const id = `cohort_${spec.slug}`;
-    const quotes: BuiltQuote[] = quotesForCohort(spec.historySlug, SYMBOLS).map((quote) => ({
+    const priced = hasMarketHistory(spec.historySlug);
+    const quotes: BuiltQuote[] = priced
+      ? quotesForCohort(spec.historySlug, SYMBOLS).map((quote) => ({
       id: `${spec.slug}__${quote.symbol}`,
       cohortId: id,
       symbol: quote.symbol,
@@ -346,7 +379,8 @@ export function buildDataset(): BuiltDataset {
       monday: quote.monday,
       wednesday: quote.wednesday,
       friday: quote.friday,
-    }));
+    }))
+      : [];
     for (const quote of quotes) {
       if (quote.symbol !== "SPY") continue;
       for (const price of [quote.ref, quote.mondayOpen, quote.monday, quote.wednesday, quote.friday]) {
@@ -372,10 +406,10 @@ export function buildDataset(): BuiltDataset {
         const quote = quotes.find((item) => item.symbol === symbol);
         return quote ? quoteAt(quote, kind) : null;
       };
-      const needed = [...EQUITY_TAPE, "VIX", ...calls.map((call) => call.primary)];
+      const needed = [...EQUITY_TAPE, "VIX"];
       const published = needed.every((symbol) => priceOf(symbol) != null);
       const sessionKind = kind === "monday-gap" ? "monday" : kind;
-      const session = sessionFor(spec.historySlug, sessionKind);
+      const session = priced ? sessionFor(spec.historySlug, sessionKind) : null;
       const sessionReason = session?.reason;
       const noise = weekendNoise(calls.map((call) => call.sentiment));
 
@@ -419,15 +453,19 @@ export function buildDataset(): BuiltDataset {
       });
       const vixMove = moveOf("VIX");
 
-      const scored = calls.map((call) => {
+      const scored = calls.flatMap((call) => {
+        if (spec.dataset === "live") {
+          const graded = gradedCellsFor(call.id);
+          if (kind === "monday" || kind === "wednesday" || kind === "friday") {
+            if (!graded?.has(kind)) return [];
+          } else if (kind === "monday-gap") {
+            const settled = graded != null && ["monday", "wednesday", "friday"].some((checkpoint) => graded.has(checkpoint));
+            if (!settled) return [];
+          }
+        }
         const quote = quotes.find((item) => item.symbol === call.primary);
-        if (!quote) {
-          throw new Error(`Missing ${call.primary} quote on ${spec.slug}`);
-        }
-        const now = quoteAt(quote, kind);
-        if (now == null) {
-          throw new Error(`Missing ${kind} price for ${call.primary} on ${spec.slug}`);
-        }
+        const now = quote ? quoteAt(quote, kind) : null;
+        if (!quote || now == null) return [];
         const parts = scoreCall(
           {
             direction: call.direction,
@@ -444,7 +482,7 @@ export function buildDataset(): BuiltDataset {
             vixMove,
           },
         );
-        return { call, parts, tieBreak: call.handle };
+        return [{ call, parts, tieBreak: call.handle }];
       });
 
       const ranked = rankPeers(
@@ -479,6 +517,7 @@ export function buildDataset(): BuiltDataset {
             rawMovePct: row.parts.rawMovePct,
             vixMovePct: row.parts.vixMovePct,
             score: row.parts.score,
+            primary: row.call.primary,
           }),
         });
       }
@@ -525,4 +564,14 @@ export function buildDataset(): BuiltDataset {
   });
 
   return { accounts, cohorts };
+}
+
+/** What production seeds and serves. Fictional cohorts and accounts stay out of this book. */
+export function productionBook(dataset: BuiltDataset = buildDataset()): BuiltDataset {
+  const cohorts = dataset.cohorts.filter((cohort) => cohort.dataset === "live");
+  const accountIds = new Set(cohorts.flatMap((cohort) => cohort.calls.map((call) => call.accountId)));
+  return {
+    accounts: dataset.accounts.filter((account) => accountIds.has(account.id)),
+    cohorts,
+  };
 }

@@ -5,10 +5,10 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PendingSettleLink } from "../components/board-state";
+import { TimeframePills } from "../components/call-readouts";
 import { NoiseIndex, ReadoutCards } from "../components/market";
 import { zonedToUtc } from "./calendar";
 import {
-  LABOR_DAY_UNGRADED_LINE,
   closedHorizonNote,
   marketClosedCard,
   pendingClosure,
@@ -153,52 +153,83 @@ test("Friday September 25 uses the official close", { skip: skipWithoutDb }, asy
 test("the pending counter uses Not graded yet", { skip: skipWithoutDb }, async () => {
   const { default: PendingPage } = await import("../app/pending/page");
   const html = renderToStaticMarkup(await PendingPage());
-  assert.match(html, /2026-10-19\/pending/);
+  assert.match(html, /2026-10-26\/pending/);
+  assert.doesNotMatch(html, /2026-10-19\/pending/);
   assert.match(html, /Not graded yet/);
+  assert.doesNotMatch(html, /Pending approval/);
+  assert.doesNotMatch(html, /ambiguous=true/);
   assert.doesNotMatch(html, /Nothing is waiting/);
   assert.doesNotMatch(html, /aria-label="0% GC Scale, EXIT LIQUIDITY"/);
   assert.doesNotMatch(html, /NOT GRADED/);
   assert.doesNotMatch(html, />\s*\d+ not graded\s*</);
 });
 
-test("Labor Day Monday board tube stays ungraded and does not promise a print", { skip: skipWithoutDb }, async () => {
-  const { default: FridayPage } = await import("../app/weeks/[slug]/[readout]/page");
-  const { default: CohortPendingPage } = await import("../app/weeks/[slug]/pending/page");
+test("timeframe pills keep one order and paint cold scores dim grey", () => {
   const html = renderToStaticMarkup(
-    await FridayPage({ params: Promise.resolve({ slug: "2026-09-07", readout: "monday" }) }),
+    createElement(TimeframePills, {
+      grades: {
+        monday: { score: 80 },
+        wednesday: { score: 20 },
+        friday: null,
+      },
+    }),
   );
-  assert.match(html, /aria-label="GC Scale, not graded yet"/);
-  assert.match(html, /Not graded yet · market closed for Labor Day/);
-  assert.equal(html.includes(LABOR_DAY_UNGRADED_LINE), true);
-  assert.match(html, /Market closed \(Labor Day\) · Not graded yet/);
-  assert.match(html, /text-2xl text-\[#9a9aa3\]">Market closed for Labor Day</);
-  assert.ok(html.indexOf("<h1") !== -1 && html.indexOf("<h1") < html.indexOf("<h2"));
-  assert.doesNotMatch(html, /<h2 class="sr-only">Market closed for Labor Day · not graded<\/h2>/);
-  assert.match(html, /Market closed \(Labor Day\) · no Monday prices/);
-  assert.doesNotMatch(html, /until the session settles/);
-  assert.match(html, /2 horizons are not graded: the market was closed for Labor Day\./);
-  assert.match(html, /A horizon on this week is not graded: the market was closed\./);
-  assert.doesNotMatch(html, /off the board until 12:00 PM ET/);
-  assert.doesNotMatch(html, /Scheduled/);
-  assert.doesNotMatch(html, /waiting/i);
-  assert.doesNotMatch(html, /aria-label="0% GC Scale, EXIT LIQUIDITY"/);
+  const noon = html.indexOf("Mon noon");
+  const wednesday = html.indexOf("Wed close");
+  const friday = html.indexOf("Fri close");
+  assert.ok(noon >= 0 && noon < wednesday && wednesday < friday);
+  assert.match(html, /tf-strong/);
+  assert.match(html, /tf-weak/);
+  assert.match(html, /tf-open/);
+  assert.match(html, /Not graded yet/);
+  assert.doesNotMatch(html, /EXIT LIQUIDITY/);
+  const zero = renderToStaticMarkup(createElement(TimeframePills, { grades: { monday: { score: 0 } } }));
+  assert.match(zero, /tf-exit/);
+  assert.match(zero, /<span class="tf-v"><span class="tf-glyph" aria-hidden="true">▼<\/span>0%<\/span>/);
+  assert.match(zero, /aria-label="GC Scale, Mon noon: 0% EXIT LIQUIDITY"/);
+  assert.match(zero, /<p class="tf-key">0% = EXIT LIQUIDITY<\/p>/);
+  assert.match(zero, /tf-bar/);
+  assert.match(html, /▲<\/span>80%/);
+  assert.match(html, /▼<\/span>20%/);
+  assert.doesNotMatch(html, /tf-key/);
+  assert.match(zero, /Wed close/);
+  assert.match(zero, /Fri close/);
+});
 
-  const gap = renderToStaticMarkup(
-    await FridayPage({ params: Promise.resolve({ slug: "2026-09-07", readout: "monday-gap" }) }),
+test("production does not serve the fictional Labor Day cohort", { skip: skipWithoutDb }, async () => {
+  const { getCohort } = await import("./queries");
+  const cohort = await getCohort("2026-09-07");
+  assert.ok(cohort);
+  assert.equal(
+    cohort.calls.some((call) => call.handle === "doomscroll"),
+    false,
   );
-  assert.ok(gap.indexOf("<h1") !== -1 && gap.indexOf("<h1") < gap.indexOf("<h2"));
-  assert.doesNotMatch(gap, /<h2 class="sr-only">Market closed for Labor Day · not graded<\/h2>/);
-  const wednesday = renderToStaticMarkup(
-    await FridayPage({ params: Promise.resolve({ slug: "2026-09-07", readout: "wednesday" }) }),
+  assert.equal(
+    cohort.calls.every((call) => !call.body.includes("WWIII")),
+    true,
   );
-  assert.ok(wednesday.indexOf("<h1") !== -1 && wednesday.indexOf("<h1") < wednesday.indexOf("<h2"));
-  assert.match(wednesday, /What the market did/);
+  assert.equal(
+    cohort.calls.some((call) => call.handle === "TraderJonesy" && call.primary === "SPY"),
+    true,
+  );
+});
 
-  const pending = renderToStaticMarkup(
-    await CohortPendingPage({ params: Promise.resolve({ slug: "2026-09-07" }) }),
-  );
-  assert.equal(pending.includes(LABOR_DAY_UNGRADED_LINE), true);
-  assert.doesNotMatch(pending, /off the board until (9:30 AM ET|12:00 PM ET)/);
-  assert.doesNotMatch(pending, /Scheduled/);
-  assert.doesNotMatch(pending, /waiting/i);
+test("every account with a graded live call is on the leaderboard", { skip: skipWithoutDb }, async () => {
+  const { getLeaderboard, getLiveCohorts } = await import("./queries");
+  const board = await getLeaderboard(null, "live");
+  const ranked = new Set(board.map((row) => row.handle));
+  const cohorts = await getLiveCohorts();
+  const gradedHandles = new Set<string>();
+  let gradedCalls = 0;
+  for (const cohort of cohorts) {
+    for (const call of cohort.calls) {
+      const graded = call.grades.monday || call.grades.wednesday || call.grades.friday;
+      if (!graded) continue;
+      gradedCalls += 1;
+      gradedHandles.add(call.handle);
+      assert.ok(ranked.has(call.handle), `${call.handle} is graded but not ranked`);
+    }
+  }
+  assert.equal(ranked.size, gradedHandles.size);
+  assert.equal(gradedCalls, board.reduce((sum, row) => sum + row.callCount, 0));
 });

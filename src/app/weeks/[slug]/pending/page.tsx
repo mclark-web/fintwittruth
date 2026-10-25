@@ -47,8 +47,8 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <p className="text-sm text-muted">
-        <Link href="/pending" className="hover:underline">
-          Not graded yet
+        <Link href="/weeks" className="hover:underline">
+          Weeks
         </Link>
         <span aria-hidden> / </span>
         <Link href={`/weeks/${cohort.slug}`} className="hover:underline">
@@ -124,6 +124,13 @@ export default async function CohortPendingPage({ params }: { params: Promise<{ 
                           {call.body}
                         </Link>
                       </p>
+                      {call.sourceUrl ? (
+                        <p className="mt-2 text-sm">
+                          <a href={call.sourceUrl} className="accent-link hit-44 underline-offset-4 hover:underline">
+                            Source
+                          </a>
+                        </p>
+                      ) : null}
                     </li>
                   ))}
                 </ul>

@@ -4,14 +4,37 @@ import {
   gradesOnPrimaryBoard,
   handleBoardStats,
   isDirectionHit,
+  leadReadout,
+  leadScores,
   pendingReadoutKinds,
   settledReadoutKinds,
+  weekendLead,
 } from "./board";
+import { buildCohortWindow } from "./calendar";
 import { FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG } from "./demo-data";
 import { buildDataset } from "./dataset";
+import { bandRateLabel, formatWeekday, hitRateLabel } from "./format";
+import { gcBoardGrade } from "./grades";
 import { READOUTS } from "./scoring";
 
 const data = buildDataset();
+
+test("the closed October 19 lead is the latest settled checkpoint", () => {
+  const week = data.cohorts.find((cohort) => cohort.slug === "2026-10-19" && cohort.dataset === "live");
+  assert.ok(week);
+  const grades = week.calls.map((call) => {
+    const settled = week.grades.filter((item) => item.callId === call.id);
+    return settled.map((item) => ({ readout: item.readout, score: item.score }));
+  });
+  assert.equal(grades.length, 2);
+  assert.equal(week.calls.some((call) => call.handle === "piggostradingdesk"), false);
+  assert.equal(leadReadout(grades), "friday");
+  const scores = leadScores(grades);
+  assert.deepEqual([...scores].sort((a, b) => a - b), [21, 24]);
+  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 22% WEAK");
+  const open = buildCohortWindow({ year: 2026, month: 10, day: 26 });
+  assert.equal(formatWeekday(open.collectEnd), "Sun Oct 25");
+});
 
 test("a scheduled readout contributes nothing to the primary board", () => {
   const latest = data.cohorts.find((cohort) => cohort.slug === LATEST_COHORT_SLUG);
@@ -21,11 +44,13 @@ test("a scheduled readout contributes nothing to the primary board", () => {
   assert.equal(friday?.status, "published");
   const fridayGrades = latest.grades.filter((grade) => grade.readout === "friday");
   assert.equal(gradesOnPrimaryBoard(fridayGrades, "scheduled").length, 0);
-  assert.equal(gradesOnPrimaryBoard(fridayGrades, "published").length, latest.calls.length);
+  assert.equal(gradesOnPrimaryBoard(fridayGrades, "published").length, fridayGrades.length);
+  assert.equal(fridayGrades.length, latest.calls.length);
+  assert.equal(latest.calls.some((call) => call.handle === "piggostradingdesk"), false);
   for (const readout of latest.readouts) {
     const grades = latest.grades.filter((grade) => grade.readout === readout.kind);
     assert.equal(readout.status, "published");
-    assert.equal(gradesOnPrimaryBoard(grades, readout.status).length, latest.calls.length);
+    assert.equal(gradesOnPrimaryBoard(grades, readout.status).length, grades.length);
   }
   assert.deepEqual(settledReadoutKinds(latest.readouts), ["monday-gap", "monday", "wednesday", "friday"]);
   assert.deepEqual(pendingReadoutKinds(latest.readouts), []);
@@ -51,7 +76,16 @@ test("finished published readouts stay on the board", () => {
       assert.ok(readout);
       const grades = cohort.grades.filter((grade) => grade.readout === kind);
       const onBoard = gradesOnPrimaryBoard(grades, readout.status);
-      assert.equal(onBoard.length, readout.status === "published" ? cohort.calls.length : 0);
+      if (readout.status !== "published") {
+        assert.equal(onBoard.length, 0);
+        continue;
+      }
+      if (cohort.dataset === "demo") {
+        assert.equal(onBoard.length, cohort.calls.length);
+        continue;
+      }
+      assert.ok(onBoard.length <= cohort.calls.length);
+      assert.equal(onBoard.length, grades.length);
     }
   }
 });
@@ -87,8 +121,8 @@ test("an account with only unscored calls is not a graded handle", () => {
   assert.equal(stats.hitRate, 0);
 });
 
-test("STRONG, WEAK, and hit rate use every settled grade and skip the mature-only shortcut", () => {
-  const stats = handleBoardStats([
+test("the call score is the furthest settled checkpoint, and account grade averages those", () => {
+  const one = handleBoardStats([
     {
       grades: [
         { readout: "monday", score: 40, isStrong: false, isWeak: true, signedMovePct: -0.02 },
@@ -96,11 +130,48 @@ test("STRONG, WEAK, and hit rate use every settled grade and skip the mature-onl
       ],
     },
   ]);
-  assert.equal(stats.avgScore, 80);
-  assert.equal(stats.callCount, 1);
-  assert.equal(stats.strongRate, 0.5);
-  assert.equal(stats.weakRate, 0);
-  assert.equal(stats.hitRate, 0.5);
+  assert.equal(one.avgScore, 80);
+  assert.equal(one.callCount, 1);
+  assert.equal(one.bestScore, 80);
+  assert.equal(one.worstScore, 80);
+  assert.equal(one.strongRate, 0.5);
+  assert.equal(one.weakRate, 0);
+  assert.equal(one.hitRate, 0.5);
+
+  const account = handleBoardStats([
+    { grades: [{ readout: "monday", score: 90, isStrong: true, isWeak: false, signedMovePct: 0.02 }] },
+    { grades: [{ readout: "wednesday", score: 30, isStrong: false, isWeak: true, signedMovePct: -0.02 }] },
+    { grades: [] },
+  ]);
+  assert.equal(account.callCount, 2);
+  assert.equal(account.pendingCount, 1);
+  assert.equal(account.avgScore, 60);
+  assert.equal(account.bestScore, 90);
+  assert.equal(account.worstScore, 30);
+});
+
+test("buythedip82 rate labels show the readout count", () => {
+  const calls = data.cohorts
+    .filter((cohort) => cohort.dataset === "live")
+    .flatMap((cohort) =>
+      cohort.calls
+        .filter((call) => call.handle === "buythedip82")
+        .map((call) => ({
+          grades: cohort.grades
+            .filter((grade) => grade.callId === call.id)
+            .map((grade) => ({
+              readout: grade.readout,
+              score: grade.score,
+              isStrong: grade.isStrong,
+              isWeak: grade.isWeak,
+              signedMovePct: grade.signedMovePct,
+            })),
+        })),
+    );
+  const stats = handleBoardStats(calls);
+  assert.equal(hitRateLabel(stats.hitRate, stats.readoutCount), "Hit 12% of 8 readouts");
+  assert.equal(bandRateLabel("WEAK", stats.weakCount, stats.readoutCount), "WEAK on 7 of 8");
+  assert.equal(bandRateLabel("STRONG", stats.strongCount, stats.readoutCount), `STRONG on ${stats.strongCount} of 8`);
 });
 
 test("a flat tape is not a hit", () => {

@@ -35,12 +35,7 @@ export default async function WeeksPage() {
       <p className="mt-3 max-w-2xl text-muted">
         The latest week is first. A week that has not closed yet has nothing to grade. A week that has closed and
         has no calls loaded yet says it is not graded yet. A number is the average grade at that checkpoint. A
-        checkpoint that has not been graded stays off the ranking. Fictional weeks live on the demo board.
-      </p>
-      <p className="mt-3 text-sm">
-        <Link href="/demo" className="accent-link hit-44 underline-offset-4 hover:underline">
-          Demo board
-        </Link>
+        checkpoint that has not been graded stays off the ranking.
       </p>
       <ul className="mt-8 grid gap-4">
         {rows.map((row) =>
@@ -74,9 +69,7 @@ export default async function WeeksPage() {
                     Closed, not graded yet
                   </Link>
                 </h2>
-                <p className="mt-2 max-w-2xl text-sm text-muted">
-                  Calls for this week are not loaded yet, so there is no grade yet.
-                </p>
+                <p className="mt-2 max-w-2xl text-sm text-muted">No graded calls yet this week.</p>
                 <p className="mt-2 text-xs text-muted">
                   {formatScopeWhen(row.week.window.collectStart)} through {formatScopeWhen(row.week.window.collectEnd)}
                 </p>

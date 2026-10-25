@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarStrip } from "@/components/market";
-import { ReadoutBubble, ReferenceLine } from "@/components/score";
-import { settledReadoutKinds } from "@/lib/board";
-import { FEATURED_COHORT_SLUG } from "@/lib/demo-data";
-import { formatScopeWhen, formatScore } from "@/lib/format";
-import { GC_GRADE_LABEL, UNGRADED_HORIZON, gcGrade } from "@/lib/grades";
-import { GC_FACTOR, READOUT_META } from "@/lib/labels";
+import { formatScopeWhen } from "@/lib/format";
+import { UNGRADED_HORIZON } from "@/lib/grades";
+import { GC_FACTOR } from "@/lib/labels";
 import { PRICE_CLOSED_RULE, PRICE_FETCHED_AT, PRICE_SOURCE } from "@/lib/quotes";
 import { checkedWeekRows } from "@/lib/empty-weeks";
-import { getCohort } from "@/lib/queries";
 import { GRADED_PRINT_LIST, OCT19_X_SCOPE, methodologySourceLead } from "@/lib/search-scope";
 import {
   STRONG_LINE,
@@ -27,22 +23,13 @@ export const metadata: Metadata = {
     "GradedCalls FinTwit v1 grades one Wednesday-to-Sunday cohort on the Monday gap, Monday noon, the Wednesday close, and the Friday close, with a VIX factor.",
 };
 
-export default async function MethodologyPage() {
-  const featured = await getCohort(FEATURED_COHORT_SLUG);
-  const examples = featured
-    ? ["permapump", "doomscroll", "doomsiren"]
-        .map((handle) => featured.calls.find((call) => call.handle === handle))
-        .filter((call) => call != null)
-    : [];
-  const exampleKinds = featured ? settledReadoutKinds(Object.values(featured.readouts)) : [];
-
+export default function MethodologyPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <p className="text-xs uppercase tracking-wide text-muted">GradedCalls FinTwit v1</p>
       <h1 className="mt-2 font-serif text-4xl text-ink">How a week is graded</h1>
       <p className="mt-4 text-lg text-ink/80">
-        GradedCalls FinTwit is a scorecard. The latest board grades verified public posts against recorded prints.
-        Fictional weekend doom, crash, and melt-up calls stay on the demo weeks and age against the same prints.
+        GradedCalls FinTwit is a scorecard. The board grades sourced public posts against recorded prints.
         It does not tell anyone to buy or sell because the noise was loud.
       </p>
 
@@ -52,7 +39,7 @@ export default async function MethodologyPage() {
         </h2>
         <p className="mt-3 text-ink/80">
           Each Wednesday 12:00 PM ET through Sunday 5:00 PM ET cohort has two buckets. Both feed the weekly
-          board. Leaderboards stay separate.
+          board. Live accounts share one rank. An account is on that rank once a call is graded.
         </p>
         <dl className="mt-4 grid gap-4">
           <div className="panel p-4">
@@ -64,8 +51,7 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Viral doom and hype</dt>
             <dd className="mt-1 text-sm text-muted">
-              Crash, war, sell-the-open, and melt-up posts. Fictional examples stay on the demo board. A
-              verified post is ranked with the accounts we follow.
+              Crash, war, sell-the-open, and melt-up posts. A verified post is ranked with the accounts we follow.
             </dd>
           </div>
         </dl>
@@ -83,9 +69,17 @@ export default async function MethodologyPage() {
             <dt className="font-medium text-ink">Collect window</dt>
             <dd className="mt-1 text-sm text-muted">
               Wednesday 12:00 PM America/New_York through Sunday 5:00 PM America/New_York. The cohort does not
-              grow after Sunday. One call per handle per cohort; a handle can appear in later weeks. The first
-              forward-looking post covering the week that names a direction on a graded print ({GRADED_PRINT_LIST}) counts.
-              An ambiguous direction is excluded. {methodologySourceLead(checkedWeekRows())} {OCT19_X_SCOPE}
+              grow after Sunday. One call per handle per cohort; a handle can appear in later weeks. The slot is
+              the earliest forward-looking post that names a direction on a graded print ({GRADED_PRINT_LIST}) and
+              does not expire before that week&apos;s checkpoints. The choice is from the post text, not the later
+              print. A post that names no ticker is not shown. The row stays in the ledger with exclusion reason no-ticker
+              and is left out of the pages, counts, ranks, lead, and sitemap. It is not graded on SPY.
+              A same-day or 0DTE trade does not take the slot: a 0DTE tone, a trade for today, a bare Friday
+              that is not &quot;next Friday,&quot; or an intraday label posted on the collect-window Friday. That
+              row stays in the ledger, ungraded, and the next eligible post from the handle is the call. A fill
+              note or an intraday label from earlier in the window stays graded when the post does not name that
+              expiry. One graded call is enough to rank. An ambiguous direction is excluded.{" "}
+              {methodologySourceLead(checkedWeekRows())} {OCT19_X_SCOPE}
             </dd>
           </div>
           <div className="panel p-4">
@@ -106,10 +100,27 @@ export default async function MethodologyPage() {
           </div>
           <div className="panel p-4">
             <dt className="font-medium text-ink [text-wrap:balance]">Monday 12:00 PM ET — weekend-noise grade</dt>
-            <dd className="mt-1 text-sm text-muted">
+            <dd className="mt-1 text-sm text-muted [overflow-wrap:anywhere]">
               The primary score. It asks whether the weekend doom, war panic, sell-the-open calls, and melt-up
               calls were still there at noon. The print is the open of the Yahoo Finance 5-minute bar stamped
-              12:00 PM America/New_York. VIX uses the same stamp.
+              12:00 PM America/New_York. The chart endpoint is
+              https://query1.finance.yahoo.com/v8/finance/chart/{"{symbol}"} with period1 at 13:00 UTC on that
+              session date, period2 at 22:00 UTC, interval 5m, includeAdjustedClose true, and events div.
+              The raw response behind each noon print is committed with that URL, those settings, the fetch
+              time, and a SHA-256 checksum of the body. The accuracy guard compares the displayed print to
+              that file, to the cent. A live re-check then pulls the same chart at least three times and
+              takes a majority within $0.05. When those pulls disagree, the guard reports Yahoo unstable.
+              A live flip does not fail the guard. A 12:00 open that exactly equals the previous bar&apos;s close
+              is flagged as a possible filled bar. On October 19, 2026 the unfilled 5-minute open is 769.07.
+              The 11:55 5-minute bar closes at 769.45, which is also the 11:59 1-minute close. Yahoo
+              sometimes serves that 769.45 figure as the 12:00 open. That filled open is not the grade.
+              The stored Monday grade is the unfilled 12:00 5-minute open. VIX uses the same stamp.
+              On October 19, 2026 the VIX 12:00 open is 17.68. That open equals the previous 5-minute
+              close, so the filled flag stays. Three live pulls agreed, and the 1-minute bar at 12:00
+              also opens at 17.68, the same figure as the 11:59 close. There is no separate unfilled
+              open. The grade stays 17.68. A filled 5-minute open that does not match the 1-minute
+              12:00 open is not the grade. The Monday receipt step writes those raw Yahoo bodies, so a
+              later Monday does not wait on a hand edit.
             </dd>
           </div>
           <div className="panel p-4">
@@ -127,8 +138,8 @@ export default async function MethodologyPage() {
           <div className="panel p-4">
             <dt className="font-medium text-ink">Verified real calls</dt>
             <dd className="mt-1 text-sm text-muted">
-              Demo and paste-intake calls use the same stamps. Monday is the open of the 12:00 PM ET 5-minute
-              bar. Wednesday and Friday are the 4:00 PM ET regular-session close. Paste-intake calls skip the
+              Sourced calls and paste-intake calls use the same stamps. Monday is the open of the 12:00 PM ET
+              5-minute bar. Wednesday and Friday are the 4:00 PM ET regular-session close. Those calls skip the
               Monday gap.
             </dd>
           </div>
@@ -141,12 +152,16 @@ export default async function MethodologyPage() {
             <dd className="mt-1 text-sm text-muted">
               The home tape, weekly rankings, leaderboards, and account scorecards list a call only after a
               readout has settled. Monday&apos;s open, Monday noon, the Wednesday close, and the Friday close are those horizons.
-              Hit rate, STRONG rate, and WEAK rate use settled grades only. While a readout is still scheduled,
-              the calls sit on{" "}
-              <Link href="/pending" className="accent-link underline-offset-4 hover:underline">
-                Not graded yet
+              Hit rate, STRONG rate, and WEAK rate are the share of settled readouts, not the share of calls.
+              The hit percent on the board floors, the same way a GC percent floors, so 1 of 8 readouts reads 12%.
+              A readout is Monday&apos;s open, Monday noon, the Wednesday close, or the Friday close. The graded-checkpoint
+              count is Monday noon, Wednesday, and Friday only, so a hit rate can include the Monday open and
+              still differ from that checkpoint total. While a readout is still scheduled,
+              the calls sit on that week&apos;s Not graded yet list.{" "}
+              <Link href="/weeks" className="accent-link underline-offset-4 hover:underline">
+                All weeks
               </Link>
-              . That page is not part of the ranking.
+              . That list is not part of the ranking.
             </dd>
           </div>
         </dl>
@@ -160,13 +175,23 @@ export default async function MethodologyPage() {
           The board shows one GC Scale percent. Parts add to that percent: direction {DIRECTION_MAX}, levels{" "}
           {LEVEL_MAX}, specificity {SPECIFICITY_MAX}, VIX {VIX_MAX}.
         </p>
-        <h3 className="mt-6 font-medium text-ink">Direction versus the equity tape</h3>
+        <p className="mt-3 text-ink/80">
+          Once a primary named in the post is recorded and an earlier checkpoint is graded, a later checkpoint is graded on
+          that same primary when the print is in the price file. A post that names no ticker is not shown. It stays in
+          the ledger with exclusion reason no-ticker and is not graded on SPY. A post that was never graded stays pending
+          when it names more than one print. A missing print stays pending and is not invented.
+          The call score is the latest settled checkpoint: Friday close, else Wednesday close, else Monday noon.
+          It is not the mean of those pills. The home lead is the mean of those call scores on the newest
+          closed week that already has a grade.
+        </p>
+        <h3 className="mt-6 font-medium text-ink">Direction versus the recorded primary</h3>
         <p className="mt-1 text-sm text-muted">
-          The tape is the equal-weight percent move of SPY, QQQ, and DIA from Friday&apos;s regular-session
-          close to the readout print. Each name counts one third. A bullish call is scored on that tape. A
-          bearish call is scored on the inverse. Flat tape is a push. Numbered targets are still checked on the
-          call&apos;s own symbol. Selloff calls only score well when the tape is down; melt-up calls only when
-          the tape is up.
+          A call is scored on its recorded primary. The move is that symbol&apos;s print minus the reference,
+          divided by the reference. A bullish call wants that print up. A bearish call wants it down. Flat is a
+          push. The equal-weight SPY, QQQ, and DIA move is the cohort tape on the week page. It is not the
+          call&apos;s direction score, and it is not the hit. Numbered targets are checked on the same primary.
+          A selloff call scores well only when its primary is down. A melt-up call scores well only when its
+          primary is up.
         </p>
         <ul className="mt-3 grid gap-3 min-[820px]:hidden">
           {DIRECTION_BANDS.map((band) => (
@@ -242,7 +267,7 @@ export default async function MethodologyPage() {
           <li>Named support or resistance: 3</li>
         </ul>
         <p className="mt-2 text-sm text-muted">
-          A mood with no ticker cannot clear {STRONG_LINE}, even when the tape agrees.
+          A post that names no ticker is not shown and is not scored.
         </p>
       </section>
 
@@ -279,114 +304,6 @@ export default async function MethodologyPage() {
           and the middle is flat. Agreement is a description, not a recommendation.
         </p>
       </section>
-
-      {featured && examples.length > 0 ? (
-        <section className="mt-10" aria-labelledby="example">
-          <h2 id="example" className="font-serif text-3xl text-ink">
-            Worked example: {featured.title}
-          </h2>
-          <p className="mt-3 text-ink/80">
-            {featured.summary} Monday gap and Monday noon are off this board because the cash session did not
-            settle. They are on{" "}
-            <Link href={`/weeks/${featured.slug}/pending`} className="accent-link underline-offset-4 hover:underline">
-              Not graded yet
-            </Link>
-            , not in the ranking.
-          </p>
-          <p className="text-ink/80">
-            <Link href={`/weeks/${featured.slug}`} className="text-pine underline-offset-4 hover:underline">
-              Open the graded cohort
-            </Link>
-            .
-          </p>
-          <ul className="mt-4 grid gap-3 min-[820px]:hidden">
-            {examples.map((call) => (
-              <li key={call.id} className="panel p-4">
-                <p className="font-medium">
-                  <Link href={`/calls/${call.id}`} className="hover:underline">
-                    {call.displayName}
-                  </Link>
-                </p>
-                <p className="text-xs text-muted">
-                  {call.sentiment} {call.explicit ? call.primary : "no ticker"}
-                </p>
-                <ReferenceLine quotes={featured.quotes} primary={call.primary} />
-                <div className="mt-3 grid gap-2">
-                  {exampleKinds.map((kind) => {
-                    const grade = call.grades[kind];
-                    return (
-                      <div key={kind}>
-                        <p className="text-xs text-[#9a9aa3]">{READOUT_META[kind].short}</p>
-                        {grade ? (
-                          <ReadoutBubble
-                            kind={kind}
-                            quotes={featured.quotes}
-                            primary={call.primary}
-                            direction={call.direction}
-                          />
-                        ) : null}
-                        <p className="font-mono text-sm">{grade ? `${formatScore(grade.score)}%` : "Not graded yet"}</p>
-                        {grade ? (
-                          <p className="text-xs text-muted">{GC_GRADE_LABEL[gcGrade(grade)]}</p>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="settled-grades mt-4 hidden min-[820px]:block">
-            <table className="settled-table w-full table-fixed text-left text-sm">
-              <caption className="sr-only">Settled grades in the worked example</caption>
-              <thead className="text-xs uppercase tracking-wide text-muted">
-                <tr>
-                  <th scope="col" className="py-2 font-medium">Call</th>
-                  {exampleKinds.map((kind) => (
-                    <th key={kind} scope="col" className="py-2 font-medium normal-case tracking-normal">
-                      {READOUT_META[kind].short}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {examples.map((call) => (
-                  <tr key={call.id} className="border-t border-line">
-                    <th scope="row" className="py-3 pr-3 font-medium">
-                      <Link href={`/calls/${call.id}`} className="hover:underline">
-                        {call.displayName}
-                      </Link>
-                      <span className="mt-0.5 block text-xs font-normal text-muted">
-                        {call.sentiment} {call.explicit ? call.primary : "no ticker"}
-                      </span>
-                      <ReferenceLine quotes={featured.quotes} primary={call.primary} />
-                    </th>
-                    {exampleKinds.map((kind) => {
-                      const grade = call.grades[kind];
-                      return (
-                        <td key={kind} className="py-3 font-mono">
-                          {grade ? (
-                            <ReadoutBubble
-                              kind={kind}
-                              quotes={featured.quotes}
-                              primary={call.primary}
-                              direction={call.direction}
-                            />
-                          ) : null}
-                          {grade ? `${formatScore(grade.score)}%` : "Not graded yet"}
-                          {grade ? (
-                            <span className="mt-1 block text-xs text-muted">{GC_GRADE_LABEL[gcGrade(grade)]}</span>
-                          ) : null}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      ) : null}
 
       <section className="mt-10" aria-labelledby="data">
         <h2 id="data" className="font-serif text-3xl text-ink">

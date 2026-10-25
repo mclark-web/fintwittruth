@@ -60,13 +60,8 @@ export function assertLiveFile(data: LiveFile = liveFile()): LiveCohortRecord[] 
     if (cohort.monday.year !== year || cohort.monday.month !== month || cohort.monday.day !== day) {
       throw new Error(`Live cohort ${cohort.slug} does not match its Monday date.`);
     }
-    const seenHandles = new Set<string>();
     for (const call of cohort.calls) {
       assertLiveCall(call, window, seenUrls);
-      if (seenHandles.has(call.handle)) {
-        throw new Error(`Handle @${call.handle} is repeated in live cohort ${cohort.slug}.`);
-      }
-      seenHandles.add(call.handle);
     }
   }
   return data.cohorts;
@@ -80,18 +75,19 @@ export function assertLiveCall(
   if (!/^https:\/\/\S+$/.test(call.sourceUrl)) {
     throw new Error(`Call ${call.id} needs an https source URL. Refusing to invent one.`);
   }
-  if (seenUrls.has(call.sourceUrl)) {
-    throw new Error(`Source URL already in the book: ${call.sourceUrl}`);
+  const sourceKey = `${call.sourceUrl}\n${call.body}\n${call.primary}\n${call.direction}`;
+  if (seenUrls.has(sourceKey)) {
+    throw new Error(`Source URL, quote, ticker, and direction are already in the book: ${call.sourceUrl}`);
   }
-  seenUrls.add(call.sourceUrl);
+  seenUrls.add(sourceKey);
   if (!/^[A-Za-z0-9_]{2,30}$/.test(call.handle)) {
     throw new Error(`Handle @${call.handle} is not a public handle token.`);
   }
   if (!call.displayName.trim() || !call.body.trim()) {
     throw new Error(`Call ${call.id} is missing a name or the post text.`);
   }
-  if (call.body.length < 40) {
-    throw new Error(`Call ${call.id} body is too short to be the public post.`);
+  if (call.body.trim().length === 0) {
+    throw new Error(`Call ${call.id} body is empty. Refusing to invent the post text.`);
   }
   if (call.direction !== "bullish" && call.direction !== "bearish") {
     throw new Error(`Call ${call.id} direction must be bullish or bearish.`);
@@ -102,8 +98,8 @@ export function assertLiveCall(
   if (!["high", "medium", "low"].includes(call.conviction)) {
     throw new Error(`Call ${call.id} conviction is not high, medium, or low.`);
   }
-  if (!SYMBOLS.includes(call.primary)) {
-    throw new Error(`Call ${call.id} primary ${call.primary} has no Yahoo print in this book.`);
+  if (!SYMBOLS.includes(call.primary) && !/^[A-Z]{1,5}$/.test(call.primary)) {
+    throw new Error(`Call ${call.id} primary ${call.primary} is not a ticker token. Refusing to invent one.`);
   }
   const postedAt = new Date(call.postedAt);
   if (Number.isNaN(postedAt.getTime())) {

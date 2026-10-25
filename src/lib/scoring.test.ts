@@ -72,6 +72,51 @@ test("a fully specified call can score 100 and a vague call stays under 70", () 
   assert.equal(vague.isWeak, false);
 });
 
+test("a VIX-primary call follows the VIX move and does not score that move twice", () => {
+  const draft = {
+    direction: "bullish" as const,
+    sentiment: "meltup" as const,
+    primary: "VIX",
+    tickers: ["VIX"],
+    explicit: true,
+    levels: [],
+  };
+  const spike = scoreCall(draft, { tapeMove: -0.02, primaryRef: 18, primaryNow: 20.2, vixMove: 0.12 });
+  const drop = scoreCall(draft, { tapeMove: 0.02, primaryRef: 20, primaryNow: 17.6, vixMove: -0.12 });
+  assert.equal(spike.vixPoints, 0);
+  assert.equal(drop.vixPoints, 0);
+  assert.equal(spike.rawMovePct, 0.12);
+  assert.equal(spike.signedMovePct, 0.12);
+  assert.equal(spike.directionPoints, 50);
+  assert.equal(drop.directionPoints, 0);
+  assert.ok(spike.score > drop.score);
+  const fade = scoreCall(
+    { ...draft, direction: "bearish", sentiment: "panic" },
+    { tapeMove: 0.02, primaryRef: 20, primaryNow: 17.6, vixMove: -0.12 },
+  );
+  assert.equal(fade.vixPoints, 0);
+  assert.equal(fade.directionPoints, 50);
+  assert.equal(fade.signedMovePct, 0.12);
+});
+
+test("direction follows the recorded primary, not the equal-weight tape", () => {
+  const up = scoreCall(
+    {
+      direction: "bullish",
+      sentiment: "meltup",
+      primary: "QQQ",
+      tickers: ["QQQ"],
+      explicit: true,
+      levels: [],
+    },
+    { tapeMove: -0.0044, primaryRef: 714.88, primaryNow: 721.45, vixMove: 0 },
+  );
+  assert.ok(up.rawMovePct > 0.009 && up.rawMovePct < 0.0093);
+  assert.equal(up.signedMovePct, up.rawMovePct);
+  assert.equal(up.directionPoints, 34);
+  assert.equal(directionPoints(-0.0044), 6);
+});
+
 test("busted invalidation caps level points", () => {
   const busted = scoreCall(
     {

@@ -3,11 +3,12 @@ import test from "node:test";
 import { zonedToUtc } from "./calendar";
 import { ACCOUNTS, COHORTS, DEMO_OPEN_COHORT_SLUG, FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG, SYMBOLS, VIRAL_CALLS } from "./demo-data";
 import { liveFile } from "./live-book";
-import { buildDataset } from "./dataset";
+import { buildDataset, productionBook } from "./dataset";
 import {
   adjustedClose,
   assertHistoricalPrint,
   noonOpen,
+  hasMarketHistory,
   quotesForCohort,
   sessionClose,
   sessionOpen,
@@ -58,6 +59,7 @@ test("September 21 publishes Monday, Wednesday, and Friday", () => {
   assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "published");
   assert.equal(latest.grades.length, latest.calls.length * 4);
+  assert.equal(latest.calls.some((call) => call.handle === "piggostradingdesk"), false);
   assert.ok(latest.grades.some((grade) => grade.readout === "friday"));
 });
 
@@ -70,33 +72,47 @@ test("every demo post sits inside the Wednesday-to-Sunday collect window", () =>
   }
 });
 
-test("the latest live week publishes Monday and leaves Wednesday and Friday scheduled", () => {
+test("the October 19 week publishes the Friday close and grades every recorded Friday cell", () => {
   const prior = data.cohorts.find((cohort) => cohort.slug === "2026-09-28");
   assert.ok(prior);
   assert.match(prior.summary, /Wednesday, September 23, 2026 at 12:00 PM ET through Sunday, September 27 at 5:00 PM ET/);
-  assert.match(prior.summary, /X watchlist not covered this week; Substack only/);
+  assert.doesNotMatch(prior.summary, /X watchlist not covered this week; Substack only/);
   assert.doesNotMatch(prior.summary, /after the cash close/);
   const october5 = data.cohorts.find((cohort) => cohort.slug === "2026-10-05");
   assert.ok(october5);
   assert.equal(october5.isLatest, false);
-  assert.equal(october5.calls.length, 2);
+  assert.equal(october5.calls.length, 3);
+  assert.equal(october5.calls.some((call) => call.handle === "piggostradingdesk" || call.handle === "smtraderca"), false);
   assert.match(october5.summary, /Wednesday, September 30, 2026 at 12:00 PM ET through Sunday, October 4 at 5:00 PM ET/);
-  assert.match(october5.summary, /X watchlist not covered this week; Substack only/);
-  assert.equal(october5.grades.length, october5.calls.length * 4);
+  assert.doesNotMatch(october5.summary, /X watchlist not covered this week; Substack only/);
+  assert.equal(october5.grades.length, 4);
   const latest = data.cohorts.find((cohort) => cohort.slug === "2026-10-19");
   assert.ok(latest);
-  assert.equal(latest.isLatest, true);
+  assert.equal(latest.isLatest, false);
   assert.equal(latest.dataset, "live");
   assert.equal(latest.calls.length, 2);
+  assert.equal(latest.calls.some((call) => call.handle === "piggostradingdesk"), false);
   assert.match(latest.summary, /Wednesday, October 14, 2026 at 12:00 PM ET through Sunday, October 18 at 5:00 PM ET/);
   assert.ok(latest.summary.includes(OCT19_X_SCOPE));
   assert.doesNotMatch(latest.summary, /not fully verified/);
   assert.doesNotMatch(latest.summary, /after the cash close/);
   assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
-  assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "scheduled");
-  assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "scheduled");
-  assert.equal(latest.grades.length, latest.calls.length * 2);
+  assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
+  assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "published");
+  assert.equal(latest.grades.filter((grade) => grade.readout === "friday").length, 2);
+  assert.equal(latest.grades.length, 8);
+  assert.equal(latest.grades.filter((grade) => grade.callId.endsWith("__piggostradingdesk")).length, 0);
+});
+
+test("production keeps sourced calls and drops fictional accounts", () => {
+  const book = productionBook(data);
+  assert.ok(book.cohorts.length > 0);
+  assert.equal(book.cohorts.some((cohort) => cohort.dataset === "demo"), false);
+  assert.equal(book.cohorts.every((cohort) => cohort.calls.every((call) => call.sourceUrl.startsWith("https://"))), true);
+  const handles = new Set(book.accounts.map((account) => account.handle));
+  for (const account of ACCOUNTS) assert.equal(handles.has(account.handle), false);
+  assert.equal(book.accounts.some((account) => account.handle === "doomscroll"), false);
 });
 
 test("watchlist and viral posts share the weekly board", () => {
@@ -134,6 +150,10 @@ test("STRONG is 70 or more and WEAK is under 40 on every board", () => {
 
 test("every published quote is the recorded Yahoo print", () => {
   for (const cohort of data.cohorts) {
+    if (!hasMarketHistory(cohort.historySlug)) {
+      assert.equal(cohort.quotes.length, 0);
+      continue;
+    }
     const recorded = quotesForCohort(cohort.historySlug, SYMBOLS);
     assert.equal(cohort.quotes.length, recorded.length);
     for (const quote of cohort.quotes) {
@@ -336,46 +356,68 @@ test("the verified weekend book and the fictional doom book are both graded", ()
   ]);
   assert.equal(handles.size, expectedHandles.size);
   assert.ok(handles.has("smtraderca"));
-  assert.ok(handles.has("piggostradingdesk"));
+  assert.equal(handles.has("piggostradingdesk"), false);
   assert.ok(handles.has("doomscroll"));
   assert.deepEqual(CONVICTION_WEIGHT, { high: 3, medium: 2, low: 1 });
   assert.deepEqual([...EQUITY_TAPE], ["SPY", "QQQ", "DIA"]);
-  const monday = live[0].grades.filter((grade) => grade.readout === "monday");
-  assert.equal(monday.length, live[0].calls.length);
+  const september = live.find((cohort) => cohort.slug === "2026-09-21");
+  assert.ok(september);
+  const monday = september.grades.filter((grade) => grade.readout === "monday");
+  assert.equal(monday.length, september.calls.length);
+  assert.equal(september.calls.some((call) => call.handle === "piggostradingdesk"), false);
+  const originalBearish = new Set(["smtraderca"]);
   for (const grade of monday) {
-    const call = live[0].calls.find((item) => item.id === grade.callId);
-    assert.equal(call?.direction, "bearish");
+    const call = september.calls.find((item) => item.id === grade.callId);
+    assert.ok(call);
+    assert.ok(grade.vixPoints >= 0 && grade.vixPoints <= VIX_MAX);
+    assert.match(grade.note, new RegExp(`\\b${call.primary} is `));
+    assert.match(grade.note, /VIX/);
+    if (!originalBearish.has(call.handle)) continue;
+    assert.equal(call.direction, "bearish");
     assert.equal(grade.isStrong, false);
     assert.ok(grade.score < STRONG_LINE);
-    assert.ok(grade.vixPoints >= 0 && grade.vixPoints <= VIX_MAX);
-    assert.match(grade.note, /SPY, QQQ, and DIA/);
-    assert.match(grade.note, /VIX/);
   }
-  const spy = live[0].quotes.find((quote) => quote.symbol === "SPY");
+  const spy = september.quotes.find((quote) => quote.symbol === "SPY");
   assert.ok(spy);
   assert.ok(spy.ref > 740);
   assert.equal(spy.ref, demo.quotes.find((quote) => quote.symbol === "SPY")?.ref);
 });
 
-test("direction matches the tape on every published readout", () => {
+test("direction matches the recorded primary on every published readout", () => {
   for (const cohort of data.cohorts) {
     for (const kind of READOUTS) {
       const board = cohort.readouts.find((item) => item.kind === kind);
       if (board?.status !== "published") continue;
       const grades = cohort.grades.filter((grade) => grade.readout === kind);
-      assert.ok(grades.length > 0);
-      const tape = grades[0].rawMovePct;
+      if (grades.length === 0) {
+        assert.equal(cohort.dataset, "live", `${cohort.slug} ${kind} is published with no grades`);
+        continue;
+      }
       for (const grade of grades) {
-        assert.equal(grade.rawMovePct, tape);
         const call = cohort.calls.find((item) => item.id === grade.callId);
         assert.ok(call);
-        const expectedSigned = call.direction === "bullish" ? tape : -tape;
+        const quote = cohort.quotes.find((item) => item.symbol === call.primary);
+        const now = quote
+          ? kind === "monday-gap"
+            ? quote.mondayOpen
+            : kind === "monday"
+              ? quote.monday
+              : kind === "wednesday"
+                ? quote.wednesday
+                : quote.friday
+          : null;
+        const primaryMove = quote && now != null && quote.ref !== 0 ? (now - quote.ref) / quote.ref : null;
+        const basis = call.primary === "VIX" ? grade.vixMovePct : primaryMove;
+        assert.ok(basis != null, `${call.id} ${kind} has no primary print`);
+        assert.ok(Math.abs(grade.rawMovePct - basis) < 1e-12, `${call.id} ${kind} is not graded on ${call.primary}`);
+        const expectedSigned = call.direction === "bullish" ? basis : -basis;
         assert.ok(Math.abs(grade.signedMovePct - expectedSigned) < 1e-12);
-        if (tape >= 0.01 && call.direction === "bearish") {
+        if (call.primary === "VIX") continue;
+        if (basis <= -0.01 && call.direction === "bullish") {
           assert.equal(grade.isStrong, false);
           assert.ok(grade.score < STRONG_LINE);
         }
-        if (tape <= -0.01 && call.direction === "bullish") {
+        if (basis >= 0.01 && call.direction === "bearish") {
           assert.equal(grade.isStrong, false);
           assert.ok(grade.score < STRONG_LINE);
         }

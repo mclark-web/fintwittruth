@@ -61,9 +61,26 @@ export function formatPct(value: number, digits = 2): string {
   return `${sign}${pct.toFixed(digits)}%`;
 }
 
-/** Unsigned share, for rates such as "Hit 50%". A plus sign is never added. */
+/**
+ * Unsigned share, for rates such as "Hit 50%". A plus sign is never added.
+ * The percent floors, the same way a GC percent floors, so 12.5% reads 12%.
+ * A binary fraction such as 29/50 is 57.999... in IEEE math; the epsilon keeps that floor at 58.
+ */
 export function formatRate(value: number, digits = 0): string {
-  return `${(Math.abs(value) * 100).toFixed(digits)}%`;
+  const percent = Math.abs(value) * 100;
+  const factor = 10 ** digits;
+  const floored = Math.floor(percent * factor + 1e-6) / factor;
+  return `${floored.toFixed(digits)}%`;
+}
+
+/** "Hit 12% of 8 readouts". The percent floors, the same way a GC percent floors. */
+export function hitRateLabel(rate: number, total: number): string {
+  return `Hit ${formatRate(rate, 0)} of ${total} readouts`;
+}
+
+/** "WEAK on 7 of 8" and "STRONG on k of n". */
+export function bandRateLabel(band: "STRONG" | "WEAK", count: number, total: number): string {
+  return `${band} on ${count} of ${total}`;
 }
 
 export function formatAsOf(date: Date | string): string {
@@ -168,6 +185,7 @@ export function initials(name: string): string {
   const parts = name.split(/\s+/).filter(Boolean);
   return parts
     .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
+    // Code points, not UTF-16 units: a leading emoji must not split into a lone surrogate (React #418).
+    .map((part) => Array.from(part)[0]?.toUpperCase() ?? "")
     .join("");
 }

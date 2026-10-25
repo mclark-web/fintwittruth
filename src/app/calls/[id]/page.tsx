@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NothingGraded } from "@/components/board-state";
+import { ReadoutBubbles, TimeframePills } from "@/components/call-readouts";
 import { PricePath, PriceSource, TapeMark } from "@/components/market";
 import { Avatar, DirectionChip, LevelList, ReadoutBubble, ReferenceLine, ScoreMark } from "@/components/score";
 import { disputePath } from "@/lib/dispute";
-import { etYmd, formatPct, formatScopeWhen } from "@/lib/format";
+import { etYmd, formatScopeWhen, formatSignedPct } from "@/lib/format";
+import { rowExpiresBeforeReadout } from "@/lib/book-policy";
 import { pendingClosure, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { settledGradeKinds } from "@/lib/board";
@@ -34,13 +36,41 @@ export async function generateMetadata({
   };
 }
 
+function gradeBasis(
+  call: {
+    primary: string;
+    tickers: string[];
+    explicit: boolean;
+    body: string;
+    toneLabel: string;
+    posture: string;
+    postedAt: Date;
+    cohortSlug: string;
+  },
+  graded: boolean,
+): string {
+  if (call.tickers.length === 0 && !call.explicit && call.primary === "SPY") {
+    return "This post names no ticker. It stays pending and is not graded on SPY.";
+  }
+  if (!graded && rowExpiresBeforeReadout(call)) {
+    return "This call is not graded. A same-day or expired trade stays off this week's checkpoints.";
+  }
+  const primary = call.primary;
+  if (primary === "VIX") {
+    return "Graded on VIX's move from Friday's close. No separate VIX factor.";
+  }
+  return `Graded on ${primary}'s move from Friday's close, plus a VIX factor. The SPY, QQQ, and DIA average is the week's benchmark tape and is not this call's score.`;
+}
+
 function Breakdown({
+  primary,
   directionPoints,
   levelPoints,
   specificityPoints,
   vixPoints,
   levelsNamed,
 }: {
+  primary: string;
   directionPoints: number;
   levelPoints: number;
   specificityPoints: number;
@@ -48,7 +78,7 @@ function Breakdown({
   levelsNamed: boolean;
 }) {
   const rows = [
-    { label: "Direction vs the market", value: directionPoints, max: DIRECTION_MAX },
+    { label: `Direction vs ${primary}`, value: directionPoints, max: DIRECTION_MAX },
     { label: levelsNamed ? "Levels" : "Levels · none named", value: levelPoints, max: LEVEL_MAX },
     { label: "Specificity", value: specificityPoints, max: SPECIFICITY_MAX },
     { label: "VIX factor", value: vixPoints, max: VIX_MAX },
@@ -80,7 +110,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
   const result = await getCall(id);
   if (!result || !result.cohort) notFound();
   const { call, cohort } = result;
-  const quote = cohort.quotes.find((item) => item.symbol === call.primary) ?? cohort.quotes[0];
+  const quote = cohort.quotes.find((item) => item.symbol === call.primary);
   const settled = settledGradeKinds(call.grades);
   const waiting = READOUTS.filter((kind) => call.grades[kind] == null);
   const closure = pendingClosure(waiting, cohort);
@@ -100,7 +130,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
       <article className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <div className="panel p-5">
           <p className="text-xs uppercase tracking-wide text-muted">
-            {call.dataset === "demo" ? "Demo call" : "Verified real call"}
+            Verified real call
           </p>
           <header className="mt-3 flex flex-wrap items-center gap-3">
             <Avatar name={call.displayName} accent={call.accent} />
@@ -128,7 +158,9 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
           <p className="mt-3 text-sm text-muted">
             {call.tickers.length > 0 ? `Named tickers: ${call.tickers.join(", ")}` : "No ticker named"}
           </p>
-          <p className="mt-2 text-sm text-muted">Graded on the SPY, QQQ, and DIA average, plus VIX.</p>
+          <p className="mt-2 text-sm text-muted">
+            {call.primary ? gradeBasis(call, settled.length > 0) : "This call has no recorded primary."}
+          </p>
           <p className="mt-3 text-xs text-muted">Posted {formatScopeWhen(call.postedAt)} inside the collect window.</p>
           {call.sourceUrl ? (
             <p className="mt-2 text-sm">
@@ -137,7 +169,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
               </a>
             </p>
           ) : null}
-          {call.dataset !== "demo" && call.sourceUrl && settled.length > 0 ? (
+          {call.sourceUrl && settled.length > 0 ? (
             <p className="mt-2 text-sm">
               <a
                 href={disputePath(call.id)}
@@ -164,8 +196,15 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">
           The words do not change. Each settled horizon rescores this call against recorded prints measured from
-          Friday&apos;s regular-session close.
+          Friday&apos;s regular-session close. The three pills are Monday noon, Wednesday close, and Friday close.
         </p>
+        <TimeframePills grades={call.grades} />
+        <ReadoutBubbles
+          grades={call.grades}
+          quotes={cohort.quotes}
+          primary={call.primary}
+          direction={call.direction}
+        />
         {settled.length === 0 ? (
           <div className="mt-4">
             <NothingGraded href={`/weeks/${cohort.slug}/pending`} />
@@ -201,12 +240,18 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
                     />
                   </div>
                   <p className="mt-3 flex flex-wrap items-center gap-2">
-                    <TapeMark direction={call.direction} move={grade.rawMovePct} label="Market" />
+                    <TapeMark
+                      direction={call.direction}
+                      move={grade.rawMovePct}
+                      label={call.primary}
+                      percent={formatSignedPct}
+                    />
                     <span className="font-mono text-xs text-[#9a9aa3] tabular-nums">
-                      signed {formatPct(grade.signedMovePct)} · VIX {formatPct(grade.vixMovePct)}
+                      signed {formatSignedPct(grade.signedMovePct)} · VIX {formatSignedPct(grade.vixMovePct)}
                     </span>
                   </p>
                   <Breakdown
+                    primary={call.primary}
                     directionPoints={grade.directionPoints}
                     levelPoints={grade.levelPoints}
                     levelsNamed={call.levels.length > 0}

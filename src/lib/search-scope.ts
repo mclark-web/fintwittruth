@@ -5,7 +5,7 @@ import { formatScopeWhen } from "./format";
 export const GRADED_PRINT_LIST =
   "SPY, QQQ, DIA, SPX, NDX, ES, NQ, the S&P 500, the Nasdaq 100, or the Dow";
 
-/** Friday, October 16, 2026 at 10:22 AM ET. Earlier collect windows were not searched on X. */
+/** Friday, October 16, 2026 at 10:22 AM ET. The first October 19 X pass started then. */
 export const X_SEARCH_START = new Date("2026-10-16T14:22:00.000Z");
 
 /**
@@ -13,13 +13,14 @@ export const X_SEARCH_START = new Date("2026-10-16T14:22:00.000Z");
  * The week page strips this sentence from the summary, so do not edit the CSV to match a rewrite.
  */
 export const OCT19_X_SCOPE =
-  "X was checked only from Friday, October 16 at 10:22 AM ET through Sunday, October 18 at 5:00 PM ET. X posts from Wednesday noon through Friday 10:22 AM ET were out of scope and were not searched. For this week, first means the first forward-looking post inside that searched range.";
+  "X was first checked from Friday, October 16 at 10:22 AM ET through Sunday, October 18 at 5:00 PM ET. A later backfill added public X posts from earlier in this Wednesday-to-Sunday window. For this week, first means the first forward-looking post inside the range searched at that time.";
 
 /**
  * Recorded search coverage from checked-weeks.csv.
  * `substack` — Substack for the whole window, X not searched.
  * `substack+x` — both sources for the whole window.
  * `substack+x-from-<ISO>` — Substack for the whole window, X only from that instant through the end.
+ * `x` — X posts in the window were read. Substack was not searched.
  */
 export type WeekCoverage = {
   substack: boolean;
@@ -30,7 +31,7 @@ export type WeekCoverage = {
 export function parseWeekCoverage(value: string): WeekCoverage | null {
   const text = value.trim();
   if (text === "substack") return { substack: true, x: "none" };
-  if (text === "substack+x") return { substack: true, x: "full" };
+  if (text === "substack+x" || text === "x") return { substack: text !== "x", x: "full" };
   const from = /^substack\+x-from-(\S+)$/.exec(text);
   if (!from) return null;
   const xFrom = new Date(from[1] ?? "");

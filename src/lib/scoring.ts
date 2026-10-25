@@ -37,16 +37,16 @@ export type CallDraft = {
 };
 
 export const DIRECTION_BANDS: { label: string; points: number }[] = [
-  { label: "Tape favorable by 2% or more", points: 50 },
-  { label: "Tape favorable by 1% up to 2%", points: 42 },
-  { label: "Tape favorable by 0.5% up to 1%", points: 34 },
-  { label: "Tape favorable by 0.2% up to 0.5%", points: 26 },
-  { label: "Tape favorable by 0.08% up to 0.2%", points: 20 },
-  { label: "Tape inside a ±0.08% push", points: 14 },
-  { label: "Tape adverse by up to 0.2%", points: 10 },
-  { label: "Tape adverse by 0.2% up to 0.5%", points: 6 },
-  { label: "Tape adverse by 0.5% up to 1%", points: 3 },
-  { label: "Tape adverse by 1% or more", points: 0 },
+  { label: "Primary favorable by 2% or more", points: 50 },
+  { label: "Primary favorable by 1% up to 2%", points: 42 },
+  { label: "Primary favorable by 0.5% up to 1%", points: 34 },
+  { label: "Primary favorable by 0.2% up to 0.5%", points: 26 },
+  { label: "Primary favorable by 0.08% up to 0.2%", points: 20 },
+  { label: "Primary inside a ±0.08% push", points: 14 },
+  { label: "Primary adverse by up to 0.2%", points: 10 },
+  { label: "Primary adverse by 0.2% up to 0.5%", points: 6 },
+  { label: "Primary adverse by 0.5% up to 1%", points: 3 },
+  { label: "Primary adverse by 1% or more", points: 0 },
 ];
 
 export const VIX_BANDS: { label: string; points: number }[] = [
@@ -184,11 +184,19 @@ export type ScoreParts = {
 };
 
 export function scoreCall(call: CallDraft, input: ScoreInput): ScoreParts {
-  const signedMovePct = call.direction === "bullish" ? input.tapeMove : -input.tapeMove;
+  // Direction follows the recorded primary. The equal-weight SPY, QQQ, and DIA
+  // tape stays the cohort benchmark and is not this call's score. A VIX primary
+  // follows VIX. The sentiment factor is for equity calls, where panic wants
+  // VIX up and melt-up wants VIX down. Applying it on a VIX primary would score
+  // the same move twice.
+  const vixCall = call.primary === "VIX";
+  const primaryMove = input.primaryRef === 0 ? 0 : (input.primaryNow - input.primaryRef) / input.primaryRef;
+  const basis = vixCall ? input.vixMove : primaryMove;
+  const signedMovePct = call.direction === "bullish" ? basis : -basis;
   const direction = directionPoints(signedMovePct);
   const levels = levelPoints(call, input.primaryRef, input.primaryNow);
   const specificity = specificityParts(call).total;
-  const vix = vixPoints(call.sentiment, input.vixMove);
+  const vix = vixCall ? 0 : vixPoints(call.sentiment, input.vixMove);
   const score = Math.max(0, Math.min(100, direction + levels + specificity + vix));
   return {
     score,
@@ -197,7 +205,7 @@ export function scoreCall(call: CallDraft, input: ScoreInput): ScoreParts {
     levelPoints: levels,
     specificityPoints: specificity,
     vixPoints: vix,
-    rawMovePct: input.tapeMove,
+    rawMovePct: basis,
     signedMovePct,
     vixMovePct: input.vixMove,
     isWeak: score > 0 && score < WEAK_LINE,
@@ -258,6 +266,7 @@ export function gradeNote(input: {
   rawMovePct: number;
   vixMovePct: number;
   score: number;
+  primary?: string;
 }): string {
   const when = {
     "monday-gap": "Monday gap, from Friday's regular-session close to the regular-session open",
@@ -282,7 +291,11 @@ export function gradeNote(input: {
         : input.score < WEAK_LINE
           ? " That score is WEAK."
           : " That score is PROVISIONAL.";
-  return `${when}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's regular-session close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;
+  if (input.primary === "VIX") {
+    return `${when}: VIX is ${pct} from Friday's close, ${relation} this ${input.direction} call.${territory} This is a scorecard, not a signal.`;
+  }
+  const symbol = input.primary && input.primary !== "" ? input.primary : "The primary";
+  return `${when}: ${symbol} is ${pct} from Friday's regular-session close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;
 }
 
 export function tapeDirection(rawMovePct: number): "bullish" | "bearish" | "flat" {

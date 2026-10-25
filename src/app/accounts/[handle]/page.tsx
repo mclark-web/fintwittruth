@@ -8,7 +8,7 @@ import { Avatar, ScoreMark } from "@/components/score";
 import { TrackedAccount } from "@/components/tracked-account";
 import { cohortClockDates, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade } from "@/lib/board";
-import { formatRate, formatScore } from "@/lib/format";
+import { bandRateLabel, formatScore, hitRateLabel } from "@/lib/format";
 import { loadRealCallsForHandle } from "@/lib/public-real";
 import { getAccount, listHandles } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
@@ -88,13 +88,17 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       <header className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="flex gap-4">
           <Avatar name={account.displayName} accent={account.accent} />
-          <div>
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-muted">
               {account.calls.some((call) => call.dataset === "live") ? "Verified" : "Demo"}{" "}
               {account.bucket === "viral" ? "viral" : "watchlist"} account
-              {row ? ` · rank ${row.peerRank} of ${row.peerCount} in this bucket` : " · not on the leaderboard yet"}
+              {row
+                ? ` · rank ${row.peerRank} of ${row.peerCount} ${
+                    account.calls.some((call) => call.dataset === "live") ? "on the board" : "in this bucket"
+                  }`
+                : " · not on the leaderboard yet"}
             </p>
-            <h1 className="font-serif text-4xl text-ink">{account.displayName}</h1>
+            <h1 className="font-serif text-4xl text-ink [overflow-wrap:anywhere]">{account.displayName}</h1>
             <p className="text-muted">
               @{account.handle}
               {watched ? (
@@ -115,17 +119,15 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                   <dt className="text-xs uppercase text-muted">Average grade</dt>
                   <dd className="font-mono text-xl">{formatScore(row.avgScore, 0)}%</dd>
                 </div>
-                <div>
-                  <dt className="text-xs text-muted">Hit</dt>
-                  <dd className="font-mono text-xl">{formatRate(row.hitRate, 0)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-muted">STRONG rate</dt>
-                  <dd className="font-mono text-xl">{formatRate(row.strongRate, 0)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-muted">WEAK rate</dt>
-                  <dd className="font-mono text-xl">{formatRate(row.weakRate, 0)}</dd>
+                <div className="col-span-2 sm:col-span-3 lg:col-span-3">
+                  <dt className="sr-only">Hit, STRONG, and WEAK</dt>
+                  <dd className="font-mono text-sm [overflow-wrap:anywhere]">
+                    {hitRateLabel(row.hitRate, row.readoutCount)}
+                    {" · "}
+                    {bandRateLabel("STRONG", row.strongCount, row.readoutCount)}
+                    {" · "}
+                    {bandRateLabel("WEAK", row.weakCount, row.readoutCount)}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-xs uppercase text-muted">Graded calls</dt>
@@ -144,7 +146,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
               </div>
             ) : (
               <div className="mt-4">
-                <NothingGraded href="/pending" />
+                <NothingGraded href="/weeks" />
               </div>
             )}
           </div>
@@ -163,12 +165,12 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       </header>
       <p className="mt-4 max-w-3xl text-sm text-muted">
         {row
-          ? `The number is the average of the furthest graded checkpoint on each call. Hit is the share of graded calls that were right. Best ${formatScore(row.bestScore)}%. Worst ${formatScore(row.worstScore)}%.`
+          ? `The number averages each completed call. A call score is the furthest settled checkpoint, Friday else Wednesday else Monday noon. Hit, STRONG, and WEAK are the share of settled readouts, including the Monday open, not of calls. Best ${formatScore(row.bestScore)}%. Worst ${formatScore(row.worstScore)}%.`
           : "This handle has no graded call, so it is not ranked."}
       </p>
       {row && pendingCount > 0 ? (
         <div className="mt-3">
-          <PendingSettleLink href="/pending" />
+          <PendingSettleLink href="/weeks" />
         </div>
       ) : null}
 
