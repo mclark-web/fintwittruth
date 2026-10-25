@@ -102,8 +102,10 @@ export default function MethodologyPage() {
               The primary score. It asks whether the weekend doom, war panic, sell-the-open calls, and melt-up
               calls were still there at noon. The print is the open of the Yahoo Finance 5-minute bar stamped
               12:00 PM America/New_York. The 1-minute bar at that same stamp is a different print, and its close
-              is not the grade. On October 19, 2026 the 5-minute open was 769.45. The 1-minute bar closed at
-              769.07. The stored Monday grade stays on the 5-minute open. VIX uses the same stamp.
+              is not the grade. On October 19, 2026 the 5-minute bar stamped 12:00 PM ET opens at 769.45.
+              The 1-minute bar and the 15-minute bar stamped 12:00 PM ET open at that same 769.45. The 11:55
+              5-minute bar closes at 769.45, and the 1-minute bar stamped 12:00 PM ET closes at 769.07. The
+              stored Monday grade is the 12:00 5-minute open. VIX uses the same stamp.
             </dd>
           </div>
           <div className="panel p-4">
@@ -135,8 +137,10 @@ export default function MethodologyPage() {
             <dd className="mt-1 text-sm text-muted">
               The home tape, weekly rankings, leaderboards, and account scorecards list a call only after a
               readout has settled. Monday&apos;s open, Monday noon, the Wednesday close, and the Friday close are those horizons.
-              Hit rate, STRONG rate, and WEAK rate are the share of settled checkpoints, not the share of calls.
-              A call graded at Monday noon and again at the Friday close counts as two checkpoints. While a readout is still scheduled,
+              Hit rate, STRONG rate, and WEAK rate are the share of settled readouts, not the share of calls.
+              A readout is Monday&apos;s open, Monday noon, the Wednesday close, or the Friday close. The graded-checkpoint
+              count is Monday noon, Wednesday, and Friday only, so a hit rate can include the Monday open and
+              still differ from that checkpoint total. While a readout is still scheduled,
               the calls sit on that week&apos;s Not graded yet list.{" "}
               <Link href="/weeks" className="accent-link underline-offset-4 hover:underline">
                 All weeks
@@ -163,13 +167,14 @@ export default function MethodologyPage() {
           It is not the mean of those pills. The home lead is the mean of those call scores on the newest
           closed week that already has a grade.
         </p>
-        <h3 className="mt-6 font-medium text-ink">Direction versus the equity tape</h3>
+        <h3 className="mt-6 font-medium text-ink">Direction versus the recorded primary</h3>
         <p className="mt-1 text-sm text-muted">
-          The tape is the equal-weight percent move of SPY, QQQ, and DIA from Friday&apos;s regular-session
-          close to the readout print. Each name counts one third. A bullish call is scored on that tape. A
-          bearish call is scored on the inverse. Flat tape is a push. Numbered targets are still checked on the
-          call&apos;s own symbol. Selloff calls only score well when the tape is down; melt-up calls only when
-          the tape is up.
+          A call is scored on its recorded primary. The move is that symbol&apos;s print minus the reference,
+          divided by the reference. A bullish call wants that print up. A bearish call wants it down. Flat is a
+          push. The equal-weight SPY, QQQ, and DIA move is the cohort tape on the week page. It is not the
+          call&apos;s direction score, and it is not the hit. Numbered targets are checked on the same primary.
+          A selloff call scores well only when its primary is down. A melt-up call scores well only when its
+          primary is up.
         </p>
         <ul className="mt-3 grid gap-3 min-[820px]:hidden">
           {DIRECTION_BANDS.map((band) => (

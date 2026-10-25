@@ -99,6 +99,24 @@ test("a VIX-primary call follows the VIX move and does not score that move twice
   assert.equal(fade.signedMovePct, 0.12);
 });
 
+test("direction follows the recorded primary, not the equal-weight tape", () => {
+  const up = scoreCall(
+    {
+      direction: "bullish",
+      sentiment: "meltup",
+      primary: "QQQ",
+      tickers: ["QQQ"],
+      explicit: true,
+      levels: [],
+    },
+    { tapeMove: -0.0044, primaryRef: 714.88, primaryNow: 721.45, vixMove: 0 },
+  );
+  assert.ok(up.rawMovePct > 0.009 && up.rawMovePct < 0.0093);
+  assert.equal(up.signedMovePct, up.rawMovePct);
+  assert.equal(up.directionPoints, 34);
+  assert.equal(directionPoints(-0.0044), 6);
+});
+
 test("busted invalidation caps level points", () => {
   const busted = scoreCall(
     {

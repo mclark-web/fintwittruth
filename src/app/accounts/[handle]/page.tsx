@@ -120,15 +120,15 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                   <dd className="font-mono text-xl">{formatScore(row.avgScore, 0)}%</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-muted">Hit, per checkpoint</dt>
+                  <dt className="text-xs text-muted">Hit, per readout</dt>
                   <dd className="font-mono text-xl">{formatRate(row.hitRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-muted">STRONG, per checkpoint</dt>
+                  <dt className="text-xs text-muted">STRONG, per readout</dt>
                   <dd className="font-mono text-xl">{formatRate(row.strongRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-muted">WEAK, per checkpoint</dt>
+                  <dt className="text-xs text-muted">WEAK, per readout</dt>
                   <dd className="font-mono text-xl">{formatRate(row.weakRate, 0)}</dd>
                 </div>
                 <div>
@@ -167,7 +167,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       </header>
       <p className="mt-4 max-w-3xl text-sm text-muted">
         {row
-          ? `The number averages each completed call. A call score is the furthest settled checkpoint, Friday else Wednesday else Monday noon. Hit, STRONG, and WEAK are the share of settled checkpoints, not of calls. Best ${formatScore(row.bestScore)}%. Worst ${formatScore(row.worstScore)}%.`
+          ? `The number averages each completed call. A call score is the furthest settled checkpoint, Friday else Wednesday else Monday noon. Hit, STRONG, and WEAK are the share of settled readouts, including the Monday open, not of calls. Best ${formatScore(row.bestScore)}%. Worst ${formatScore(row.worstScore)}%.`
           : "This handle has no graded call, so it is not ranked."}
       </p>
       {row && pendingCount > 0 ? (

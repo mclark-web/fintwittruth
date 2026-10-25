@@ -185,7 +185,8 @@ async function main() {
       } else {
         console.log(`ok ${quote.symbol} Monday open ${formatPrice(quote.mondayOpen)}`);
       }
-      // Monday noon is this 5-minute open. The 1-minute close at 12:00 (769.07 on 2026-10-19) is a different bar.
+      // Monday noon is the open of this 5-minute bar. On 2026-10-19 that open is 769.45.
+      // The 11:55 bar closes at the same 769.45. The 1-minute bar stamped 12:00 closes at 769.07.
       const bars = await fetchChart(quote.symbol, unix(spec.monday.date, 13), unix(spec.monday.date, 22), "5m");
       const noon = readNoonBar(bars, spec.monday.date);
       if (quote.monday == null || !pricesAgree(quote.monday, noon.open) || formatPrice(quote.monday) !== formatPrice(noon.open)) {

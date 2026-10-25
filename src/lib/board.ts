@@ -119,6 +119,7 @@ export function matureSettledGrade(call: GradedCallInput): SettledGrade | null {
   return null;
 }
 
+/** Hit, STRONG, and WEAK rates count every settled readout, including the Monday open. */
 export function handleBoardStats(calls: GradedCallInput[]) {
   const graded = calls.filter((call) => matureScore(call.grades) != null);
   const grades = graded.flatMap((call) => settledGrades(call));

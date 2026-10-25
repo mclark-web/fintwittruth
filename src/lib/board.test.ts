@@ -29,8 +29,8 @@ test("the closed October 19 lead is the latest settled checkpoint", () => {
   assert.equal(grades.length, 3);
   assert.equal(leadReadout(grades), "friday");
   const scores = leadScores(grades);
-  assert.deepEqual([...scores].sort((a, b) => a - b), [24, 24, 30]);
-  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 26% WEAK");
+  assert.deepEqual([...scores].sort((a, b) => a - b), [21, 24, 30]);
+  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 25% WEAK");
   const open = buildCohortWindow({ year: 2026, month: 10, day: 26 });
   assert.equal(formatWeekday(open.collectEnd), "Sun Oct 25");
 });

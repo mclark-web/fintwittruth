@@ -365,7 +365,7 @@ test("the verified weekend book and the fictional doom book are both graded", ()
     const call = september.calls.find((item) => item.id === grade.callId);
     assert.ok(call);
     assert.ok(grade.vixPoints >= 0 && grade.vixPoints <= VIX_MAX);
-    assert.match(grade.note, /SPY, QQQ, and DIA/);
+    assert.match(grade.note, new RegExp(`\\b${call.primary} is `));
     assert.match(grade.note, /VIX/);
     if (!originalBearish.has(call.handle)) continue;
     assert.equal(call.direction, "bearish");
@@ -378,7 +378,7 @@ test("the verified weekend book and the fictional doom book are both graded", ()
   assert.equal(spy.ref, demo.quotes.find((quote) => quote.symbol === "SPY")?.ref);
 });
 
-test("direction matches the tape on every published readout", () => {
+test("direction matches the recorded primary on every published readout", () => {
   for (const cohort of data.cohorts) {
     for (const kind of READOUTS) {
       const board = cohort.readouts.find((item) => item.kind === kind);
@@ -388,24 +388,31 @@ test("direction matches the tape on every published readout", () => {
         assert.equal(cohort.dataset, "live", `${cohort.slug} ${kind} is published with no grades`);
         continue;
       }
-      const equity = grades.find((grade) => {
-        const call = cohort.calls.find((item) => item.id === grade.callId);
-        return call != null && call.primary !== "VIX";
-      });
-      const tape = equity?.rawMovePct ?? grades[0].rawMovePct;
       for (const grade of grades) {
         const call = cohort.calls.find((item) => item.id === grade.callId);
         assert.ok(call);
-        const basis = call.primary === "VIX" ? grade.vixMovePct : tape;
-        assert.equal(grade.rawMovePct, basis);
+        const quote = cohort.quotes.find((item) => item.symbol === call.primary);
+        const now = quote
+          ? kind === "monday-gap"
+            ? quote.mondayOpen
+            : kind === "monday"
+              ? quote.monday
+              : kind === "wednesday"
+                ? quote.wednesday
+                : quote.friday
+          : null;
+        const primaryMove = quote && now != null && quote.ref !== 0 ? (now - quote.ref) / quote.ref : null;
+        const basis = call.primary === "VIX" ? grade.vixMovePct : primaryMove;
+        assert.ok(basis != null, `${call.id} ${kind} has no primary print`);
+        assert.ok(Math.abs(grade.rawMovePct - basis) < 1e-12, `${call.id} ${kind} is not graded on ${call.primary}`);
         const expectedSigned = call.direction === "bullish" ? basis : -basis;
         assert.ok(Math.abs(grade.signedMovePct - expectedSigned) < 1e-12);
         if (call.primary === "VIX") continue;
-        if (tape >= 0.01 && call.direction === "bearish") {
+        if (basis <= -0.01 && call.direction === "bullish") {
           assert.equal(grade.isStrong, false);
           assert.ok(grade.score < STRONG_LINE);
         }
-        if (tape <= -0.01 && call.direction === "bullish") {
+        if (basis >= 0.01 && call.direction === "bearish") {
           assert.equal(grade.isStrong, false);
           assert.ok(grade.score < STRONG_LINE);
         }

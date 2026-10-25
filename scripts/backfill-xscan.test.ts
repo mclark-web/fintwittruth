@@ -107,7 +107,7 @@ test("clear backfill rows are graded at the recorded checkpoints", () => {
     assert.equal(row.friday_status, "GRADED");
     assert.equal(Number(row.friday_price), sessionClose(row.primary, row.friday_date));
     assert.equal(row.friday_grade, "WEAK");
-    if (row.primary === "QQQ") assert.equal(row.friday_score, "24");
+    if (row.primary === "QQQ") assert.equal(row.friday_score, "21");
     if (row.handle === "TraderJonesy") {
       assert.equal(row.friday_score, "24");
       assert.equal(row.friday_stance, "against");

@@ -132,7 +132,8 @@ function realCheckpointNote(input: {
   if (input.primary === "VIX") {
     return `${when}: VIX is ${pct} from Friday's close, ${relation} this ${input.direction} call.${territory} This is a scorecard, not a signal.`;
   }
-  return `${when}: equal-weight SPY, QQQ, and DIA are ${pct} from Friday's regular-session close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;
+  const symbol = input.primary && input.primary !== "" ? input.primary : "The primary";
+  return `${when}: ${symbol} is ${pct} from Friday's regular-session close, ${relation} this ${input.direction} call. VIX is ${vix} from Friday's close.${territory} This is a scorecard, not a signal.`;
 }
 
 type Ready = {
