@@ -63,8 +63,8 @@ function scoresByKind(grades: RollupInput): Map<string, number> {
 
 /**
  * Call score is the furthest settled checkpoint: Friday, else Wednesday, else Monday.
- * It is not the mean of the timeframe pills. A later checkpoint is not filled just because
- * an earlier one was recorded.
+ * It is not the mean of the timeframe pills. A later checkpoint is filled on the
+ * recorded primary once an earlier one is graded and the print is in the file.
  */
 export function matureScore(grades: RollupInput): number | null {
   const byKind = scoresByKind(grades);

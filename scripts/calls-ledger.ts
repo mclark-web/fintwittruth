@@ -32,6 +32,7 @@ import {
   type Level,
   type Sentiment,
 } from "../src/lib/scoring";
+import { expiresBeforeReadout } from "./book-policy";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -943,8 +944,16 @@ export function considerCheckpoint(
   }
   if (status === "PENDING") {
     if (!input.due) return { row, action: "unchanged", detail: "" };
+    if (expiresBeforeReadout(row)) {
+      return {
+        row,
+        action: "flagged",
+        detail: `${label}: left pending, same-day or 0DTE trade is not graded at this week's checkpoints`,
+      };
+    }
     const call = classifyCall(row);
-    if (!call.autoPrint) {
+    const recordedPrimary = CHECKPOINTS.some((checkpoint) => row[field(checkpoint, "status")] === "GRADED");
+    if (!call.autoPrint && !recordedPrimary) {
       const why = call.tapeDefault
         ? "post names no ticker or index"
         : call.ambiguous

@@ -6,6 +6,7 @@
  * IWM is priced in the symbol list and is not on the graded-print list, so it is queued.
  * A same-day or 0DTE trade is queued instead of graded at the week's later checkpoints.
  */
+import { addCalendarDays, calendarDayString, parseCalendarDay } from "../src/lib/calendar";
 import type { CallRow } from "./calls-ledger";
 
 export type PolicyPendingRow = {
@@ -37,7 +38,11 @@ export function twoSidedQuote(quote: string): boolean {
   return longSide && shortSide;
 }
 
-/** True when the quote's horizon is the session itself or an expiry on or before readout Monday. */
+/**
+ * True when the quote's horizon is the session itself or an expiry on or before readout Monday.
+ * A bare "Friday" is the Friday of the collect window, which is before readout Monday.
+ * "Next Friday" is the Friday of the readout week, so that call stays on the book.
+ */
 export function sameDayHorizon(quote: string, cohortMonday: string): boolean {
   const text = quote.toLowerCase();
   if (/\b0\s*-?\s*dte\b/.test(text)) return true;
@@ -48,7 +53,39 @@ export function sameDayHorizon(quote: string, cohortMonday: string): boolean {
   if (/\btomorrow'?s exp\b/.test(text)) return true;
   if (/\bfridays exp\b/.test(text)) return true;
   if (/\bfor tomorrow\b/.test(text)) return true;
+  if (/\bfriday\b/.test(text) && !/\bnext\s+friday\b/.test(text)) return true;
   return expiryOnOrBeforeMonday(quote, cohortMonday);
+}
+
+function etCalendarDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+/**
+ * One expired-trade rule for the graded book.
+ * The body can say 0DTE, today, or a bare Friday.
+ * The stored tone can say 0DTE when the body omits the word (the call side of a queued put).
+ * An intraday label posted on the collect-window Friday expires that session, before Monday.
+ * An intraday label from earlier in the window is not expired by the label alone.
+ */
+export function expiresBeforeReadout(
+  row: Pick<CallRow, "body" | "cohort_slug"> & Partial<Pick<CallRow, "tone_label" | "posture" | "posted_at">>,
+): boolean {
+  const tone = `${row.tone_label ?? ""} ${row.posture ?? ""}`;
+  if (/\b0\s*-?\s*dte\b/i.test(tone)) return true;
+  if (sameDayHorizon(row.body, row.cohort_slug)) return true;
+  if (!/\bintraday\b/i.test(tone) || !row.posted_at) return false;
+  const friday = calendarDayString(addCalendarDays(parseCalendarDay(row.cohort_slug), -3));
+  return etCalendarDate(row.posted_at) === friday;
 }
 
 function expiryOnOrBeforeMonday(quote: string, monday: string): boolean {
@@ -85,12 +122,16 @@ function firstTicker(row: Pick<CallRow, "tickers" | "primary">): string {
  * Why this published row leaves the graded book.
  * Null means it is an index call that can compete for the one slot.
  */
-export function exclusionReason(row: Pick<CallRow, "body" | "primary" | "tickers" | "cohort_slug">): string | null {
+export function exclusionReason(
+  row: Pick<CallRow, "body" | "primary" | "tickers" | "cohort_slug"> &
+    Partial<Pick<CallRow, "tone_label" | "posture" | "posted_at">>,
+): string | null {
   const ticker = firstTicker(row);
   const primary = row.primary.toUpperCase();
   if (ticker === "DASH" || primary === "DASH") return "DASH here is the Dash coin, not DoorDash. Not graded.";
   if (ticker === "VVV" || primary === "VVV") return "VVV is not the equity print on the graded list. Not graded.";
-  if (sameDayHorizon(row.body, row.cohort_slug)) {
+  const gradedPrint = GRADED_INDEX.has(primary) || UNPRICED_INDEX.has(primary);
+  if (gradedPrint && expiresBeforeReadout(row)) {
     return "Same-day or 0DTE trade. It is not graded at this week's checkpoints. Not graded.";
   }
   if (twoSidedQuote(row.body)) return "The post states both a long and a short. Not graded.";

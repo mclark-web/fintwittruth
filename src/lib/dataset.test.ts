@@ -71,7 +71,7 @@ test("every demo post sits inside the Wednesday-to-Sunday collect window", () =>
   }
 });
 
-test("the October 19 week publishes the Friday close and grades only the recorded Friday cell", () => {
+test("the October 19 week publishes the Friday close and grades every recorded Friday cell", () => {
   const prior = data.cohorts.find((cohort) => cohort.slug === "2026-09-28");
   assert.ok(prior);
   assert.match(prior.summary, /Wednesday, September 23, 2026 at 12:00 PM ET through Sunday, September 27 at 5:00 PM ET/);
@@ -80,10 +80,10 @@ test("the October 19 week publishes the Friday close and grades only the recorde
   const october5 = data.cohorts.find((cohort) => cohort.slug === "2026-10-05");
   assert.ok(october5);
   assert.equal(october5.isLatest, false);
-  assert.equal(october5.calls.length, 4);
+  assert.equal(october5.calls.length, 5);
   assert.match(october5.summary, /Wednesday, September 30, 2026 at 12:00 PM ET through Sunday, October 4 at 5:00 PM ET/);
   assert.doesNotMatch(october5.summary, /X watchlist not covered this week; Substack only/);
-  assert.equal(october5.grades.length, october5.calls.length * 4);
+  assert.equal(october5.grades.length, 12);
   const latest = data.cohorts.find((cohort) => cohort.slug === "2026-10-19");
   assert.ok(latest);
   assert.equal(latest.isLatest, false);
@@ -97,8 +97,8 @@ test("the October 19 week publishes the Friday close and grades only the recorde
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "published");
-  assert.equal(latest.grades.filter((grade) => grade.readout === "friday").length, 1);
-  assert.equal(latest.grades.length, 10);
+  assert.equal(latest.grades.filter((grade) => grade.readout === "friday").length, 3);
+  assert.equal(latest.grades.length, 12);
 });
 
 test("production keeps sourced calls and drops fictional accounts", () => {
@@ -384,7 +384,10 @@ test("direction matches the tape on every published readout", () => {
       const board = cohort.readouts.find((item) => item.kind === kind);
       if (board?.status !== "published") continue;
       const grades = cohort.grades.filter((grade) => grade.readout === kind);
-      assert.ok(grades.length > 0);
+      if (grades.length === 0) {
+        assert.equal(cohort.dataset, "live", `${cohort.slug} ${kind} is published with no grades`);
+        continue;
+      }
       const equity = grades.find((grade) => {
         const call = cohort.calls.find((item) => item.id === grade.callId);
         return call != null && call.primary !== "VIX";

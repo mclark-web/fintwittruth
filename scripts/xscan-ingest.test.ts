@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { buildDataset } from "../src/lib/dataset";
 import { parsePendingApproval } from "../src/lib/pending-approval";
-import { parseCallCsv } from "./calls-ledger";
+import { CHECKPOINTS, parseCallCsv } from "./calls-ledger";
 import { ingestXScan } from "./xscan-ingest";
 
 const scan = readFileSync("data/calls/sources/x-call-scan-2026-10-22.csv", "utf8");
@@ -34,8 +34,15 @@ test("the October 22 scan adds clear FinTwit rows and queues ambiguous rows", ()
       ),
     );
   }
-  const bodies = new Set(week.map((row) => row.body));
-  for (const row of ingested.pending) assert.equal(bodies.has(row.quote), false);
+  const bodies = new Map(week.map((row) => [row.body, row]));
+  for (const row of ingested.pending) {
+    const published = bodies.get(row.quote);
+    if (!published) continue;
+    assert.ok(
+      CHECKPOINTS.every((kind) => published[`${kind}_status`] !== "GRADED"),
+      `${row.post_url} is queued and still graded`,
+    );
+  }
   for (const row of week) {
     assert.equal(row.data_source, "public");
     assert.ok(row.source_url.startsWith("https://x.com/"));

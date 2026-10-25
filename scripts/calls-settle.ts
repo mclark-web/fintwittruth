@@ -1,7 +1,10 @@
 /**
  * Fill due Monday noon, Wednesday close, and Friday close grades from the recorded Yahoo prints.
  * Dry-run is the default. The CSV is written only with --write.
- * A pending row is graded only when the post names exactly one whitelist print and that print is the primary.
+ * A pending row is graded when the post names exactly one whitelist print and that print is the primary.
+ * A row that already has a graded checkpoint is graded again at the next due print, on that same primary.
+ * A post that was never graded stays pending when it names more than one print or no ticker.
+ * A same-day or 0DTE trade stays pending.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import {
@@ -19,8 +22,11 @@ const HELP = `Usage: npm run calls:settle -- [--write]
 
 Dry-run is the default. Nothing is written unless --write is present.
 Pending Monday 12:00 PM ET, Wednesday close, and Friday close checkpoints are graded from the prints already in market-history.json.
-A row is auto-graded only when the post names exactly one whitelist symbol and that symbol is the primary.
-Ambiguous tickers, a tape default, a date outside the cohort's Monday / Wednesday / Friday, and a missing print stay pending.
+A row is auto-graded when the post names exactly one whitelist symbol and that symbol is the primary.
+Once a primary is recorded and an earlier checkpoint is graded, a later due checkpoint is graded on that same primary.
+A post that was never graded stays pending when it names more than one print or no ticker.
+A same-day or 0DTE trade stays pending.
+A date outside the cohort's Monday / Wednesday / Friday, and a missing print, stay pending.
 `;
 
 function tapeFor(row: CallRow, kind: Checkpoint) {

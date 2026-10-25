@@ -95,7 +95,9 @@ export default function MethodologyPage() {
             <dd className="mt-1 text-sm text-muted">
               The primary score. It asks whether the weekend doom, war panic, sell-the-open calls, and melt-up
               calls were still there at noon. The print is the open of the Yahoo Finance 5-minute bar stamped
-              12:00 PM America/New_York. VIX uses the same stamp.
+              12:00 PM America/New_York. The 1-minute bar at that same stamp is a different print, and its close
+              is not the grade. On October 19, 2026 the 5-minute open was 769.45. The 1-minute bar closed at
+              769.07. The stored Monday grade stays on the 5-minute open. VIX uses the same stamp.
             </dd>
           </div>
           <div className="panel p-4">
@@ -147,10 +149,12 @@ export default function MethodologyPage() {
           {LEVEL_MAX}, specificity {SPECIFICITY_MAX}, VIX {VIX_MAX}.
         </p>
         <p className="mt-3 text-ink/80">
-          There is no auto-grade cascade. A later checkpoint is not filled just because an earlier one was
-          recorded. A missing print stays pending and is not invented. The call score is the latest settled checkpoint:
-          Friday close, else Wednesday close, else Monday noon. It is not the mean of those pills. The home lead
-          is the mean of those call scores on the newest closed week that already has a grade.
+          Once a primary is recorded and an earlier checkpoint is graded, a later checkpoint is graded on
+          that same primary when the print is in the price file. A post that was never graded stays pending
+          when it names more than one print or no ticker. A missing print stays pending and is not invented.
+          The call score is the latest settled checkpoint: Friday close, else Wednesday close, else Monday noon.
+          It is not the mean of those pills. The home lead is the mean of those call scores on the newest
+          closed week that already has a grade.
         </p>
         <h3 className="mt-6 font-medium text-ink">Direction versus the equity tape</h3>
         <p className="mt-1 text-sm text-muted">

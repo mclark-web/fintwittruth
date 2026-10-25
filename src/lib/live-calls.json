@@ -245,6 +245,28 @@
           "levels": [],
           "body": "$SPY 775 calls .26",
           "verification": "Backfill row. Status https://x.com/BatsPortfolio/status/2106015781746364836. Posted 2026-10-02 09:37:44 ET. The quote names SPY. Direction is bullish. No conviction word is stored; conviction is the ledger's unset value, medium. Engagement is 0."
+        },
+        {
+          "id": "2026-10-05__buythedip82__2105696352441369031__SPY",
+          "handle": "buythedip82",
+          "displayName": "BuyTheDip",
+          "bio": "Public X post. The card quotes the post and links the status.",
+          "posture": "next Friday",
+          "accent": "#9a9aa3",
+          "bucket": "viral",
+          "postedAt": "2026-10-01T16:28:27.000Z",
+          "sourceUrl": "https://x.com/buythedip82/status/2105696352441369031",
+          "direction": "bearish",
+          "conviction": "medium",
+          "primary": "SPY",
+          "sentiment": "panic",
+          "toneLabel": "next Friday",
+          "engagement": 0,
+          "tickers": ["SPY"],
+          "explicit": true,
+          "levels": [],
+          "body": "About to add $SPY 750 puts for next Friday here at 762 tap.",
+          "verification": "Backfill row. Status https://x.com/buythedip82/status/2105696352441369031. Posted 2026-10-01 12:28:27 ET. The quote names SPY. Direction is bearish. No conviction word is stored; conviction is the ledger's unset value, medium. Engagement is 0."
         }
       ]
     },
@@ -747,7 +769,7 @@
           "sourceUrl": "https://x.com/buythedip82/status/2113340834879766824",
           "direction": "bullish",
           "conviction": "medium",
-          "primary": "SPY",
+          "primary": "SPX",
           "sentiment": "meltup",
           "toneLabel": "Dec 31 2026",
           "engagement": 0,
@@ -778,6 +800,28 @@
           "levels": [],
           "body": "paired them with some 1W DTE puts on $QQQ as crash insurance if it gaps down below $700",
           "verification": "Scan row. Status https://x.com/ichiro1992/status/2113359749366329563. Posted 2026-10-22 16:00:03 ET. The quote names QQQ. Direction is the scan value short. No conviction word is stored; conviction is the ledger's unset value, medium. Engagement is 0."
+        },
+        {
+          "id": "2026-10-26__CruzMartnz1__2113296015025668443__SPY",
+          "handle": "CruzMartnz1",
+          "displayName": "Cruz Martinez",
+          "bio": "Public X post. The card quotes the scan text and links the status.",
+          "posture": "intraday",
+          "accent": "#9a9aa3",
+          "bucket": "viral",
+          "postedAt": "2026-10-22T15:46:47.000Z",
+          "sourceUrl": "https://x.com/CruzMartnz1/status/2113296015025668443",
+          "direction": "bullish",
+          "conviction": "medium",
+          "primary": "SPY",
+          "sentiment": "meltup",
+          "toneLabel": "intraday",
+          "engagement": 0,
+          "tickers": ["SPY"],
+          "explicit": true,
+          "levels": [],
+          "body": "BUYING MORE CALLS $Spy can’t keep falling the market makers won’t allow it",
+          "verification": "Scan row. Status https://x.com/CruzMartnz1/status/2113296015025668443. Posted 2026-10-22 11:46:47 ET. The quote names SPY. Direction is the scan value long. No conviction word is stored; conviction is the ledger's unset value, medium. Engagement is 0."
         }
       ]
     },

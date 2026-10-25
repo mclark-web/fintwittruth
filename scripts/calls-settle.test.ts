@@ -94,7 +94,7 @@ test("data_source=demo is rejected and a sourced row stays public", () => {
   assert.ok(collectIssues(demo).errors.some((error) => error.includes("data_source=demo is rejected")));
 });
 
-test("a recorded ambiguous call does not auto-grade a later checkpoint", () => {
+test("a recorded primary grades the next due checkpoint and a never-graded ambiguous post stays pending", () => {
   const ambiguous = callRow({
     primary: "SPY",
     direction: "bullish",
@@ -115,9 +115,10 @@ test("a recorded ambiguous call does not auto-grade a later checkpoint", () => {
     due: true,
     tape: OPEN_TAPE,
   });
-  assert.equal(wednesday.action, "flagged");
+  assert.equal(wednesday.action, "graded");
   assert.equal(wednesday.row.grade_method, "recorded");
-  assert.equal(wednesday.row.wednesday_status, "PENDING");
+  assert.equal(wednesday.row.wednesday_status, "GRADED");
+  assert.notEqual(wednesday.row.wednesday_score, "");
 
   const unapproved = callRow({
     primary: "SPY",
@@ -134,6 +135,39 @@ test("a recorded ambiguous call does not auto-grade a later checkpoint", () => {
   });
   assert.equal(held.action, "flagged");
   assert.equal(held.row.wednesday_status, "PENDING");
+  assert.match(held.detail, /more than one print/);
+});
+
+test("a same-day trade stays pending after the checkpoint is due", () => {
+  const sameDay = gradeMonday(
+    callRow({
+      primary: "SPY",
+      direction: "bullish",
+      sentiment: "meltup",
+      explicit: "true",
+      tickers: "SPY",
+      tone_label: "0DTE",
+      posture: "0DTE",
+      body: "$SPY 766 calls here for the degens! 0.42",
+    }),
+  );
+  assert.equal(sameDay.action, "flagged");
+  assert.equal(sameDay.row.monday_status, "PENDING");
+  assert.match(sameDay.detail, /same-day or 0DTE/);
+
+  const fridayExpiry = gradeMonday(
+    callRow({
+      primary: "SPY",
+      direction: "bullish",
+      sentiment: "meltup",
+      explicit: "true",
+      tickers: "SPY",
+      tone_label: "Friday",
+      body: "Adding $SPY Friday $770 calls here",
+    }),
+  );
+  assert.equal(fridayExpiry.action, "flagged");
+  assert.equal(fridayExpiry.row.monday_status, "PENDING");
 });
 
 test("the verified book round-trips through the CSV and the scorer", () => {

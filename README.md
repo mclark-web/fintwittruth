@@ -8,7 +8,7 @@ GradedCalls Analysts and GradedCalls Sports are sibling verticals. They are not 
 
 The npm package and the SQLite file stay named `fintwittruth`. That is the technical package name, not the public brand.
 
-Production shows sourced public posts only. Each graded card links its source. The latest board is the week of October 19, 2026. Monday noon, the Wednesday, October 21 official close, and the Friday, October 23 official close are in the price file. Friday is graded only on the post that names one whitelist symbol. The ambiguous post and the tape-default post stay pending at Friday, so their call scores stay on Wednesday. The home lead is the mean of those call scores, 31% WEAK. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing. Fictional posts used to exercise the scorer stay in `src/lib/demo-data.ts` for unit tests. They are not seeded and they are not served.
+Production shows sourced public posts only. Each graded card links its source. The latest board is the week of October 19, 2026. Monday noon, the Wednesday, October 21 official close, and the Friday, October 23 official close are in the price file. Monday noon is the open of the 12:00 PM ET 5-minute bar. On October 19 that open is 769.45. The 1-minute bar at the same stamp closed at 769.07, and that close is not the grade. Friday is graded on the recorded primary once an earlier checkpoint is graded, including the ambiguous SPY post and the tape-default post. The home lead is the mean of the three Friday call scores, 26% WEAK. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing. Fictional posts used to exercise the scorer stay in `src/lib/demo-data.ts` for unit tests. They are not seeded and they are not served.
 
 ## Evaluation calendar
 
@@ -97,10 +97,10 @@ Weekly flow:
 1. Add or edit a row in `data/calls/calls.csv`. A new checkpoint stays `PENDING`. Keep the source URL and the post text.
 2. Run `npm run calls:validate`. The run fails on a duplicate id, a missing source URL, a graded row without the price at the call and the price at the checkpoint, a ticker or index the post did not name, a checkpoint date outside that cohort's Monday, Wednesday, or Friday, or a value the scorer would not produce.
 3. Run `npm run calls:export`.
-4. On Wednesday and Friday the settle workflow writes the official Yahoo close into `src/lib/market-history.json`, then runs `npm run calls:settle -- --write`. That fills a due checkpoint only when the post names exactly one whitelist symbol and that symbol is the row's primary. `npm run calls:settle` with no flag is a dry-run and does not write the CSV.
+4. On Wednesday and Friday the settle workflow writes the official Yahoo close into `src/lib/market-history.json`, then runs `npm run calls:settle -- --write`. That fills a due checkpoint when the post names exactly one whitelist symbol and that symbol is the row's primary. Once a primary is already graded, the next due checkpoint uses that same primary. A same-day or 0DTE trade stays pending. `npm run calls:settle` with no flag is a dry-run and does not write the CSV.
 5. Open a data pull request with the CSV and the exported JSON. If the call rows did not change, the JSON diff is empty.
 
-The ledger does not scrape X and it does not add a market-data vendor. Prints come from the Yahoo history the site already records. A post that names two indexes, or names none, stays pending until someone records the grade by hand.
+The ledger does not scrape X and it does not add a market-data vendor. Prints come from the Yahoo history the site already records. A post that was never graded stays pending when it names more than one print or no ticker. After a primary is recorded, later checkpoints grade on that primary. A missing print is not invented.
 
 `DATABASE_URL` in `.env` is `file:./fintwittruth.db`. The Prisma CLI resolves that path next to `prisma/schema.prisma`. It is not a secret. Copy `.env.example` if you need a fresh env file.
 
@@ -113,7 +113,7 @@ The ledger does not scrape X and it does not add a market-data vendor. Prints co
 - `src/lib/dataset.ts` — applies the locked calendar and the scorer
 - `prisma/seed.ts` — writes the production book with Prisma
 
-The seeded weeks are `2026-08-10`, `2026-08-24`, `2026-09-07`, `2026-09-14`, `2026-09-21`, `2026-09-28`, `2026-10-05`, `2026-10-12`, `2026-10-19`, and `2026-10-26`. A call score is the furthest settled checkpoint: Friday close, else Wednesday close, else Monday noon. An account grade is the mean of those call scores. Conviction weights stay high 3, medium 2, low 1. Grades use the Yahoo regular-session close (Monday noon is the 12:00 PM ET print). `adjclose` is stored beside the close for audit. On the October 21, 2026 session the close and adjclose matched.
+The seeded weeks are `2026-08-10`, `2026-08-24`, `2026-09-07`, `2026-09-14`, `2026-09-21`, `2026-09-28`, `2026-10-05`, `2026-10-12`, `2026-10-19`, and `2026-10-26`. A call score is the furthest settled checkpoint: Friday close, else Wednesday close, else Monday noon. An account grade is the mean of those call scores. Conviction weights stay high 3, medium 2, low 1. Grades use the Yahoo regular-session close. Monday noon is the open of the 12:00 PM ET 5-minute bar, not the 1-minute close at that stamp. `adjclose` is stored beside the close for audit. On the October 21, 2026 session the close and adjclose matched.
 
 Cohort slugs are the readout Monday (`YYYY-MM-DD`).
 
@@ -124,7 +124,7 @@ The board already reads the CSV. A licensed feed can append rows. It does not re
 1. Implement `fetchPosts` in `src/lib/feeds/x-api-feed.ts` using a **licensed** X API or approved firehose. Page only the collect window (Wednesday 12:00 PM ET through Sunday 5:00 PM ET). Do not scrape the website.
 2. Implement `fetchPrints` in `src/lib/feeds/licensed-market-feed.ts` for the Friday reference, the Monday open and noon, and the Wednesday and Friday official closes.
 3. Set `FEED_PROVIDER=x-api` and `MARKET_DATA_PROVIDER=licensed-bars`. `src/lib/feeds/index.ts` selects the adapters.
-4. Append confirmed posts to `data/calls/calls.csv` with `data_source` `public` or `licensed`. Run `calls:validate` and `calls:export`. Ambiguous posts stay pending and are not graded.
+4. Append confirmed posts to `data/calls/calls.csv` with `data_source` `public` or `licensed`. Run `calls:validate` and `calls:export`. A post that was never graded stays pending when it names more than one print or no ticker.
 5. Keep the disclaimer. Past scores are still not a forecast.
 6. Postgres, when you outgrow the file: point `DATABASE_URL` at a `postgresql://` URL, change the Prisma datasource provider to `postgresql`, and run `prisma db push`. `src/lib/prisma.ts` already uses a Postgres URL when it sees one, and otherwise opens the SQLite file.
 

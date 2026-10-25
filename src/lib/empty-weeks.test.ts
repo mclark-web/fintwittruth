@@ -198,7 +198,8 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   );
   assert.equal(lead.split("For the week of October 19").length - 1, 1);
   assert.match(methodology, /\{GRADED_PRINT_LIST\}/);
-  assert.match(methodology, /no auto-grade cascade/i);
+  assert.match(methodology, /later checkpoint is graded on/i);
+  assert.match(methodology, /never graded stays pending/i);
   assert.match(methodology, /latest settled checkpoint/);
   assert.match(sitemap, /export const revalidate = 60/);
   assert.doesNotMatch(sitemap, /futureLiveWeek/);

@@ -223,9 +223,10 @@ function buildCalls(
 const CALL_CHECKPOINTS = ["monday", "wednesday", "friday"] as const;
 
 /**
- * The CSV is the grade ledger. A live call is scored at a checkpoint only when
- * that cell is GRADED. A pending cell stays off the board even after the print
- * is recorded, so an ambiguous or tape-default post is not filled in later.
+ * The CSV is the grade ledger. A live call is scored at Monday, Wednesday, or
+ * Friday only when that cell is GRADED. A pending cell stays off the board.
+ * The Monday gap has no CSV cell. It is scored only when the row already has
+ * a graded checkpoint, so a same-day row that was cleared stays off the board.
  */
 let gradedCells: Map<string, Set<string>> | null = null;
 
@@ -450,12 +451,14 @@ export function buildDataset(): BuiltDataset {
       const vixMove = moveOf("VIX");
 
       const scored = calls.flatMap((call) => {
-        if (
-          spec.dataset === "live" &&
-          (kind === "monday" || kind === "wednesday" || kind === "friday") &&
-          !gradedCellsFor(call.id)?.has(kind)
-        ) {
-          return [];
+        if (spec.dataset === "live") {
+          const graded = gradedCellsFor(call.id);
+          if (kind === "monday" || kind === "wednesday" || kind === "friday") {
+            if (!graded?.has(kind)) return [];
+          } else if (kind === "monday-gap") {
+            const settled = graded != null && ["monday", "wednesday", "friday"].some((checkpoint) => graded.has(checkpoint));
+            if (!settled) return [];
+          }
         }
         const quote = quotes.find((item) => item.symbol === call.primary);
         const now = quote ? quoteAt(quote, kind) : null;
