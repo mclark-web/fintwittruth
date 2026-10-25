@@ -213,3 +213,23 @@ test("production does not serve the fictional Labor Day cohort", { skip: skipWit
     true,
   );
 });
+
+test("every account with a graded live call is on the leaderboard", { skip: skipWithoutDb }, async () => {
+  const { getLeaderboard, getLiveCohorts } = await import("./queries");
+  const board = await getLeaderboard(null, "live");
+  const ranked = new Set(board.map((row) => row.handle));
+  const cohorts = await getLiveCohorts();
+  const gradedHandles = new Set<string>();
+  let gradedCalls = 0;
+  for (const cohort of cohorts) {
+    for (const call of cohort.calls) {
+      const graded = call.grades.monday || call.grades.wednesday || call.grades.friday;
+      if (!graded) continue;
+      gradedCalls += 1;
+      gradedHandles.add(call.handle);
+      assert.ok(ranked.has(call.handle), `${call.handle} is graded but not ranked`);
+    }
+  }
+  assert.equal(ranked.size, gradedHandles.size);
+  assert.equal(gradedCalls, board.reduce((sum, row) => sum + row.callCount, 0));
+});

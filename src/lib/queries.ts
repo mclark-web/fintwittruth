@@ -387,9 +387,10 @@ export const getLatestCohort = cache(async () => {
 
 export const getFeaturedCohort = cache(async () => getCohort(FEATURED_COHORT_SLUG));
 
-export const getLeaderboard = cache(async (bucket: Bucket, dataset: "live" | "demo" = "live"): Promise<LeaderRow[]> => {
+/** `bucket: null` ranks every account with a graded call, watchlist and backfill alike. */
+export const getLeaderboard = cache(async (bucket: Bucket | null, dataset: "live" | "demo" = "live"): Promise<LeaderRow[]> => {
   const accounts = await prisma.account.findMany({
-    where: { bucket },
+    where: bucket ? { bucket } : {},
     include: {
       calls: { include: { grades: true, cohort: { select: { dataset: true } } } },
     },
@@ -478,7 +479,7 @@ export const getAccount = cache(async (handle: string) => {
   if (!account) return null;
   const bucket = asBucket(account.bucket);
   const dataset = account.calls.some((call) => call.cohort.dataset === "live") ? "live" : "demo";
-  const board = await getLeaderboard(bucket, dataset);
+  const board = await getLeaderboard(dataset === "live" ? null : bucket, dataset);
   const row = board.find((item) => item.handle === handle) ?? null;
   const quotesBySlug: Record<string, QuoteView[]> = {};
   for (const call of account.calls) {

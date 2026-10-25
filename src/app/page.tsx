@@ -73,7 +73,7 @@ export default async function HomePage({
   const query = await searchParams;
   const now = new Date();
   const [ranked, live] = await Promise.all([
-    getLeaderboard("watchlist", "live"),
+    getLeaderboard(null, "live"),
     getLiveCohorts(),
   ]);
   const board = closedGradedCohort(live, now);
@@ -233,7 +233,7 @@ export default async function HomePage({
           </Link>
         </div>
         <p className="mt-2 max-w-3xl text-sm text-muted">
-          {roster.length} accounts, live data only. Hit is the share of graded calls that were right. An account with no graded call reads Not graded yet.
+          {roster.length} accounts, live data only. Hit is the share of settled checkpoints that were right. An account with no graded call reads Not graded yet.
         </p>
         <ol className="mt-4 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
           {ranked.map((row) => (
@@ -376,7 +376,7 @@ function AccountRow({ row }: { row: LeaderRow }) {
         </span>
         <GradePill grade={pill} />
         {row.callCount === 1 ? <span className="text-xs text-muted">n=1</span> : null}
-        <span className="text-xs text-muted">Hit {formatRate(row.hitRate, 0)}</span>
+        <span className="text-xs text-muted">Hit {formatRate(row.hitRate, 0)} of checkpoints</span>
       </span>
     </li>
   );

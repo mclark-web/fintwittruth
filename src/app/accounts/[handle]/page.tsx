@@ -88,13 +88,17 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       <header className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="flex gap-4">
           <Avatar name={account.displayName} accent={account.accent} />
-          <div>
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-muted">
               {account.calls.some((call) => call.dataset === "live") ? "Verified" : "Demo"}{" "}
               {account.bucket === "viral" ? "viral" : "watchlist"} account
-              {row ? ` · rank ${row.peerRank} of ${row.peerCount} in this bucket` : " · not on the leaderboard yet"}
+              {row
+                ? ` · rank ${row.peerRank} of ${row.peerCount} ${
+                    account.calls.some((call) => call.dataset === "live") ? "on the board" : "in this bucket"
+                  }`
+                : " · not on the leaderboard yet"}
             </p>
-            <h1 className="font-serif text-4xl text-ink">{account.displayName}</h1>
+            <h1 className="font-serif text-4xl text-ink [overflow-wrap:anywhere]">{account.displayName}</h1>
             <p className="text-muted">
               @{account.handle}
               {watched ? (
@@ -116,15 +120,15 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                   <dd className="font-mono text-xl">{formatScore(row.avgScore, 0)}%</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-muted">Hit</dt>
+                  <dt className="text-xs text-muted">Hit, per checkpoint</dt>
                   <dd className="font-mono text-xl">{formatRate(row.hitRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-muted">STRONG rate</dt>
+                  <dt className="text-xs text-muted">STRONG, per checkpoint</dt>
                   <dd className="font-mono text-xl">{formatRate(row.strongRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-muted">WEAK rate</dt>
+                  <dt className="text-xs text-muted">WEAK, per checkpoint</dt>
                   <dd className="font-mono text-xl">{formatRate(row.weakRate, 0)}</dd>
                 </div>
                 <div>
@@ -163,7 +167,7 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
       </header>
       <p className="mt-4 max-w-3xl text-sm text-muted">
         {row
-          ? `The number averages each completed call. A call score is the furthest settled checkpoint, Friday else Wednesday else Monday noon. Hit is the share of graded calls that were right. Best ${formatScore(row.bestScore)}%. Worst ${formatScore(row.worstScore)}%.`
+          ? `The number averages each completed call. A call score is the furthest settled checkpoint, Friday else Wednesday else Monday noon. Hit, STRONG, and WEAK are the share of settled checkpoints, not of calls. Best ${formatScore(row.bestScore)}%. Worst ${formatScore(row.worstScore)}%.`
           : "This handle has no graded call, so it is not ranked."}
       </p>
       {row && pendingCount > 0 ? (

@@ -48,15 +48,15 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
               </div>
               <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <dt className="text-xs text-[#9a9aa3]">Hit</dt>
+                  <dt className="text-xs text-[#9a9aa3]">Hit, per checkpoint</dt>
                   <dd className="font-mono">{formatRate(row.hitRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-[#9a9aa3]">STRONG rate</dt>
+                  <dt className="text-xs text-[#9a9aa3]">STRONG, per checkpoint</dt>
                   <dd className="font-mono">{formatRate(row.strongRate, 0)}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-[#9a9aa3]">WEAK rate</dt>
+                  <dt className="text-xs text-[#9a9aa3]">WEAK, per checkpoint</dt>
                   <dd className="font-mono">{formatRate(row.weakRate, 0)}</dd>
                 </div>
                 <div>
@@ -80,9 +80,18 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
               <th scope="col" className="px-4 py-3 font-medium">Account</th>
               <th scope="col" className="px-4 py-3 font-medium">Average grade</th>
               <th scope="col" className="px-4 py-3 font-medium">Grade</th>
-              <th scope="col" className="px-4 py-3 font-medium">Hit</th>
-              <th scope="col" className="px-4 py-3 font-medium">STRONG rate</th>
-              <th scope="col" className="px-4 py-3 font-medium">WEAK rate</th>
+              <th scope="col" className="px-2 py-3 font-medium [overflow-wrap:anywhere]">
+                Hit
+                <span className="mt-1 block font-normal normal-case tracking-normal">per checkpoint</span>
+              </th>
+              <th scope="col" className="px-2 py-3 font-medium [overflow-wrap:anywhere]">
+                STRONG
+                <span className="mt-1 block font-normal normal-case tracking-normal">per checkpoint</span>
+              </th>
+              <th scope="col" className="px-2 py-3 font-medium [overflow-wrap:anywhere]">
+                WEAK
+                <span className="mt-1 block font-normal normal-case tracking-normal">per checkpoint</span>
+              </th>
               <th scope="col" className="px-4 py-3 font-medium">Graded calls</th>
               <th scope="col" className="px-4 py-3 font-medium">Best / worst</th>
             </tr>
@@ -136,14 +145,14 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
 }
 
 export default async function LeaderboardPage() {
-  const verified = await getLeaderboard("watchlist", "live");
+  const verified = await getLeaderboard(null, "live");
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-serif text-4xl text-ink">Leaderboard</h1>
       <p className="mt-3 max-w-3xl text-muted">
         Live accounts only. An average grade uses the furthest graded checkpoint on each call. Hit is the share
-        of graded calls that were right. STRONG rate and WEAK rate count graded calls only. An account with no
-        graded call is not in this rank. Bands are on the{" "}
+        of settled checkpoints that were right. STRONG and WEAK rates count those checkpoints, not calls. An
+        account with no graded call is not in this rank. Bands are on the{" "}
         <Link href="/methodology" className="accent-link underline-offset-4 hover:underline">
           methodology
         </Link>{" "}

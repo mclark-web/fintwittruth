@@ -39,7 +39,7 @@ export default function MethodologyPage() {
         </h2>
         <p className="mt-3 text-ink/80">
           Each Wednesday 12:00 PM ET through Sunday 5:00 PM ET cohort has two buckets. Both feed the weekly
-          board. Leaderboards stay separate.
+          board. Live accounts share one rank. An account is on that rank once a call is graded.
         </p>
         <dl className="mt-4 grid gap-4">
           <div className="panel p-4">
@@ -69,9 +69,15 @@ export default function MethodologyPage() {
             <dt className="font-medium text-ink">Collect window</dt>
             <dd className="mt-1 text-sm text-muted">
               Wednesday 12:00 PM America/New_York through Sunday 5:00 PM America/New_York. The cohort does not
-              grow after Sunday. One call per handle per cohort; a handle can appear in later weeks. The first
-              forward-looking post covering the week that names a direction on a graded print ({GRADED_PRINT_LIST}) counts.
-              An ambiguous direction is excluded. {methodologySourceLead(checkedWeekRows())} {OCT19_X_SCOPE}
+              grow after Sunday. One call per handle per cohort; a handle can appear in later weeks. The slot is
+              the earliest forward-looking post that names a direction on a graded print ({GRADED_PRINT_LIST}) and
+              does not expire before that week&apos;s checkpoints. The choice is from the post text, not the later
+              print. A same-day or 0DTE trade does not take the slot: a 0DTE tone, a trade for today, a bare Friday
+              that is not &quot;next Friday,&quot; or an intraday label posted on the collect-window Friday. That
+              row stays in the ledger, ungraded, and the next eligible post from the handle is the call. A fill
+              note or an intraday label from earlier in the window stays graded when the post does not name that
+              expiry. One graded call is enough to rank. An ambiguous direction is excluded.{" "}
+              {methodologySourceLead(checkedWeekRows())} {OCT19_X_SCOPE}
             </dd>
           </div>
           <div className="panel p-4">
@@ -129,7 +135,8 @@ export default function MethodologyPage() {
             <dd className="mt-1 text-sm text-muted">
               The home tape, weekly rankings, leaderboards, and account scorecards list a call only after a
               readout has settled. Monday&apos;s open, Monday noon, the Wednesday close, and the Friday close are those horizons.
-              Hit rate, STRONG rate, and WEAK rate use settled grades only. While a readout is still scheduled,
+              Hit rate, STRONG rate, and WEAK rate are the share of settled checkpoints, not the share of calls.
+              A call graded at Monday noon and again at the Friday close counts as two checkpoints. While a readout is still scheduled,
               the calls sit on that week&apos;s Not graded yet list.{" "}
               <Link href="/weeks" className="accent-link underline-offset-4 hover:underline">
                 All weeks
