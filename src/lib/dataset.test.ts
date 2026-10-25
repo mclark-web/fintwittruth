@@ -58,9 +58,8 @@ test("September 21 publishes Monday, Wednesday, and Friday", () => {
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "published");
-  assert.ok(latest.grades.length > 0);
-  assert.ok(latest.grades.length < latest.calls.length * 4);
-  assert.equal(latest.grades.filter((grade) => grade.callId.endsWith("__piggostradingdesk")).length, 0);
+  assert.equal(latest.grades.length, latest.calls.length * 4);
+  assert.equal(latest.calls.some((call) => call.handle === "piggostradingdesk"), false);
   assert.ok(latest.grades.some((grade) => grade.readout === "friday"));
 });
 
@@ -82,7 +81,8 @@ test("the October 19 week publishes the Friday close and grades every recorded F
   const october5 = data.cohorts.find((cohort) => cohort.slug === "2026-10-05");
   assert.ok(october5);
   assert.equal(october5.isLatest, false);
-  assert.equal(october5.calls.length, 5);
+  assert.equal(october5.calls.length, 3);
+  assert.equal(october5.calls.some((call) => call.handle === "piggostradingdesk" || call.handle === "smtraderca"), false);
   assert.match(october5.summary, /Wednesday, September 30, 2026 at 12:00 PM ET through Sunday, October 4 at 5:00 PM ET/);
   assert.doesNotMatch(october5.summary, /X watchlist not covered this week; Substack only/);
   assert.equal(october5.grades.length, 4);
@@ -90,7 +90,8 @@ test("the October 19 week publishes the Friday close and grades every recorded F
   assert.ok(latest);
   assert.equal(latest.isLatest, false);
   assert.equal(latest.dataset, "live");
-  assert.equal(latest.calls.length, 3);
+  assert.equal(latest.calls.length, 2);
+  assert.equal(latest.calls.some((call) => call.handle === "piggostradingdesk"), false);
   assert.match(latest.summary, /Wednesday, October 14, 2026 at 12:00 PM ET through Sunday, October 18 at 5:00 PM ET/);
   assert.ok(latest.summary.includes(OCT19_X_SCOPE));
   assert.doesNotMatch(latest.summary, /not fully verified/);
@@ -355,17 +356,16 @@ test("the verified weekend book and the fictional doom book are both graded", ()
   ]);
   assert.equal(handles.size, expectedHandles.size);
   assert.ok(handles.has("smtraderca"));
-  assert.ok(handles.has("piggostradingdesk"));
+  assert.equal(handles.has("piggostradingdesk"), false);
   assert.ok(handles.has("doomscroll"));
   assert.deepEqual(CONVICTION_WEIGHT, { high: 3, medium: 2, low: 1 });
   assert.deepEqual([...EQUITY_TAPE], ["SPY", "QQQ", "DIA"]);
   const september = live.find((cohort) => cohort.slug === "2026-09-21");
   assert.ok(september);
   const monday = september.grades.filter((grade) => grade.readout === "monday");
-  assert.ok(monday.length > 0);
-  assert.ok(monday.length < september.calls.length);
-  assert.equal(september.grades.filter((grade) => grade.callId.endsWith("__piggostradingdesk")).length, 0);
-  const originalBearish = new Set(["piggostradingdesk", "smtraderca"]);
+  assert.equal(monday.length, september.calls.length);
+  assert.equal(september.calls.some((call) => call.handle === "piggostradingdesk"), false);
+  const originalBearish = new Set(["smtraderca"]);
   for (const grade of monday) {
     const call = september.calls.find((item) => item.id === grade.callId);
     assert.ok(call);

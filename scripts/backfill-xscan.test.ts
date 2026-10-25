@@ -56,9 +56,8 @@ test("the July 27 backfill stays append-only and keeps ambiguous rows off the bo
     assert.equal(published.has(`${row.post_url}\n${row.ticker}\n${row.direction}`), false);
   }
   const pending = parsePendingApproval(readFileSync("data/calls/pending-approval.csv", "utf8"));
-  const piggo = pending.filter((row) => row.handle === "piggostradingdesk" && row.reason.includes("names no ticker"));
-  assert.equal(piggo.length, 5);
-  assert.ok(piggo.every((row) => row.ticker === "" && row.reason.includes("Not graded on SPY")));
+  assert.equal(pending.some((row) => row.handle === "piggostradingdesk"), false);
+  assert.equal(pending.some((row) => row.reason.includes("names no ticker")), false);
   const queued = new Set(pending.map((row) => `${row.postUrl}\n${row.ticker}\n${row.direction}`));
   for (const row of plan.pending) {
     assert.equal(queued.has(`${row.post_url}\n${row.ticker}\n${row.direction}`), true);
@@ -107,15 +106,15 @@ test("clear backfill rows are graded at the recorded checkpoints", () => {
 
   for (const row of rows.filter((item) => item.cohort_slug === "2026-10-19")) {
     if (row.handle === "piggostradingdesk") {
-      assert.equal(row.flags, "tape-default");
+      assert.equal(row.flags, "no-ticker");
       for (const kind of CHECKPOINTS) {
         assert.equal(row[`${kind}_status`], "PENDING");
         assert.equal(row[`${kind}_score`], "");
         assert.equal(row[`${kind}_text`], "");
       }
       assert.equal(row.grade_method, "");
-      assert.match(row.notes, /names no ticker/);
-      assert.match(row.notes, /not graded on SPY/i);
+      assert.match(row.notes, /exclusion=no-ticker/);
+      assert.match(row.notes, /not shown/);
       continue;
     }
     assert.equal(row.monday_status, "GRADED");

@@ -26,7 +26,8 @@ test("the closed October 19 lead is the latest settled checkpoint", () => {
     const settled = week.grades.filter((item) => item.callId === call.id);
     return settled.map((item) => ({ readout: item.readout, score: item.score }));
   });
-  assert.equal(grades.length, 3);
+  assert.equal(grades.length, 2);
+  assert.equal(week.calls.some((call) => call.handle === "piggostradingdesk"), false);
   assert.equal(leadReadout(grades), "friday");
   const scores = leadScores(grades);
   assert.deepEqual([...scores].sort((a, b) => a - b), [21, 24]);
@@ -44,8 +45,8 @@ test("a scheduled readout contributes nothing to the primary board", () => {
   const fridayGrades = latest.grades.filter((grade) => grade.readout === "friday");
   assert.equal(gradesOnPrimaryBoard(fridayGrades, "scheduled").length, 0);
   assert.equal(gradesOnPrimaryBoard(fridayGrades, "published").length, fridayGrades.length);
-  assert.ok(fridayGrades.length > 0);
-  assert.ok(fridayGrades.length < latest.calls.length);
+  assert.equal(fridayGrades.length, latest.calls.length);
+  assert.equal(latest.calls.some((call) => call.handle === "piggostradingdesk"), false);
   for (const readout of latest.readouts) {
     const grades = latest.grades.filter((grade) => grade.readout === readout.kind);
     assert.equal(readout.status, "published");

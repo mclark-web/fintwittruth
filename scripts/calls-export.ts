@@ -3,7 +3,7 @@
  * Checkpoint columns stay in the CSV. The demo book is not written.
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { CALLS_CSV_PATH, LIVE_JSON_PATH, collectIssues, parseCallCsv, renderLiveJson } from "./calls-ledger";
+import { CALLS_CSV_PATH, LIVE_JSON_PATH, classifyCall, collectIssues, parseCallCsv, renderLiveJson } from "./calls-ledger";
 
 const csv = readFileSync(CALLS_CSV_PATH, "utf8");
 const rows = parseCallCsv(csv);
@@ -17,4 +17,5 @@ if (issues.errors.length > 0) {
 
 const json = renderLiveJson(rows);
 writeFileSync(LIVE_JSON_PATH, json);
-console.log(`Wrote ${rows.length} calls to src/lib/live-calls.json`);
+const hidden = rows.filter((row) => classifyCall(row).tapeDefault).length;
+console.log(`Wrote ${rows.length - hidden} calls to src/lib/live-calls.json (${hidden} no-ticker rows stay in the CSV and are not exported)`);

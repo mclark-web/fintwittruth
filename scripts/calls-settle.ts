@@ -3,7 +3,7 @@
  * Dry-run is the default. The CSV is written only with --write.
  * A pending row is graded when the post names exactly one whitelist print and that print is the primary.
  * A row that already has a graded checkpoint is graded again at the next due print, on that same primary.
- * A post that names no ticker stays pending and is not graded on SPY, even when an earlier checkpoint was graded.
+ * A post that names no ticker is excluded. It is not shown and is not graded on SPY.
  * A post that was never graded stays pending when it names more than one print.
  * A same-day or 0DTE trade stays pending.
  */
@@ -25,7 +25,7 @@ Dry-run is the default. Nothing is written unless --write is present.
 Pending Monday 12:00 PM ET, Wednesday close, and Friday close checkpoints are graded from the prints already in market-history.json.
 A row is auto-graded when the post names exactly one whitelist symbol and that symbol is the primary.
 Once a primary named in the post is recorded and an earlier checkpoint is graded, a later due checkpoint is graded on that same primary.
-A post that names no ticker stays pending and is not graded on SPY.
+A post that names no ticker is excluded (no-ticker). It is not shown and is not graded on SPY.
 A post that was never graded stays pending when it names more than one print.
 A same-day or 0DTE trade stays pending.
 A date outside the cohort's Monday / Wednesday / Friday, and a missing print, stay pending.

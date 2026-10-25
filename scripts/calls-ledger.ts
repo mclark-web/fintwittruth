@@ -303,7 +303,7 @@ export function expectedFlags(row: CallRow): string {
   if (call.unquotedTicker) flags.push("unquoted-ticker");
   if (call.ambiguous) flags.push("ambiguous-symbol");
   if (call.proxy) flags.push("index-proxy");
-  if (call.tapeDefault) flags.push("tape-default");
+  if (call.tapeDefault) flags.push("no-ticker");
   return flags.join(";");
 }
 
@@ -575,7 +575,8 @@ function cohortGroups(rows: CallRow[]): CohortGroup[] {
 }
 
 export function renderLiveJson(rows: CallRow[]): string {
-  const cohorts = cohortGroups(rows).map((group) => {
+  const shown = rows.filter((row) => !classifyCall(row).tapeDefault);
+  const cohorts = cohortGroups(shown).map((group) => {
     const calls = group.calls.map((row) => renderCall(row)).join(",\n");
     return [
       "    {",
@@ -897,7 +898,7 @@ export function collectIssues(rows: CallRow[]): LedgerIssues {
       errors.push(`${label}: flags must be ${expectedFlags(row) || "(none)"}`);
     }
     if (call.tapeDefault && graded.length > 0) {
-      errors.push(`${label}: a post that names no ticker stays pending. It is not graded on SPY.`);
+      errors.push(`${label}: a post that names no ticker is excluded (no-ticker). It is not shown and is not graded on SPY.`);
     }
     if (call.ambiguous && row.grade_method === "auto-yahoo") {
       errors.push(`${label}: ambiguous-symbol rows stay recorded. They are not auto-graded.`);
