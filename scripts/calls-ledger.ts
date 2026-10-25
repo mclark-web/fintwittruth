@@ -475,6 +475,11 @@ export function gradedRowsFromLive(data: LiveFile = liveFile()): CallRow[] {
       index += 1;
       for (const kind of CHECKPOINTS) {
         row[field(kind, "date")] = dates[kind];
+        if (classifyCall(row).tapeDefault) {
+          clearGrade(row, kind);
+          row[field(kind, "status")] = "PENDING";
+          continue;
+        }
         const tape = loadTape(cohort.historySlug, call.primary, kind, dates[kind]);
         if (tape.closed) {
           clearGrade(row, kind);
@@ -891,8 +896,11 @@ export function collectIssues(rows: CallRow[]): LedgerIssues {
     if (row.flags !== expectedFlags(row)) {
       errors.push(`${label}: flags must be ${expectedFlags(row) || "(none)"}`);
     }
-    if ((call.ambiguous || call.tapeDefault) && row.grade_method === "auto-yahoo") {
-      errors.push(`${label}: ambiguous-symbol and tape-default rows stay recorded. They are not auto-graded.`);
+    if (call.tapeDefault && graded.length > 0) {
+      errors.push(`${label}: a post that names no ticker stays pending. It is not graded on SPY.`);
+    }
+    if (call.ambiguous && row.grade_method === "auto-yahoo") {
+      errors.push(`${label}: ambiguous-symbol rows stay recorded. They are not auto-graded.`);
     }
     for (const kind of CHECKPOINTS) checkCheckpoint(row, kind, errors);
     if (graded.length > 0 && finitePrice(row.ref_price) == null) {
@@ -952,6 +960,13 @@ export function considerCheckpoint(
       };
     }
     const call = classifyCall(row);
+    if (call.tapeDefault) {
+      return {
+        row,
+        action: "flagged",
+        detail: `${label}: left pending, post names no ticker or index`,
+      };
+    }
     const recordedPrimary = CHECKPOINTS.some((checkpoint) => row[field(checkpoint, "status")] === "GRADED");
     if (!call.autoPrint && !recordedPrimary) {
       const why = call.tapeDefault

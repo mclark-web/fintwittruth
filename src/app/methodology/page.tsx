@@ -72,7 +72,8 @@ export default function MethodologyPage() {
               grow after Sunday. One call per handle per cohort; a handle can appear in later weeks. The slot is
               the earliest forward-looking post that names a direction on a graded print ({GRADED_PRINT_LIST}) and
               does not expire before that week&apos;s checkpoints. The choice is from the post text, not the later
-              print. A same-day or 0DTE trade does not take the slot: a 0DTE tone, a trade for today, a bare Friday
+              print. A post that names no ticker stays pending and ungraded. It is queued and is not graded on SPY.
+              A same-day or 0DTE trade does not take the slot: a 0DTE tone, a trade for today, a bare Friday
               that is not &quot;next Friday,&quot; or an intraday label posted on the collect-window Friday. That
               row stays in the ledger, ungraded, and the next eligible post from the handle is the call. A fill
               note or an intraday label from earlier in the window stays graded when the post does not name that
@@ -167,9 +168,10 @@ export default function MethodologyPage() {
           {LEVEL_MAX}, specificity {SPECIFICITY_MAX}, VIX {VIX_MAX}.
         </p>
         <p className="mt-3 text-ink/80">
-          Once a primary is recorded and an earlier checkpoint is graded, a later checkpoint is graded on
-          that same primary when the print is in the price file. A post that was never graded stays pending
-          when it names more than one print or no ticker. A missing print stays pending and is not invented.
+          Once a primary named in the post is recorded and an earlier checkpoint is graded, a later checkpoint is graded on
+          that same primary when the print is in the price file. A post that names no ticker stays pending and ungraded.
+          It is queued and is not graded on SPY. A post that was never graded stays pending
+          when it names more than one print. A missing print stays pending and is not invented.
           The call score is the latest settled checkpoint: Friday close, else Wednesday close, else Monday noon.
           It is not the mean of those pills. The home lead is the mean of those call scores on the newest
           closed week that already has a grade.
@@ -257,7 +259,7 @@ export default function MethodologyPage() {
           <li>Named support or resistance: 3</li>
         </ul>
         <p className="mt-2 text-sm text-muted">
-          A mood with no ticker cannot clear {STRONG_LINE}, even when the tape agrees.
+          A post that names no ticker is not scored. It stays pending and is not graded on SPY.
         </p>
       </section>
 

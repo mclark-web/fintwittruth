@@ -29,8 +29,8 @@ test("the closed October 19 lead is the latest settled checkpoint", () => {
   assert.equal(grades.length, 3);
   assert.equal(leadReadout(grades), "friday");
   const scores = leadScores(grades);
-  assert.deepEqual([...scores].sort((a, b) => a - b), [21, 24, 30]);
-  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 25% WEAK");
+  assert.deepEqual([...scores].sort((a, b) => a - b), [21, 24]);
+  assert.equal(weekendLead(week.mondayAt, gcBoardGrade(scores)), "Week of Oct 19 · 22% WEAK");
   const open = buildCohortWindow({ year: 2026, month: 10, day: 26 });
   assert.equal(formatWeekday(open.collectEnd), "Sun Oct 25");
 });
@@ -43,11 +43,13 @@ test("a scheduled readout contributes nothing to the primary board", () => {
   assert.equal(friday?.status, "published");
   const fridayGrades = latest.grades.filter((grade) => grade.readout === "friday");
   assert.equal(gradesOnPrimaryBoard(fridayGrades, "scheduled").length, 0);
-  assert.equal(gradesOnPrimaryBoard(fridayGrades, "published").length, latest.calls.length);
+  assert.equal(gradesOnPrimaryBoard(fridayGrades, "published").length, fridayGrades.length);
+  assert.ok(fridayGrades.length > 0);
+  assert.ok(fridayGrades.length < latest.calls.length);
   for (const readout of latest.readouts) {
     const grades = latest.grades.filter((grade) => grade.readout === readout.kind);
     assert.equal(readout.status, "published");
-    assert.equal(gradesOnPrimaryBoard(grades, readout.status).length, latest.calls.length);
+    assert.equal(gradesOnPrimaryBoard(grades, readout.status).length, grades.length);
   }
   assert.deepEqual(settledReadoutKinds(latest.readouts), ["monday-gap", "monday", "wednesday", "friday"]);
   assert.deepEqual(pendingReadoutKinds(latest.readouts), []);

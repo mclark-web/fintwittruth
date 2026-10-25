@@ -58,7 +58,9 @@ test("September 21 publishes Monday, Wednesday, and Friday", () => {
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "published");
-  assert.equal(latest.grades.length, latest.calls.length * 4);
+  assert.ok(latest.grades.length > 0);
+  assert.ok(latest.grades.length < latest.calls.length * 4);
+  assert.equal(latest.grades.filter((grade) => grade.callId.endsWith("__piggostradingdesk")).length, 0);
   assert.ok(latest.grades.some((grade) => grade.readout === "friday"));
 });
 
@@ -83,7 +85,7 @@ test("the October 19 week publishes the Friday close and grades every recorded F
   assert.equal(october5.calls.length, 5);
   assert.match(october5.summary, /Wednesday, September 30, 2026 at 12:00 PM ET through Sunday, October 4 at 5:00 PM ET/);
   assert.doesNotMatch(october5.summary, /X watchlist not covered this week; Substack only/);
-  assert.equal(october5.grades.length, 12);
+  assert.equal(october5.grades.length, 4);
   const latest = data.cohorts.find((cohort) => cohort.slug === "2026-10-19");
   assert.ok(latest);
   assert.equal(latest.isLatest, false);
@@ -97,8 +99,9 @@ test("the October 19 week publishes the Friday close and grades every recorded F
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "published");
-  assert.equal(latest.grades.filter((grade) => grade.readout === "friday").length, 3);
-  assert.equal(latest.grades.length, 12);
+  assert.equal(latest.grades.filter((grade) => grade.readout === "friday").length, 2);
+  assert.equal(latest.grades.length, 8);
+  assert.equal(latest.grades.filter((grade) => grade.callId.endsWith("__piggostradingdesk")).length, 0);
 });
 
 test("production keeps sourced calls and drops fictional accounts", () => {
@@ -359,7 +362,9 @@ test("the verified weekend book and the fictional doom book are both graded", ()
   const september = live.find((cohort) => cohort.slug === "2026-09-21");
   assert.ok(september);
   const monday = september.grades.filter((grade) => grade.readout === "monday");
-  assert.equal(monday.length, september.calls.length);
+  assert.ok(monday.length > 0);
+  assert.ok(monday.length < september.calls.length);
+  assert.equal(september.grades.filter((grade) => grade.callId.endsWith("__piggostradingdesk")).length, 0);
   const originalBearish = new Set(["piggostradingdesk", "smtraderca"]);
   for (const grade of monday) {
     const call = september.calls.find((item) => item.id === grade.callId);

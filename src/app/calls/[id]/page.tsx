@@ -35,7 +35,11 @@ export async function generateMetadata({
   };
 }
 
-function gradeBasis(primary: string): string {
+function gradeBasis(call: { primary: string; tickers: string[]; explicit: boolean }): string {
+  if (call.tickers.length === 0 && !call.explicit && call.primary === "SPY") {
+    return "This post names no ticker. It stays pending and is not graded on SPY.";
+  }
+  const primary = call.primary;
   if (primary === "VIX") {
     return "Graded on VIX's move from Friday's close. No separate VIX factor.";
   }
@@ -139,7 +143,7 @@ export default async function CallPage({ params }: { params: Promise<{ id: strin
             {call.tickers.length > 0 ? `Named tickers: ${call.tickers.join(", ")}` : "No ticker named"}
           </p>
           <p className="mt-2 text-sm text-muted">
-            {call.primary ? gradeBasis(call.primary) : "This call has no recorded primary."}
+            {call.primary ? gradeBasis(call) : "This call has no recorded primary."}
           </p>
           <p className="mt-3 text-xs text-muted">Posted {formatScopeWhen(call.postedAt)} inside the collect window.</p>
           {call.sourceUrl ? (

@@ -136,6 +136,31 @@ test("a recorded primary grades the next due checkpoint and a never-graded ambig
   assert.equal(held.action, "flagged");
   assert.equal(held.row.wednesday_status, "PENDING");
   assert.match(held.detail, /more than one print/);
+
+  const unnamed = callRow({
+    primary: "SPY",
+    direction: "bearish",
+    sentiment: "panic",
+    explicit: "false",
+    tickers: "",
+    body: "Major indexes are facing short-term pressure and a pullback.",
+    grade_method: "recorded",
+    monday_status: "GRADED",
+    monday_price: "769.07",
+    monday_score: "7",
+    monday_grade: "WEAK",
+    monday_stance: "against",
+    monday_text: "SPY ($769.07) +0.8%",
+  });
+  const heldUnnamed = considerCheckpoint(unnamed, "wednesday", {
+    now: new Date("2026-09-23T21:00:00.000Z"),
+    due: true,
+    tape: OPEN_TAPE,
+  });
+  assert.equal(heldUnnamed.action, "flagged");
+  assert.equal(heldUnnamed.row.wednesday_status, "PENDING");
+  assert.match(heldUnnamed.detail, /no ticker or index/);
+  assert.ok(collectIssues([unnamed]).errors.some((error) => error.includes("not graded on SPY")));
 });
 
 test("a same-day trade stays pending after the checkpoint is due", () => {
@@ -194,6 +219,10 @@ test("the verified book round-trips through the CSV and the scorer", () => {
         continue;
       }
       if (status === "PENDING") {
+        if (classifyCall(row).tapeDefault) {
+          assert.equal(row[`${kind}_score`], "");
+          continue;
+        }
         const tape = loadTape(row.history_slug, row.primary, kind, row[`${kind}_date`]);
         assert.equal(computeGrade(row, kind, tape), null, `${row.call_id} ${kind} is pending with a recorded print`);
         assert.equal(row[`${kind}_score`], "");

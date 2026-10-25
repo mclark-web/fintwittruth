@@ -16,11 +16,11 @@ const GRADED_CALLS: Record<string, number> = {
   "2026-08-24": 0,
   "2026-09-07": 1,
   "2026-09-14": 1,
-  "2026-09-21": 2,
-  "2026-09-28": 3,
-  "2026-10-05": 3,
-  "2026-10-12": 2,
-  "2026-10-19": 3,
+  "2026-09-21": 1,
+  "2026-09-28": 1,
+  "2026-10-05": 1,
+  "2026-10-12": 1,
+  "2026-10-19": 2,
   "2026-10-26": 0,
 };
 
@@ -29,11 +29,11 @@ const GRADED_CHECKPOINTS: Record<string, number> = {
   "2026-08-24": 0,
   "2026-09-07": 2,
   "2026-09-14": 3,
-  "2026-09-21": 6,
-  "2026-09-28": 9,
-  "2026-10-05": 9,
-  "2026-10-12": 6,
-  "2026-10-19": 9,
+  "2026-09-21": 3,
+  "2026-09-28": 3,
+  "2026-10-05": 3,
+  "2026-10-12": 3,
+  "2026-10-19": 6,
   "2026-10-26": 0,
 };
 
@@ -56,6 +56,9 @@ test("the July 27 backfill stays append-only and keeps ambiguous rows off the bo
     assert.equal(published.has(`${row.post_url}\n${row.ticker}\n${row.direction}`), false);
   }
   const pending = parsePendingApproval(readFileSync("data/calls/pending-approval.csv", "utf8"));
+  const piggo = pending.filter((row) => row.handle === "piggostradingdesk" && row.reason.includes("names no ticker"));
+  assert.equal(piggo.length, 5);
+  assert.ok(piggo.every((row) => row.ticker === "" && row.reason.includes("Not graded on SPY")));
   const queued = new Set(pending.map((row) => `${row.postUrl}\n${row.ticker}\n${row.direction}`));
   for (const row of plan.pending) {
     assert.equal(queued.has(`${row.post_url}\n${row.ticker}\n${row.direction}`), true);
@@ -80,7 +83,8 @@ test("clear backfill rows are graded at the recorded checkpoints", () => {
   const accounts = new Set(
     rows.filter((row) => CHECKPOINTS.some((kind) => row[`${kind}_status`] === "GRADED")).map((row) => row.handle),
   );
-  assert.equal(accounts.size, 6);
+  assert.equal(accounts.size, 5);
+  assert.equal(accounts.has("piggostradingdesk"), false);
 
   const august = rows.filter((row) => row.cohort_slug === "2026-08-10");
   assert.equal(august.length, 2);
@@ -102,6 +106,18 @@ test("clear backfill rows are graded at the recorded checkpoints", () => {
   assert.equal(labor.friday_status, "GRADED");
 
   for (const row of rows.filter((item) => item.cohort_slug === "2026-10-19")) {
+    if (row.handle === "piggostradingdesk") {
+      assert.equal(row.flags, "tape-default");
+      for (const kind of CHECKPOINTS) {
+        assert.equal(row[`${kind}_status`], "PENDING");
+        assert.equal(row[`${kind}_score`], "");
+        assert.equal(row[`${kind}_text`], "");
+      }
+      assert.equal(row.grade_method, "");
+      assert.match(row.notes, /names no ticker/);
+      assert.match(row.notes, /not graded on SPY/i);
+      continue;
+    }
     assert.equal(row.monday_status, "GRADED");
     assert.equal(row.wednesday_status, "GRADED");
     assert.equal(row.friday_status, "GRADED");
@@ -119,15 +135,6 @@ test("clear backfill rows are graded at the recorded checkpoints", () => {
       assert.equal(row.friday_text, "SPY ($759.97) −0.4%");
       assert.equal(row.monday_text, "SPY ($769.07) +0.8%");
       assert.equal(row.monday_score, "58");
-      assert.match(row.notes, /769\.0723876953125/);
-      assert.doesNotMatch(row.notes, /5-minute open has not been revised/);
-    }
-    if (row.handle === "piggostradingdesk") {
-      assert.equal(row.friday_score, "30");
-      assert.equal(row.friday_stance, "with");
-      assert.equal(row.friday_text, "SPY ($759.97) −0.4%");
-      assert.equal(row.monday_text, "SPY ($769.07) +0.8%");
-      assert.equal(row.monday_score, "7");
       assert.match(row.notes, /769\.0723876953125/);
       assert.doesNotMatch(row.notes, /5-minute open has not been revised/);
     }

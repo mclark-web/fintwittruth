@@ -214,6 +214,7 @@ test("empty-week pages share one search line, and a future week revalidates", ()
   assert.match(methodology, /Yahoo unstable/);
   assert.match(methodology, /filled bar/);
   assert.match(callPage, /Graded on \$\{primary\}'s move from Friday's close, plus a VIX factor\. The SPY, QQQ, and DIA average is the week's benchmark tape and is not this call's score\./);
+  assert.match(callPage, /This post names no ticker\. It stays pending and is not graded on SPY\./);
   assert.match(callPage, /Graded on VIX's move from Friday's close\. No separate VIX factor\./);
   assert.match(callPage, /Direction vs \$\{primary\}/);
   assert.match(callPage, /label=\{call\.primary\}/);
