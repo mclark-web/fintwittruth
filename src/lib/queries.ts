@@ -125,6 +125,10 @@ export type LeaderRow = {
   strongRate: number;
   weakRate: number;
   hitRate: number;
+  hitCount: number;
+  strongCount: number;
+  weakCount: number;
+  readoutCount: number;
   isStrong: boolean;
   isWeak: boolean;
   peerRank: number;
@@ -413,6 +417,10 @@ export const getLeaderboard = cache(async (bucket: Bucket | null, dataset: "live
         strongRate: stats.strongRate,
         weakRate: stats.weakRate,
         hitRate: stats.hitRate,
+        hitCount: stats.hitCount,
+        strongCount: stats.strongCount,
+        weakCount: stats.weakCount,
+        readoutCount: stats.readoutCount,
         bestScore: stats.bestScore,
         worstScore: stats.worstScore,
         score: stats.avgScore,
@@ -433,6 +441,10 @@ export const getLeaderboard = cache(async (bucket: Bucket | null, dataset: "live
     strongRate: row.strongRate,
     weakRate: row.weakRate,
     hitRate: row.hitRate,
+    hitCount: row.hitCount,
+    strongCount: row.strongCount,
+    weakCount: row.weakCount,
+    readoutCount: row.readoutCount,
     isStrong: row.isStrong,
     isWeak: row.isWeak,
     peerRank: row.peerRank,

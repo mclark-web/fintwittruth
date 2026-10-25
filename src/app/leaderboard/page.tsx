@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PendingSettleLink } from "@/components/board-state";
 import { GradePill } from "@/components/gc-tube";
-import { formatRate, formatScore } from "@/lib/format";
+import { bandRateLabel, formatScore, hitRateLabel } from "@/lib/format";
 import { gcGrade } from "@/lib/grades";
 import { getLeaderboard, type LeaderRow } from "@/lib/queries";
 
@@ -46,24 +46,16 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                   })}
                 />
               </div>
-              <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <dt className="text-xs text-[#9a9aa3]">Hit, per readout</dt>
-                  <dd className="font-mono">{formatRate(row.hitRate, 0)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-[#9a9aa3]">STRONG, per readout</dt>
-                  <dd className="font-mono">{formatRate(row.strongRate, 0)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-[#9a9aa3]">WEAK, per readout</dt>
-                  <dd className="font-mono">{formatRate(row.weakRate, 0)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-[#9a9aa3]">Graded calls</dt>
-                  <dd className="font-mono">{row.callCount}</dd>
-                </div>
-              </dl>
+              <ul className="mt-3 grid gap-1 text-sm">
+                <li className="font-mono [overflow-wrap:anywhere]">{hitRateLabel(row.hitRate, row.readoutCount)}</li>
+                <li className="font-mono [overflow-wrap:anywhere]">
+                  {bandRateLabel("STRONG", row.strongCount, row.readoutCount)}
+                </li>
+                <li className="font-mono [overflow-wrap:anywhere]">
+                  {bandRateLabel("WEAK", row.weakCount, row.readoutCount)}
+                </li>
+                <li className="font-mono text-muted">Graded calls {row.callCount}</li>
+              </ul>
               <p className="mt-2 font-mono text-xs text-muted">
                 Best {formatScore(row.bestScore)}% · worst {formatScore(row.worstScore)}%
               </p>
@@ -82,15 +74,12 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
               <th scope="col" className="px-4 py-3 font-medium">Grade</th>
               <th scope="col" className="px-2 py-3 font-medium [overflow-wrap:anywhere]">
                 Hit
-                <span className="mt-1 block font-normal normal-case tracking-normal">per readout</span>
               </th>
               <th scope="col" className="px-2 py-3 font-medium [overflow-wrap:anywhere]">
                 STRONG
-                <span className="mt-1 block font-normal normal-case tracking-normal">per readout</span>
               </th>
               <th scope="col" className="px-2 py-3 font-medium [overflow-wrap:anywhere]">
                 WEAK
-                <span className="mt-1 block font-normal normal-case tracking-normal">per readout</span>
               </th>
               <th scope="col" className="px-4 py-3 font-medium">Graded calls</th>
               <th scope="col" className="px-4 py-3 font-medium">Best / worst</th>
@@ -128,9 +117,15 @@ function Board({ title, note, rows }: { title: string; note: string; rows: Leade
                     })}
                   />
                 </td>
-                <td className="px-4 py-3 font-mono">{formatRate(row.hitRate, 0)}</td>
-                <td className="px-4 py-3 font-mono">{formatRate(row.strongRate, 0)}</td>
-                <td className="px-4 py-3 font-mono">{formatRate(row.weakRate, 0)}</td>
+                <td className="px-4 py-3 font-mono [overflow-wrap:anywhere]">
+                  {hitRateLabel(row.hitRate, row.readoutCount)}
+                </td>
+                <td className="px-4 py-3 font-mono [overflow-wrap:anywhere]">
+                  {bandRateLabel("STRONG", row.strongCount, row.readoutCount)}
+                </td>
+                <td className="px-4 py-3 font-mono [overflow-wrap:anywhere]">
+                  {bandRateLabel("WEAK", row.weakCount, row.readoutCount)}
+                </td>
                 <td className="px-4 py-3 font-mono">{row.callCount}</td>
                 <td className="px-4 py-3 font-mono text-xs">
                   {formatScore(row.bestScore)}% · {formatScore(row.worstScore)}%

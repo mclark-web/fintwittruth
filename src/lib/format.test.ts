@@ -1,10 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { zonedToUtc } from "./calendar";
-import { etYmd, formatScopeWhen, initials, formatScore, formatWeekday, lastTradingDayBeforeWeekend, referenceCloseDay } from "./format";
+import { bandRateLabel, etYmd, formatScopeWhen, hitRateLabel, initials, formatScore, formatWeekday, lastTradingDayBeforeWeekend, referenceCloseDay } from "./format";
 
 test("a UTC fetch time is shown in ET", () => {
   assert.equal(formatScopeWhen("2026-10-19T19:29:44.258Z"), "Monday, October 19 at 3:29\u00a0PM\u00a0ET");
+});
+
+test("rate labels keep the readout count beside the rounded percent", () => {
+  assert.equal(hitRateLabel(1 / 8, 8), "Hit 13% of 8 readouts");
+  assert.equal(bandRateLabel("WEAK", 7, 8), "WEAK on 7 of 8");
+  assert.equal(bandRateLabel("STRONG", 2, 8), "STRONG on 2 of 8");
 });
 
 test("GC percents floor, and a positive average under 1 reads <1", () => {

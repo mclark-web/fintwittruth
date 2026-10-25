@@ -34,10 +34,12 @@ export function TapeMark({
   direction,
   move,
   label,
+  percent = formatPct,
 }: {
   direction: string;
   move: number;
   label?: string;
+  percent?: (value: number) => string;
 }) {
   const side = direction === "bullish" || direction === "bearish" ? direction : "split";
   const vix = label === "VIX";
@@ -52,7 +54,7 @@ export function TapeMark({
     <span className={`tape-mark tape-mark-${verdict}`}>
       <span className="tape-glyph" aria-hidden="true">{glyph}</span>
       {label ? <span className="tape-ticker">{label}</span> : null}
-      <span className="tape-pct tabular-nums">{formatPct(move)}</span>
+      <span className="tape-pct tabular-nums">{percent(move)}</span>
       <span className="tape-tag">{words}</span>
     </span>
   );

@@ -1,4 +1,4 @@
-const CHART = "https://query1.finance.yahoo.com/v8/finance/chart/";
+export const YAHOO_CHART_ENDPOINT = "https://query1.finance.yahoo.com/v8/finance/chart/";
 
 export const VIX_VENDOR_SYMBOL = "^VIX";
 
@@ -95,7 +95,7 @@ export async function fetchChart(
   period2: number,
   interval: "1d" | "5m",
 ): Promise<ChartResult> {
-  const url = new URL(`${CHART}${encodeURIComponent(vendorSymbol(symbol))}`);
+  const url = new URL(`${YAHOO_CHART_ENDPOINT}${encodeURIComponent(vendorSymbol(symbol))}`);
   url.searchParams.set("period1", String(period1));
   url.searchParams.set("period2", String(period2));
   url.searchParams.set("interval", interval);

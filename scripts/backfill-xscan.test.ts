@@ -108,19 +108,28 @@ test("clear backfill rows are graded at the recorded checkpoints", () => {
     assert.equal(Number(row.friday_price), sessionClose(row.primary, row.friday_date));
     assert.equal(row.friday_grade, "WEAK");
     if (row.primary === "QQQ") assert.equal(row.friday_score, "21");
+    if (row.handle === "BreadWinneh") {
+      assert.equal(row.friday_score, "21");
+      assert.equal(row.friday_grade, "WEAK");
+      assert.equal(row.friday_text, "QQQ ($704.40) −0.8%");
+    }
     if (row.handle === "TraderJonesy") {
       assert.equal(row.friday_score, "24");
       assert.equal(row.friday_stance, "against");
       assert.equal(row.friday_text, "SPY ($759.97) −0.4%");
-      assert.equal(row.monday_text, "SPY ($769.45) +0.8%");
+      assert.equal(row.monday_text, "SPY ($769.07) +0.8%");
       assert.equal(row.monday_score, "58");
+      assert.match(row.notes, /769\.0723876953125/);
+      assert.doesNotMatch(row.notes, /5-minute open has not been revised/);
     }
     if (row.handle === "piggostradingdesk") {
       assert.equal(row.friday_score, "30");
       assert.equal(row.friday_stance, "with");
       assert.equal(row.friday_text, "SPY ($759.97) −0.4%");
-      assert.equal(row.monday_text, "SPY ($769.45) +0.8%");
+      assert.equal(row.monday_text, "SPY ($769.07) +0.8%");
       assert.equal(row.monday_score, "7");
+      assert.match(row.notes, /769\.0723876953125/);
+      assert.doesNotMatch(row.notes, /5-minute open has not been revised/);
     }
   }
   for (const row of backfill.filter((item) => item.cohort_slug === "2026-10-26")) {
@@ -135,6 +144,12 @@ test("clear backfill rows are graded at the recorded checkpoints", () => {
   assert.equal(week.readouts.find((item) => item.kind === "friday")?.status, "published");
   assert.equal(week.grades.length, week.calls.length * 2);
   assert.equal(data.cohorts.some((cohort) => cohort.slug === "2026-08-03" && cohort.dataset === "live"), false);
+  const oct19 = data.cohorts.find((cohort) => cohort.slug === "2026-10-19" && cohort.dataset === "live");
+  assert.ok(oct19);
+  const bread = oct19.calls.find((call) => call.handle === "BreadWinneh");
+  assert.ok(bread);
+  const breadFriday = oct19.grades.find((grade) => grade.callId === bread.id && grade.readout === "friday");
+  assert.equal(breadFriday?.score, 21);
   const holiday = data.cohorts.find((cohort) => cohort.slug === "2026-09-07" && cohort.dataset === "live");
   assert.ok(holiday);
   assert.equal(holiday.readouts.find((item) => item.kind === "monday")?.status, "scheduled");

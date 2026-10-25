@@ -6,7 +6,7 @@ import { Avatar } from "@/components/score";
 import { leadReadout, leadScores, matureScore, weekendLead } from "@/lib/board";
 import { closedPendingLiveWeeks, emptyLiveWeeks } from "@/lib/empty-weeks";
 import { parseWeekCoverage } from "@/lib/search-scope";
-import { formatAsOf, formatDay, formatRate, formatScore, formatScopeWhen, formatShortDay, formatWeekday, referenceCloseDay } from "@/lib/format";
+import { bandRateLabel, formatAsOf, formatDay, formatScore, formatScopeWhen, formatShortDay, formatWeekday, hitRateLabel, referenceCloseDay } from "@/lib/format";
 import { gcBoardGrade, gcGrade } from "@/lib/grades";
 import { GC_SCALE_BANDS } from "@/lib/labels";
 import { bestWorst } from "@/lib/lanes";
@@ -376,7 +376,9 @@ function AccountRow({ row }: { row: LeaderRow }) {
         </span>
         <GradePill grade={pill} />
         {row.callCount === 1 ? <span className="text-xs text-muted">n=1</span> : null}
-        <span className="text-xs text-muted">Hit {formatRate(row.hitRate, 0)} of readouts</span>
+        <span className="text-xs text-muted">{hitRateLabel(row.hitRate, row.readoutCount)}</span>
+        <span className="text-xs text-muted">{bandRateLabel("STRONG", row.strongCount, row.readoutCount)}</span>
+        <span className="text-xs text-muted">{bandRateLabel("WEAK", row.weakCount, row.readoutCount)}</span>
       </span>
     </li>
   );

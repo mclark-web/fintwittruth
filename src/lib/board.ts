@@ -127,17 +127,24 @@ export function handleBoardStats(calls: GradedCallInput[]) {
     .map((call) => matureScore(call.grades))
     .filter((score): score is number => score != null);
   const avgScore = average(matureScores) ?? 0;
-  const rate = (pick: (grade: SettledGrade) => boolean) =>
-    grades.length === 0 ? 0 : grades.filter(pick).length / grades.length;
+  const hitCount = grades.filter((grade) => isDirectionHit(grade.signedMovePct)).length;
+  const strongCount = grades.filter((grade) => gcGrade(grade) === "strong").length;
+  const weakCount = grades.filter((grade) => gcGrade(grade) === "weak").length;
+  const readoutCount = grades.length;
+  const share = (count: number) => (readoutCount === 0 ? 0 : count / readoutCount);
   return {
     graded: graded.length > 0,
     callCount: graded.length,
     pendingCount: calls.length - graded.length,
     avgScore,
     badge: scoreToBadge(Math.round(avgScore)),
-    strongRate: rate((grade) => gcGrade(grade) === "strong"),
-    weakRate: rate((grade) => gcGrade(grade) === "weak"),
-    hitRate: rate((grade) => isDirectionHit(grade.signedMovePct)),
+    strongRate: share(strongCount),
+    weakRate: share(weakCount),
+    hitRate: share(hitCount),
+    hitCount,
+    strongCount,
+    weakCount,
+    readoutCount,
     bestScore: matureScores.length ? Math.max(...matureScores) : 0,
     worstScore: matureScores.length ? Math.min(...matureScores) : 0,
   };

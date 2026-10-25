@@ -66,6 +66,16 @@ export function formatRate(value: number, digits = 0): string {
   return `${(Math.abs(value) * 100).toFixed(digits)}%`;
 }
 
+/** "Hit 13% of 8 readouts". The percent stays on toFixed; the count is the denominator. */
+export function hitRateLabel(rate: number, total: number): string {
+  return `Hit ${formatRate(rate, 0)} of ${total} readouts`;
+}
+
+/** "WEAK on 7 of 8" and "STRONG on k of n". */
+export function bandRateLabel(band: "STRONG" | "WEAK", count: number, total: number): string {
+  return `${band} on ${count} of ${total}`;
+}
+
 export function formatAsOf(date: Date | string): string {
   const value = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("en-US", {

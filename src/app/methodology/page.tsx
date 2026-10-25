@@ -101,11 +101,18 @@ export default function MethodologyPage() {
             <dd className="mt-1 text-sm text-muted">
               The primary score. It asks whether the weekend doom, war panic, sell-the-open calls, and melt-up
               calls were still there at noon. The print is the open of the Yahoo Finance 5-minute bar stamped
-              12:00 PM America/New_York. The 1-minute bar at that same stamp is a different print, and its close
-              is not the grade. On October 19, 2026 the 5-minute bar stamped 12:00 PM ET opens at 769.45.
-              The 1-minute bar and the 15-minute bar stamped 12:00 PM ET open at that same 769.45. The 11:55
-              5-minute bar closes at 769.45, and the 1-minute bar stamped 12:00 PM ET closes at 769.07. The
-              stored Monday grade is the 12:00 5-minute open. VIX uses the same stamp.
+              12:00 PM America/New_York. The chart endpoint is
+              https://query1.finance.yahoo.com/v8/finance/chart/{"{symbol}"} with period1 at 13:00 UTC on that
+              session date, period2 at 22:00 UTC, interval 5m, includeAdjustedClose true, and events div.
+              The raw response behind each noon print is committed with that URL, those settings, the fetch
+              time, and a SHA-256 checksum of the body. The accuracy guard compares the displayed print to
+              that file, to the cent. A live re-check then pulls the same chart at least three times and
+              takes a majority within $0.05. When those pulls disagree, the guard reports Yahoo unstable.
+              A live flip does not fail the guard. A 12:00 open that exactly equals the previous bar&apos;s close
+              is flagged as a possible filled bar. On October 19, 2026 the unfilled 5-minute open is 769.07.
+              The 11:55 5-minute bar closes at 769.45, which is also the 11:59 1-minute close. Yahoo
+              sometimes serves that 769.45 figure as the 12:00 open. That filled open is not the grade.
+              The stored Monday grade is the unfilled 12:00 5-minute open. VIX uses the same stamp.
             </dd>
           </div>
           <div className="panel p-4">

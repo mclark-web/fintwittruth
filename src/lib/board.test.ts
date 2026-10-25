@@ -13,7 +13,7 @@ import {
 import { buildCohortWindow } from "./calendar";
 import { FEATURED_COHORT_SLUG, LATEST_COHORT_SLUG } from "./demo-data";
 import { buildDataset } from "./dataset";
-import { formatWeekday } from "./format";
+import { bandRateLabel, formatWeekday, hitRateLabel } from "./format";
 import { gcBoardGrade } from "./grades";
 import { READOUTS } from "./scoring";
 
@@ -145,6 +145,30 @@ test("the call score is the furthest settled checkpoint, and account grade avera
   assert.equal(account.avgScore, 60);
   assert.equal(account.bestScore, 90);
   assert.equal(account.worstScore, 30);
+});
+
+test("buythedip82 rate labels show the readout count", () => {
+  const calls = data.cohorts
+    .filter((cohort) => cohort.dataset === "live")
+    .flatMap((cohort) =>
+      cohort.calls
+        .filter((call) => call.handle === "buythedip82")
+        .map((call) => ({
+          grades: cohort.grades
+            .filter((grade) => grade.callId === call.id)
+            .map((grade) => ({
+              readout: grade.readout,
+              score: grade.score,
+              isStrong: grade.isStrong,
+              isWeak: grade.isWeak,
+              signedMovePct: grade.signedMovePct,
+            })),
+        })),
+    );
+  const stats = handleBoardStats(calls);
+  assert.equal(hitRateLabel(stats.hitRate, stats.readoutCount), "Hit 13% of 8 readouts");
+  assert.equal(bandRateLabel("WEAK", stats.weakCount, stats.readoutCount), "WEAK on 7 of 8");
+  assert.equal(bandRateLabel("STRONG", stats.strongCount, stats.readoutCount), `STRONG on ${stats.strongCount} of 8`);
 });
 
 test("a flat tape is not a hit", () => {

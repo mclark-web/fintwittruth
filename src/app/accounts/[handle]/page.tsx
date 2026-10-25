@@ -8,7 +8,7 @@ import { Avatar, ScoreMark } from "@/components/score";
 import { TrackedAccount } from "@/components/tracked-account";
 import { cohortClockDates, pendingClosure } from "@/lib/grades";
 import { callHasSettledGrade } from "@/lib/board";
-import { formatRate, formatScore } from "@/lib/format";
+import { bandRateLabel, formatScore, hitRateLabel } from "@/lib/format";
 import { loadRealCallsForHandle } from "@/lib/public-real";
 import { getAccount, listHandles } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
@@ -119,17 +119,15 @@ export default async function AccountPage({ params }: { params: Promise<{ handle
                   <dt className="text-xs uppercase text-muted">Average grade</dt>
                   <dd className="font-mono text-xl">{formatScore(row.avgScore, 0)}%</dd>
                 </div>
-                <div>
-                  <dt className="text-xs text-muted">Hit, per readout</dt>
-                  <dd className="font-mono text-xl">{formatRate(row.hitRate, 0)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-muted">STRONG, per readout</dt>
-                  <dd className="font-mono text-xl">{formatRate(row.strongRate, 0)}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-muted">WEAK, per readout</dt>
-                  <dd className="font-mono text-xl">{formatRate(row.weakRate, 0)}</dd>
+                <div className="col-span-2 sm:col-span-3 lg:col-span-3">
+                  <dt className="sr-only">Hit, STRONG, and WEAK</dt>
+                  <dd className="font-mono text-sm [overflow-wrap:anywhere]">
+                    {hitRateLabel(row.hitRate, row.readoutCount)}
+                    {" · "}
+                    {bandRateLabel("STRONG", row.strongCount, row.readoutCount)}
+                    {" · "}
+                    {bandRateLabel("WEAK", row.weakCount, row.readoutCount)}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-xs uppercase text-muted">Graded calls</dt>
