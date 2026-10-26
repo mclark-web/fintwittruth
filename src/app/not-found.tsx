@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PRODUCT_NAME } from "@/lib/brand";
+import { notFoundMeta } from "@/lib/site-urls";
+
+export const metadata: Metadata = notFoundMeta();
 
 export default function NotFound() {
   return (

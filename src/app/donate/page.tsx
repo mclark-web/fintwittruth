@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import Link from "next/link";
 import { LegalPage, LegalSection } from "@/components/legal-page";
 import { disputeEmail } from "@/lib/dispute";
@@ -7,6 +8,7 @@ export const metadata: Metadata = {
   title: "Donate",
   description:
     "Draft donation page: GradedCalls FinTwit is free to read. A donation is not a purchase of grades or signals.",
+  ...pageMeta("/donate"),
 };
 
 export default function DonatePage() {

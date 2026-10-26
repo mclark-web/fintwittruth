@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import { cookies } from "next/headers";
 import { adminConfigured, ADMIN_COOKIE, sessionMatches } from "@/lib/admin-auth";
 import { getIntakeStore, UNCONFIGURED_DETAIL } from "@/lib/intake-store";
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Intake",
   robots: { index: false, follow: false },
+  ...pageMeta("/admin"),
 };
 
 const fieldClass =

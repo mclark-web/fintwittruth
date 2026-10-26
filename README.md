@@ -136,7 +136,16 @@ Keep the calendar and the scorer. Swap the inputs.
 
 Import the GitHub repository. The demo database is created during the build. No secrets are required.
 
-Set `NEXT_PUBLIC_SITE_URL` to `https://fintwittruth.vercel.app` for Production and Preview. That origin is what absolute `og:image` and `twitter:image` URLs use. The app falls back to the same host when the variable is unset.
+Public links and metadata come from `src/lib/site-urls.ts`. Set these on Production and Preview. When a variable is unset, the app uses the host written here.
+
+| Variable | Default |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | `https://fintwit.gradedcalls.com` |
+| `NEXT_PUBLIC_HUB_URL` | `https://www.gradedcalls.com` |
+| `NEXT_PUBLIC_ANALYSTS_URL` | `https://analysts.gradedcalls.com` |
+| `NEXT_PUBLIC_BOT_URL` | `https://bot.gradedcalls.com` |
+
+Sports is the hub origin plus `/sports` (`https://www.gradedcalls.com/sports`). Absolute `og:image` and `twitter:image` URLs use `NEXT_PUBLIC_SITE_URL`.
 
 Use these settings. The defaults already match. Do not override the build command.
 
@@ -148,7 +157,7 @@ Use these settings. The defaults already match. Do not override the build comman
 | Install command | `npm install` (leave the default) |
 | Build command | `npm run build` (leave the default) |
 | Output directory | leave the Next.js default |
-| Environment variables | `NEXT_PUBLIC_SITE_URL=https://fintwittruth.vercel.app` on Production and Preview |
+| Environment variables | `NEXT_PUBLIC_SITE_URL=https://fintwit.gradedcalls.com`, `NEXT_PUBLIC_HUB_URL=https://www.gradedcalls.com`, `NEXT_PUBLIC_ANALYSTS_URL=https://analysts.gradedcalls.com`, `NEXT_PUBLIC_BOT_URL=https://bot.gradedcalls.com` on Production and Preview |
 
 `npm run build` runs `prebuild` first: Prisma generates the client (including the Vercel runtime engine), creates `prisma/fintwittruth.db`, and seeds it. That file is traced into the server bundle. Pages are prerendered from it. On Vercel the filesystem is read-only except `/tmp`, so a server instance copies the seed to `/tmp/fintwittruth.db` before reading it.
 

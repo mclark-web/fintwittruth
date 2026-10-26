@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import Link from "next/link";
 import { disputeMailto } from "@/lib/dispute";
 import { submitDisputeAction } from "./actions";
@@ -8,6 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Dispute a grade",
   description: "Tell GradedCalls a grade, a print, or a post looks wrong.",
+  ...pageMeta("/dispute"),
 };
 
 const fieldClass =

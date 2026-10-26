@@ -7,11 +7,11 @@ import { GC_FACTOR, GC_SCALE_BANDS } from "./labels";
 import { UNCONFIGURED_DETAIL, UNCONFIGURED_PUBLIC } from "./intake-store";
 
 const root = join(import.meta.dirname, "..", "..");
-const hubHref = 'href="https://' + "char" + 'oof.vercel.app"';
+const hubBinding = "href={" + "HUB_URL}";
 
 function files(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
-    if (name === "node_modules" || name === ".git" || name === ".next") continue;
+    if (name === "node_modules" || name === ".git" || name === ".next" || name.startsWith(".next-")) continue;
     const path = join(dir, name);
     if (statSync(path).isDirectory()) files(path, out);
     else if (/\.(tsx?|css|md)$/.test(name)) out.push(path);
@@ -40,7 +40,7 @@ test("user-facing copy does not expand the scale name and has none of the retire
     const rel = relative(root, path);
     // BRAND.md names the retired words and the one allowed expansion. The UI lock is everything else.
     if (rel === "BRAND.md") continue;
-    const text = readFileSync(path, "utf8").split(hubHref).join('href=""');
+    const text = readFileSync(path, "utf8").split(hubBinding).join('href=""');
     for (const pattern of banned) {
       if (pattern.test(text)) hits.push(rel);
     }
@@ -58,7 +58,8 @@ test("user-facing copy does not expand the scale name and has none of the retire
 
 test("the logo link href is the Hub in the same tab", () => {
   const logo = readFileSync(join(root, "src", "components", "logo-link.tsx"), "utf8");
-  assert.ok(logo.includes(hubHref));
+  assert.ok(logo.includes(hubBinding));
+  assert.match(logo, /from "@\/lib\/site-urls"/);
   assert.match(logo, /<a\b/);
   assert.match(logo, /aria-label="GradedCalls"/);
   assert.match(logo, /alt="GradedCalls"/);
@@ -84,30 +85,34 @@ test("the logo link href is the Hub in the same tab", () => {
   assert.match(globalError, /<LogoLink\b/);
   assert.match(globalError, /<title>[^<]*GradedCalls[^<]*<\/title>/);
   assert.match(globalError, /title="GradedCalls"/);
-  assert.ok(globalError.includes(hubHref));
+  assert.ok(globalError.includes(hubBinding));
   assert.match(globalError, />\s*Hub\s*</);
 
   let hrefs = 0;
   for (const path of files(root)) {
-    hrefs += readFileSync(path, "utf8").split(hubHref).length - 1;
+    hrefs += readFileSync(path, "utf8").split(hubBinding).length - 1;
   }
   assert.equal(hrefs, 3);
 
   const layout = readFileSync(join(root, "src", "app", "layout.tsx"), "utf8");
-  assert.match(layout, /NEXT_PUBLIC_SITE_URL \|\| "https:\/\/fintwittruth\.vercel\.app"/);
+  const urls = readFileSync(join(root, "src", "lib", "site-urls.ts"), "utf8");
+  assert.match(layout, /metadataBase: new URL\(SITE_URL\)/);
+  assert.match(layout, /from "@\/lib\/site-urls"/);
   assert.doesNotMatch(layout, /localhost:3000/);
-  assert.match(layout, /alt:\s*"GradedCalls"/);
-  assert.match(layout, /width:\s*1200/);
-  assert.match(layout, /height:\s*630/);
-  assert.match(layout, /openGraph:\s*\{[\s\S]*images:\s*\[shareImage\]/);
-  assert.match(layout, /twitter:\s*\{[\s\S]*images:\s*\[shareImage\]/);
+  assert.match(urls, /alt:\s*"GradedCalls"/);
+  assert.match(urls, /width:\s*1200/);
+  assert.match(urls, /height:\s*630/);
+  assert.match(layout, /openGraph:\s*\{[\s\S]*images:\s*\[SHARE_IMAGE\]/);
+  assert.match(layout, /twitter:\s*\{[\s\S]*images:\s*\[SHARE_IMAGE\]/);
   assert.match(layout, /icons:\s*\{/);
 
   assert.equal(existsSync(join(root, "src", "app", "icon.tsx")), false);
   assert.equal(existsSync(join(root, "src", "app", "opengraph-image.tsx")), false);
   assert.equal(existsSync(join(root, "src", "app", "icon.png")), true);
   assert.equal(existsSync(join(root, "src", "app", "apple-icon.png")), true);
-  assert.equal(existsSync(join(root, "src", "app", "opengraph-image.png")), true);
+  assert.equal(existsSync(join(root, "src", "app", "opengraph-image.png")), false);
+  assert.equal(existsSync(join(root, "src", "app", "twitter-image.png")), false);
+  assert.equal(existsSync(join(root, "public", "opengraph-image.png")), true);
   assert.equal(existsSync(join(root, "src", "app", "favicon.ico")), true);
   const markPath = join(root, "public", "gradedcalls-mark.png");
   assert.equal(existsSync(markPath), true);

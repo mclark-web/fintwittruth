@@ -7,6 +7,7 @@ import { etYmd } from "@/lib/format";
 import { marketHolidayName, pendingClosure, readoutSessionYmd, ungradedHorizonLine } from "@/lib/grades";
 import { READOUT_META } from "@/lib/labels";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
+import { pageMeta } from "@/lib/site-urls";
 
 export async function generateStaticParams() {
   const slugs = await listCohortSlugs();
@@ -30,6 +31,7 @@ export async function generateMetadata({
     description: closedWeek
       ? `Calls in ${cohort.title} that stay off the board. The market was closed for ${closure.name}.`
       : `Calls in ${cohort.title} that stay off the board until a readout settles.`,
+    ...pageMeta(`/weeks/${slug}/pending`),
   };
 }
 

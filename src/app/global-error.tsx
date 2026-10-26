@@ -1,6 +1,7 @@
 "use client";
 
 import { LogoLink } from "@/components/logo-link";
+import { HUB_URL } from "@/lib/site-urls";
 import "./globals.css";
 
 export default function GlobalError({
@@ -39,7 +40,7 @@ export default function GlobalError({
             Try again
           </button>
           <p className="mt-8 text-sm">
-            <a href="https://charoof.vercel.app" title="GradedCalls" className="text-pine underline-offset-4 hover:underline">
+            <a href={HUB_URL} title="GradedCalls" className="text-pine underline-offset-4 hover:underline">
               Hub
             </a>
           </p>

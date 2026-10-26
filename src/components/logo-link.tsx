@@ -1,8 +1,10 @@
+import { HUB_URL } from "@/lib/site-urls";
+
 /** Shared top-left mark. Every header uses this anchor. */
 export function LogoLink() {
   return (
     <a
-      href="https://charoof.vercel.app"
+      href={HUB_URL}
       aria-label="GradedCalls"
       className="logo-link hit-44 flex h-14 min-h-11 min-w-11 shrink-0 items-center gap-2.5 whitespace-nowrap"
       style={{

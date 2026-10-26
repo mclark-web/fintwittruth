@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import Link from "next/link";
 import { CallCard } from "@/components/call-card";
 import { RealCallCard } from "@/components/real-call-card";
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Verified real calls",
   description: "Confirmed public posts graded against recorded Yahoo prints. Demo calls are not on this board.",
+  ...pageMeta("/real"),
 };
 
 function readoutFor(grades: { monday?: unknown; wednesday?: unknown; friday?: unknown }): ReadoutKind {
