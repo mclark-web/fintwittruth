@@ -19,11 +19,27 @@ import {
   resolveSiteOrigin,
 } from "./site-urls";
 
+import nextConfig from "../../next.config";
+import { getRedirectStatus, modifyRouteRegex } from "next/dist/lib/redirect-status";
+import { formatUrl } from "next/dist/shared/lib/router/utils/format-url";
+import { getPathMatch } from "next/dist/shared/lib/router/utils/path-match";
+import { matchHas, prepareDestination } from "next/dist/shared/lib/router/utils/prepare-destination";
+import { normalizeRepeatedSlashes } from "next/dist/shared/lib/utils";
+
 const root = join(import.meta.dirname, "..", "..");
 const deploymentHost = ["vercel", "app"].join(".");
 const retiredHosts = ["char" + "oof", "bank-tr" + "oof", "fintwit" + "truth", "char" + "oofbot"].map(
   (name) => `${name}.${deploymentHost}`,
 );
+const legacyProductionHost = `${"fintwit" + "truth"}.${deploymentHost}`;
+const allowedLegacyRedirectLine = `has: [{ type: "host", value: "${legacyProductionHost}" }],`;
+
+function withoutAllowedLegacyRedirectLine(text: string): string {
+  return text
+    .split("\n")
+    .filter((line) => line.trim() !== allowedLegacyRedirectLine)
+    .join("\n");
+}
 
 function files(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -79,12 +95,19 @@ test("source, docs, and the share image stay off retired deployment hosts", () =
   assert.equal(existsSync(join(root, "src", "app", "twitter-image.alt.txt")), false);
 
   const hits: string[] = [];
+  let redirectLines = 0;
   for (const path of files(root)) {
     const text = readFileSync(path, "utf8");
-    if (text.toLowerCase().includes(deploymentHost) || retiredHosts.some((host) => text.includes(host))) {
-      hits.push(relative(root, path));
+    const rel = relative(root, path);
+    const allowed = text.split("\n").filter((line) => line.trim() === allowedLegacyRedirectLine).length;
+    redirectLines += allowed;
+    if (allowed > 0 && rel !== "next.config.ts") hits.push(rel);
+    const visible = withoutAllowedLegacyRedirectLine(text);
+    if (visible.toLowerCase().includes(deploymentHost) || retiredHosts.some((host) => visible.includes(host))) {
+      hits.push(rel);
     }
   }
+  assert.equal(redirectLines, 1);
   assert.deepEqual(hits, []);
 
   const urls = readFileSync(join(root, "src", "lib", "site-urls.ts"), "utf8");
@@ -117,4 +140,85 @@ test("source, docs, and the share image stay off retired deployment hosts", () =
   assert.match(notFound, /notFoundMeta\(\)/);
   assert.doesNotMatch(notFound, /pageMeta\(/);
   assert.doesNotMatch(notFound, /canonical/);
+});
+
+type HostRedirect = {
+  source: string;
+  destination: string;
+  permanent?: boolean;
+  has?: { type: string; value?: string }[];
+  missing?: unknown[];
+};
+
+function legacyRedirectLocation(route: HostRedirect, host: string, href: string): string | null {
+  const url = new URL(href, "http://legacy.local");
+  const matcher = getPathMatch(route.source, {
+    strict: true,
+    removeUnnamedParams: true,
+    regexModifier: (regex: string) => modifyRouteRegex(regex, ["/_next"]),
+    sensitive: false,
+  });
+  let params = matcher(url.pathname);
+  const query = Object.fromEntries(url.searchParams.entries());
+  if ((route.has || route.missing) && params) {
+    const hasParams = matchHas({ headers: { host } }, query, route.has, route.missing);
+    if (hasParams) Object.assign(params, hasParams);
+    else params = false;
+  }
+  if (!params) return null;
+  const { parsedDestination } = prepareDestination({
+    appendParamsToQuery: false,
+    destination: route.destination,
+    params,
+    query,
+  });
+  const destQuery = parsedDestination.query;
+  delete parsedDestination.query;
+  const search = new URLSearchParams(destQuery).toString();
+  parsedDestination.search = search ? `?${search}` : "";
+  parsedDestination.pathname = normalizeRepeatedSlashes(parsedDestination.pathname);
+  return formatUrl(parsedDestination);
+}
+
+test("legacy production host redirects to the site origin", async () => {
+  const redirects = await nextConfig.redirects();
+  assert.equal(redirects.length, 1);
+  const route = redirects[0] as HostRedirect;
+  assert.equal(route.source, "/:path*");
+  assert.equal(route.permanent, true);
+  assert.equal(getRedirectStatus(route), 308);
+  assert.deepEqual(route.has, [{ type: "host", value: legacyProductionHost }]);
+  assert.equal(route.destination, `${SITE_URL}/:path*`);
+  assert.equal(route.destination.includes(legacyProductionHost), false);
+  assert.equal(new URL(SITE_URL).host === legacyProductionHost, false);
+
+  const branchHost = `${"fintwit" + "truth"}-git-main-hoonu.${deploymentHost}`;
+  const hashHost = `${"fintwit" + "truth"}-abc123-hoonu.${deploymentHost}`;
+  const cases = [
+    ["/", `${SITE_URL}/`],
+    ["/?x=1&y=two", `${SITE_URL}/?x=1&y=two`],
+    ["/weeks/2026-10-17?x=1&y=two", `${SITE_URL}/weeks/2026-10-17?x=1&y=two`],
+    ["/weeks/2026-10-17/pending?readout=friday", `${SITE_URL}/weeks/2026-10-17/pending?readout=friday`],
+    ["/accounts/someone?ref=old", `${SITE_URL}/accounts/someone?ref=old`],
+    ["/opengraph-image.png", `${SITE_URL}/opengraph-image.png`],
+  ] as const;
+  for (const [href, expected] of cases) {
+    assert.equal(legacyRedirectLocation(route, branchHost, href), null);
+    assert.equal(legacyRedirectLocation(route, hashHost, href), null);
+    assert.equal(legacyRedirectLocation(route, new URL(SITE_URL).host, href), null);
+    const location = legacyRedirectLocation(route, legacyProductionHost, href);
+    assert.ok(location);
+    const actual = new URL(location);
+    const want = new URL(expected);
+    assert.equal(actual.origin, want.origin);
+    assert.equal(actual.pathname, want.pathname);
+    assert.equal(actual.search, want.search);
+  }
+
+  const location = legacyRedirectLocation(route, legacyProductionHost, "/weeks/2026-10-17?x=1&y=two");
+  assert.ok(location);
+  const destination = new URL(location);
+  assert.equal(destination.origin, SITE_URL);
+  assert.equal(destination.host === legacyProductionHost, false);
+  assert.equal(legacyRedirectLocation(route, destination.host, `${destination.pathname}${destination.search}`), null);
 });

@@ -10,9 +10,18 @@ const deploymentHost = ["vercel", "app"].join(".");
 const distDir = ".next-preview-head";
 const origin = "https://fintwit.gradedcalls.com";
 const shareImage = `${origin}/opengraph-image.png`;
+/** The only deployment-host string allowed anywhere this guard looks. */
+const allowedLegacyRedirectLine = `has: [{ type: "host", value: "${"fintwit" + "truth"}.${deploymentHost}" }],`;
+
+function withoutAllowedLegacyRedirectLine(text: string): string {
+  return text
+    .split("\n")
+    .filter((line) => line.trim() !== allowedLegacyRedirectLine)
+    .join("\n");
+}
 
 function containsDeploymentHost(text: string): boolean {
-  return text.toLowerCase().includes(deploymentHost);
+  return withoutAllowedLegacyRedirectLine(text).toLowerCase().includes(deploymentHost);
 }
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -233,6 +242,17 @@ test("a mutated page, robots file, and sitemap fail the deployment-host check", 
   const sitemap = `<urlset><url><loc>${origin}/weeks</loc></url></urlset>`;
   assert.equal(containsDeploymentHost(sitemap), false);
   assert.equal(containsDeploymentHost(`${sitemap}\n<!-- ${deploymentHost} -->`), true);
+
+  const config = readFileSync(join(root, "next.config.ts"), "utf8");
+  const hostLines = config.split("\n").filter((line) => line.toLowerCase().includes(deploymentHost));
+  assert.deepEqual(
+    hostLines.map((line) => line.trim()),
+    [allowedLegacyRedirectLine],
+  );
+  assert.equal(containsDeploymentHost(config), false);
+  assert.equal(containsDeploymentHost(`${config}\n${deploymentHost}`), true);
+  assert.equal(containsDeploymentHost(config.replace(allowedLegacyRedirectLine, `value: "preview.${deploymentHost}"`)), true);
+  assert.equal(containsDeploymentHost(`${allowedLegacyRedirectLine}\nhttps://other.${deploymentHost}/weeks`), true);
 });
 
 test("preview build HTML, page data, robots, and sitemap stay on gradedcalls.com", { timeout: 480_000 }, async () => {
