@@ -25,6 +25,7 @@ const nextConfig: NextConfig = {
     return [
       {
         // Retired production alias only. Preview and branch hosts do not match this host.
+        // /_next assets are intentionally not redirected: Next excludes them from config redirects.
         source: "/:path*",
         has: [{ type: "host", value: "fintwittruth.vercel.app" }],
         destination: `${SITE_URL}/:path*`,

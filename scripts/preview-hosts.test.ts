@@ -10,7 +10,7 @@ const deploymentHost = ["vercel", "app"].join(".");
 const distDir = ".next-preview-head";
 const origin = "https://fintwit.gradedcalls.com";
 const shareImage = `${origin}/opengraph-image.png`;
-/** The only deployment-host string allowed anywhere this guard looks. */
+/** Allowed on its own line in next.config.ts only. Built and served output still fail on this line. */
 const allowedLegacyRedirectLine = `has: [{ type: "host", value: "${"fintwit" + "truth"}.${deploymentHost}" }],`;
 
 function withoutAllowedLegacyRedirectLine(text: string): string {
@@ -21,7 +21,18 @@ function withoutAllowedLegacyRedirectLine(text: string): string {
 }
 
 function containsDeploymentHost(text: string): boolean {
-  return withoutAllowedLegacyRedirectLine(text).toLowerCase().includes(deploymentHost);
+  return text.toLowerCase().includes(deploymentHost);
+}
+
+/** Client JS, server chunks, and server app JS. routes-manifest and required-server-files sit at the build root and are not scanned. */
+function javascriptBundles(dist: string): string[] {
+  const files: string[] = [];
+  for (const group of ["static", join("server", "chunks"), join("server", "app")]) {
+    for (const file of walk(join(dist, group))) {
+      if (file.endsWith(".js")) files.push(file);
+    }
+  }
+  return files;
 }
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -242,6 +253,10 @@ test("a mutated page, robots file, and sitemap fail the deployment-host check", 
   const sitemap = `<urlset><url><loc>${origin}/weeks</loc></url></urlset>`;
   assert.equal(containsDeploymentHost(sitemap), false);
   assert.equal(containsDeploymentHost(`${sitemap}\n<!-- ${deploymentHost} -->`), true);
+  assert.equal(containsDeploymentHost(allowedLegacyRedirectLine), true, "the config line is a leak outside next.config.ts");
+  assert.equal(containsDeploymentHost(`${clean}\n${allowedLegacyRedirectLine}`), true);
+  assert.equal(containsDeploymentHost(`${robots}\n${allowedLegacyRedirectLine}`), true);
+  assert.equal(containsDeploymentHost(`${sitemap}\n${allowedLegacyRedirectLine}`), true);
 
   const config = readFileSync(join(root, "next.config.ts"), "utf8");
   const hostLines = config.split("\n").filter((line) => line.toLowerCase().includes(deploymentHost));
@@ -249,10 +264,13 @@ test("a mutated page, robots file, and sitemap fail the deployment-host check", 
     hostLines.map((line) => line.trim()),
     [allowedLegacyRedirectLine],
   );
-  assert.equal(containsDeploymentHost(config), false);
-  assert.equal(containsDeploymentHost(`${config}\n${deploymentHost}`), true);
-  assert.equal(containsDeploymentHost(config.replace(allowedLegacyRedirectLine, `value: "preview.${deploymentHost}"`)), true);
-  assert.equal(containsDeploymentHost(`${allowedLegacyRedirectLine}\nhttps://other.${deploymentHost}/weeks`), true);
+  assert.equal(withoutAllowedLegacyRedirectLine(config).toLowerCase().includes(deploymentHost), false);
+  assert.equal(containsDeploymentHost(config), true, "the output check does not apply the next.config allowlist");
+  assert.equal(withoutAllowedLegacyRedirectLine(`${config}\nconst leak = "preview.${deploymentHost}";`).toLowerCase().includes(deploymentHost), true);
+  assert.equal(
+    withoutAllowedLegacyRedirectLine(config.replace(allowedLegacyRedirectLine, `value: "preview.${deploymentHost}"`)).toLowerCase().includes(deploymentHost),
+    true,
+  );
 });
 
 test("preview build HTML, page data, robots, and sitemap stay on gradedcalls.com", { timeout: 480_000 }, async () => {
@@ -308,9 +326,35 @@ test("preview build HTML, page data, robots, and sitemap stay on gradedcalls.com
     if (containsDeploymentHost(text)) staticLeaks.push(`static ${relative(root, file)} :: ${leakSnippet(text)}`);
   }
 
+  const bundles = javascriptBundles(join(root, distDir));
+  const bundlePath = (file: string) => relative(root, file).replaceAll("\\", "/");
+  assert.ok(bundles.some((file) => bundlePath(file).includes("/static/")), "expected client JS");
+  assert.ok(bundles.some((file) => bundlePath(file).includes("/server/chunks/")), "expected server chunks");
+  assert.ok(bundles.some((file) => bundlePath(file).includes("/server/app/") && file.endsWith(".js")), "expected server app JS");
+  assert.ok(!bundles.some((file) => /routes-manifest\.json$|required-server-files/.test(bundlePath(file))));
+  for (const file of bundles) {
+    const text = readFileSync(file, "utf8");
+    if (containsDeploymentHost(text)) staticLeaks.push(`bundle ${bundlePath(file)} :: ${leakSnippet(text)}`);
+  }
+
   const sample = readFileSync(htmlFiles[0], "utf8");
   assert.equal(containsDeploymentHost(sample), false);
   assert.equal(containsDeploymentHost(`${sample}\n${deploymentHost}`), true, "mutation of built HTML must fail the check");
+  assert.equal(containsDeploymentHost(`${sample}\n${allowedLegacyRedirectLine}`), true, "the config allowlist must not excuse built HTML");
+  const clientBundle = bundles.find((file) => bundlePath(file).includes("/static/"));
+  const chunkBundle = bundles.find((file) => bundlePath(file).includes("/server/chunks/"));
+  const serverBundle = bundles.find((file) => bundlePath(file).includes("/server/app/") && file.endsWith(".js"));
+  assert.ok(clientBundle && chunkBundle && serverBundle);
+  const clientJs = readFileSync(clientBundle, "utf8");
+  const chunkJs = readFileSync(chunkBundle, "utf8");
+  const serverJs = readFileSync(serverBundle, "utf8");
+  assert.equal(containsDeploymentHost(clientJs), false);
+  assert.equal(containsDeploymentHost(chunkJs), false);
+  assert.equal(containsDeploymentHost(serverJs), false);
+  assert.equal(containsDeploymentHost(`${clientJs}\nhttps://x.${deploymentHost}`), true, "a joined split literal in client JS must fail");
+  assert.equal(containsDeploymentHost(`${chunkJs}\nhttps://x.${deploymentHost}`), true, "a joined split literal in a server chunk must fail");
+  assert.equal(containsDeploymentHost(`${serverJs}\nhttps://x.${deploymentHost}`), true, "a joined split literal in server app JS must fail");
+  assert.equal(containsDeploymentHost(`${clientJs}\n${allowedLegacyRedirectLine}`), true, "the config allowlist must not excuse client JS");
 
   for (const file of htmlFiles) {
     const html = readFileSync(file, "utf8");
@@ -458,7 +502,9 @@ test("preview build HTML, page data, robots, and sitemap stay on gradedcalls.com
     assert.match(dispute.text, /Dispute this grade/);
     assert.ok(call[1].text.length > 1000, "call page data was too small to be a rendered payload");
     assert.equal(containsDeploymentHost(withHostInHead(home.text)), true, "a deployment host in the head of / must fail");
+    assert.equal(containsDeploymentHost(`${home.text}\n${allowedLegacyRedirectLine}`), true, "the config allowlist must not excuse a served page");
     assert.equal(containsDeploymentHost(`${call[1].text}\n${deploymentHost}`), true, "a deployment host in call page data must fail");
+    assert.equal(containsDeploymentHost(`${call[1].text}\n${allowedLegacyRedirectLine}`), true, "the config allowlist must not excuse served page data");
     assert.equal(containsDeploymentHost(withHostInBody(dispute.text)), true, "a deployment host in an on-request body must fail");
     assert.deepEqual(
       liveLeaks,
@@ -468,7 +514,7 @@ test("preview build HTML, page data, robots, and sitemap stay on gradedcalls.com
     assert.deepEqual(
       staticLeaks,
       [],
-      `built HTML, page data, robots, or sitemap contains ${deploymentHost}:\n${staticLeaks.join("\n")}`,
+      `built HTML, page data, robots, sitemap, or JS contains ${deploymentHost}:\n${staticLeaks.join("\n")}`,
     );
   } finally {
     await stopServer(server);
