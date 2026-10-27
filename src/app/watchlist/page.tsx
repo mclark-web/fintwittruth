@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import Link from "next/link";
 import { UNCONFIGURED_PUBLIC } from "@/lib/intake-store";
 import { loadRealCalls } from "@/lib/public-real";
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Watchlist",
   description: "Accounts tracked by GradedCalls FinTwit. No grade until a post is confirmed.",
+  ...pageMeta("/watchlist"),
 };
 
 export default async function WatchlistPage() {

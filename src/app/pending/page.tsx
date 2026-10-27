@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { pendingReadoutKinds, settledReadoutKinds } from "@/lib/board";
@@ -10,6 +11,7 @@ import { getCohort, listCohortSlugs, type CohortView } from "@/lib/queries";
 export const metadata: Metadata = {
   title: "Not graded yet",
   description: "Calls that stay off the GradedCalls FinTwit boards until a checkpoint is graded. Rankings use graded calls only.",
+  ...pageMeta("/pending"),
 };
 
 export default async function PendingPage() {

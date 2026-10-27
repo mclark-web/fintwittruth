@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, Outfit } from "next/font/google";
 import { SiteFooter, SiteHeader } from "@/components/chrome";
 import { PRODUCT_NAME } from "@/lib/brand";
+import { OG_DESCRIPTION, SHARE_IMAGE, SITE_URL } from "@/lib/site-urls";
 import "./globals.css";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -11,17 +12,8 @@ const plex = IBM_Plex_Mono({
   variable: "--font-plex",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://fintwittruth.vercel.app";
-
-const shareImage = {
-  url: "/opengraph-image.png",
-  width: 1200,
-  height: 630,
-  alt: "GradedCalls",
-};
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: PRODUCT_NAME,
     template: `%s · ${PRODUCT_NAME}`,
@@ -37,15 +29,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: PRODUCT_NAME,
-    description:
-      "Weekend market calls from FinTwit writers, graded against the prior trading-week close (Friday, or Thursday when Friday is a market holiday). Descriptive only. Grades are not for sale.",
+    description: OG_DESCRIPTION,
     siteName: PRODUCT_NAME,
     type: "website",
-    images: [shareImage],
+    images: [SHARE_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    images: [shareImage],
+    images: [SHARE_IMAGE],
   },
 };
 

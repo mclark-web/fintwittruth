@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import Link from "next/link";
 import { CallCard } from "@/components/call-card";
 import { GradePill } from "@/components/gc-tube";
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
   title: "Demo board",
   description: "Fictional GradedCalls FinTwit posts. Labeled demo and kept off the live board.",
   robots: { index: false, follow: false },
+  ...pageMeta("/demo"),
 };
 
 function cardReadout(call: CallView): ReadoutKind {

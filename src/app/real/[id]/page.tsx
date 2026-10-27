@@ -9,6 +9,7 @@ import { READOUT_META } from "@/lib/labels";
 import { loadRealCalls } from "@/lib/public-real";
 import { REAL_READOUT_META } from "@/lib/real-book";
 import { DIRECTION_MAX, LEVEL_MAX, READOUTS, SPECIFICITY_MAX, VIX_MAX } from "@/lib/scoring";
+import { pageMeta } from "@/lib/site-urls";
 import { profileUrl } from "@/lib/watchlist";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,10 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Verified real call ${id}` };
+  const loaded = await loadRealCalls();
+  const call = loaded.calls.find((item) => item.id === id);
+  if (!call) return { title: `Verified real call ${id}` };
+  return { title: `Verified real call ${id}`, ...pageMeta(`/real/${id}`) };
 }
 
 function Breakdown({

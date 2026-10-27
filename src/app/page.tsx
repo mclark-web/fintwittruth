@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CallCard } from "@/components/call-card";
 import { GradePill, GcTube } from "@/components/gc-tube";
@@ -13,7 +14,10 @@ import { gradedSymbols } from "@/lib/prints";
 import { getLatestCohort, getLeaderboard, getLiveCohorts, type CallView, type CohortView, type LeaderRow } from "@/lib/queries";
 import { cohortReferenceDate } from "@/lib/quotes";
 import { EQUITY_TAPE, type ReadoutKind } from "@/lib/scoring";
+import { pageMeta } from "@/lib/site-urls";
 import { trackedRoster } from "@/lib/watchlist";
+
+export const metadata: Metadata = pageMeta("/");
 
 const INDEX = new Set<string>([...EQUITY_TAPE, "VIX"]);
 

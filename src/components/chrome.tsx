@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { getLatestCohort } from "@/lib/queries";
+import { HUB_URL } from "@/lib/site-urls";
 import { LogoLink } from "./logo-link";
 import { NavLinks } from "./nav-links";
 
@@ -28,7 +29,7 @@ export function SiteFooter() {
         <p>Not investment advice. Prices: Yahoo Finance. Fictional examples live on the demo board.</p>
         <p className="text-sm text-[#c9c9cf]">Not affiliated with X or Yahoo.</p>
         <nav aria-label="Footer" className="footer-nav flex flex-wrap gap-x-4 gap-y-1">
-          <a href="https://charoof.vercel.app" className="hit-44 hover:text-[#ee9a44]" aria-label="GradedCalls Hub">
+          <a href={HUB_URL} className="hit-44 hover:text-[#ee9a44]" aria-label="GradedCalls Hub">
             Hub
           </a>
           <Link href="/demo" className="hit-44 hover:text-[#ee9a44]">

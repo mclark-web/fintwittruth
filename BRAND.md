@@ -1,6 +1,6 @@
 # GradedCalls brand guidelines
 
-Updated Thu Sep 24, 2026. This covers all four boards: Hub/Sports (charoof.vercel.app), Analysts (bank-troof.vercel.app), FinTwit (fintwittruth.vercel.app) and GCBot (charoofbot.vercel.app). Everything below is locked. A deviation is an automatic MUST-FIX in design review.
+Updated Thu Sep 24, 2026. This covers all four boards: Hub (https://www.gradedcalls.com) and Sports (https://www.gradedcalls.com/sports), Analysts (https://analysts.gradedcalls.com), FinTwit (https://fintwit.gradedcalls.com) and GCBot (https://bot.gradedcalls.com). Everything below is locked. A deviation is an automatic MUST-FIX in design review.
 
 ## 1. Visual direction
 Scientific, lab / journal / metrology. It should read as trust and transparency, not flashy sports or fintech neon. Name: GradedCalls. The bot product is GCBot. "Chad", "Chud" and "Charoof" never appear in the UI (visible text, titles, meta, og tags, alt text).

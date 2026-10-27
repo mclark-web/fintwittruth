@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import Link from "next/link";
 import { LegalPage, LegalSection } from "@/components/legal-page";
 import { disputeEmail } from "@/lib/dispute";
@@ -7,6 +8,7 @@ export const metadata: Metadata = {
   title: "Terms",
   description:
     "Draft terms for GradedCalls FinTwit: free scoreboard, donation-only, public posts, and a limitation of liability.",
+  ...pageMeta("/terms"),
 };
 
 export default function TermsPage() {

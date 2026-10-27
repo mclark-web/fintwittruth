@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import Link from "next/link";
 import { GcTube } from "@/components/gc-tube";
 import { closedPendingLiveWeeks, emptyLiveWeeks, futureLiveWeek } from "@/lib/empty-weeks";
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   title: "Weeks",
   description:
     "Verified GradedCalls FinTwit weeks, with Monday noon, Wednesday close, and Friday close grades on the same calls.",
+  ...pageMeta("/weeks"),
 };
 
 /** Re-read the clock so a future week stops saying it is open after Sunday 5:00 PM ET. */

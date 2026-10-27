@@ -17,6 +17,7 @@ import { READOUT_META } from "@/lib/labels";
 import { pendingReadoutKinds } from "@/lib/board";
 import { getCohort, listCohortSlugs } from "@/lib/queries";
 import { READOUTS, isReadoutKind, type ReadoutKind } from "@/lib/scoring";
+import { pageMeta } from "@/lib/site-urls";
 
 export async function generateStaticParams() {
   const slugs = await listCohortSlugs();
@@ -41,6 +42,7 @@ export async function generateMetadata({
   return {
     title: `${cohort.title} · ${READOUT_META[kind].label}`,
     description: cohort.readouts[kind].narrative,
+    ...pageMeta(`/weeks/${slug}/${kind}`),
   };
 }
 

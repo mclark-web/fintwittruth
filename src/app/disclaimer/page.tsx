@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import Link from "next/link";
 import { LegalPage, LegalSection } from "@/components/legal-page";
 
@@ -6,6 +7,7 @@ export const metadata: Metadata = {
   title: "Disclaimer",
   description:
     "Draft disclaimer: GradedCalls FinTwit is not investment advice, not an adviser, and does not sell grades.",
+  ...pageMeta("/disclaimer"),
 };
 
 export default function DisclaimerPage() {

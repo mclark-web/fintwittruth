@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import Link from "next/link";
 import { CalendarStrip } from "@/components/market";
 import { ReadoutBubble, ReferenceLine } from "@/components/score";
@@ -25,6 +26,7 @@ export const metadata: Metadata = {
   title: "Methodology",
   description:
     "GradedCalls FinTwit v1 grades one Wednesday-to-Sunday cohort on the Monday gap, Monday noon, the Wednesday close, and the Friday close, with a VIX factor.",
+  ...pageMeta("/methodology"),
 };
 
 export default async function MethodologyPage() {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site-urls";
 import Link from "next/link";
 import { PendingSettleLink } from "@/components/board-state";
 import { GradePill } from "@/components/gc-tube";
@@ -9,6 +10,7 @@ import { getLeaderboard, type LeaderRow } from "@/lib/queries";
 export const metadata: Metadata = {
   title: "Leaderboard",
   description: "GradedCalls FinTwit account scoreboards. Ranks use settled grades only.",
+  ...pageMeta("/leaderboard"),
 };
 
 function Board({ title, note, rows }: { title: string; note: string; rows: LeaderRow[] }) {

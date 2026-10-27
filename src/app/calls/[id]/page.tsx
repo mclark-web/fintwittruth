@@ -11,6 +11,7 @@ import { READOUT_META } from "@/lib/labels";
 import { settledGradeKinds } from "@/lib/board";
 import { getCall, listCallIds } from "@/lib/queries";
 import { DIRECTION_MAX, LEVEL_MAX, READOUTS, SPECIFICITY_MAX, VIX_MAX } from "@/lib/scoring";
+import { pageMeta } from "@/lib/site-urls";
 
 export async function generateStaticParams() {
   const ids = await listCallIds();
@@ -31,6 +32,7 @@ export async function generateMetadata({
     title: `${result.call.displayName}: ${result.call.tickers.length > 0 ? result.call.tickers.join(", ") : "No ticker named"}`,
     description: result.call.body,
     robots: result.call.dataset === "demo" ? { index: false, follow: false } : undefined,
+    ...pageMeta(`/calls/${id}`),
   };
 }
 

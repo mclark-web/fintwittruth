@@ -12,6 +12,7 @@ import { formatRate, formatScore } from "@/lib/format";
 import { loadRealCallsForHandle } from "@/lib/public-real";
 import { getAccount, listHandles } from "@/lib/queries";
 import { READOUTS } from "@/lib/scoring";
+import { pageMeta } from "@/lib/site-urls";
 import { WATCHLIST, findWatchAccount, profileUrl } from "@/lib/watchlist";
 
 function horizonState(slug: string, calls: { grades: Partial<Record<(typeof READOUTS)[number], unknown>> }[]) {
@@ -44,12 +45,18 @@ export async function generateMetadata({
   const { handle } = await params;
   const account = await getAccount(handle);
   const watched = findWatchAccount(handle);
-  if (!account) return { title: watched ? `@${watched.handle}` : "Account" };
+  if (!account && !watched) {
+    const realCalls = await loadRealCallsForHandle(handle);
+    if (realCalls.length === 0) return { title: "Account" };
+    return { title: "Account", ...pageMeta(`/accounts/${handle}`) };
+  }
+  if (!account) return { title: `@${watched?.handle}`, ...pageMeta(`/accounts/${handle}`) };
   const demoOnly = account.calls.length > 0 && account.calls.every((call) => call.dataset === "demo");
   return {
     title: `@${account.handle}`,
     description: account.bio,
     robots: demoOnly ? { index: false, follow: false } : undefined,
+    ...pageMeta(`/accounts/${handle}`),
   };
 }
 

@@ -12,6 +12,7 @@ import { formatScopeWhen, formatShortDay } from "@/lib/format";
 import { gradedSymbols } from "@/lib/prints";
 import { getCohort, listCohortSlugs, matureGrade } from "@/lib/queries";
 import { OCT19_X_SCOPE, emptyWeekHeading, emptyWeekSearchLine } from "@/lib/search-scope";
+import { pageMeta } from "@/lib/site-urls";
 
 /** Re-read the clock so a future week stops saying it is open after Sunday 5:00 PM ET. */
 export const revalidate = 60;
@@ -39,16 +40,20 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const cohort = await getCohort(slug);
+  const path = `/weeks/${slug}`;
   if (!cohort) {
     const resolved = resolveLiveWeek(slug);
     if (resolved.status === 200 && resolved.kind === "empty") {
-      return { title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: ${emptyWeekHeading(resolved.week.coverage).toLowerCase()}` };
+      return {
+        title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: ${emptyWeekHeading(resolved.week.coverage).toLowerCase()}`,
+        ...pageMeta(path),
+      };
     }
     if (resolved.status === 200 && resolved.kind === "future") {
-      return { title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: not closed yet` };
+      return { title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: not closed yet`, ...pageMeta(path) };
     }
     if (resolved.status === 200 && resolved.kind === "closed") {
-      return { title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: closed, not graded yet` };
+      return { title: `Week of ${formatShortDay(resolved.week.window.mondayAt)}: closed, not graded yet`, ...pageMeta(path) };
     }
     return { title: "Week" };
   }
@@ -56,6 +61,7 @@ export async function generateMetadata({
     title: cohort.title,
     description: cohort.summary,
     robots: cohort.dataset === "demo" ? { index: false, follow: false } : undefined,
+    ...pageMeta(path),
   };
 }
 
