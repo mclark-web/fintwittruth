@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PRODUCT_NAME } from "@/lib/brand";
+import { PRODUCT_NAME } from "./brand";
 
 /**
  * Public GradedCalls origins.
