@@ -55,6 +55,99 @@
       ]
     },
     {
+      "slug": "2026-10-26",
+      "historySlug": "2026-10-26",
+      "title": "Verified weekend book",
+      "summary": "Public posts from Wednesday, October 21, 2026 at 12:00 PM ET through Sunday, October 25 at 5:00 PM ET. Substack and the X watchlist were checked for that window. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, October 28 and Friday, October 30 are those days' official closes.",
+      "monday": { "year": 2026, "month": 10, "day": 26 },
+      "calls": [
+        {
+          "id": "2026-10-26__TraderJonesy",
+          "handle": "TraderJonesy",
+          "displayName": "TraderJonesy",
+          "bio": "Verified public post. The card quotes the post and links the canonical URL.",
+          "posture": "Wants puts",
+          "accent": "#0f766e",
+          "bucket": "watchlist",
+          "postedAt": "2026-10-21T18:48:27.000Z",
+          "sourceUrl": "https://x.com/TraderJonesy/status/2112979344469688455",
+          "direction": "bearish",
+          "conviction": "medium",
+          "primary": "SPY",
+          "sentiment": "panic",
+          "toneLabel": "Puts",
+          "engagement": 0,
+          "tickers": ["SPY"],
+          "explicit": true,
+          "levels": [{"symbol":"SPY","price":760,"role":"target"},{"symbol":"SPY","price":755,"role":"target"}],
+          "body": "$SPY just tagged its DAILY implied high. 👀\n\nAnd everyone’s celebrating like the market just broke out.\n\nLet me show you what I’m watching.\n\n$773.68 was today’s daily implied range high. We’re sitting right on it at $774.\n\nThe call wall is right here at $775. That’s where the biggest wall of call positioning sits and walls like that tend to act like a ceiling.\n\nBut the level I’ve been talking about for DAYS is $779.\n\nThat’s where the 2 hour imbalance is. And guess what else is sitting right there?\n\nThe WEEKLY implied high at $779.80.\n\nTwo levels stacked on top of each other. Same damn area. That’s where I’ve said multiple times I want to be grabbing puts.\n\nNow look DOWN. 👇\n\nThere’s a $1.48 BILLION negative gamma node sitting at $760. It’s the King node across all expirations and it’s also the put wall.\n\nBig nodes like that act like magnets. And $755 is right below it, which is the other side of that same imbalance.\n\nSo here’s my plan:\n\nLet it run into $779–$780.\nThat’s where I want puts.\n$760 first, then $755.\n\nBulls can have their fun up here. I’m waiting for the market to come to ME.",
+          "verification": "Fetched 2026-11-11 from the public status. created_at Wed Oct 21 18:48:27 +0000 2026 (2:48 PM ET), inside the Wednesday 12:00 PM ET through Sunday 5:00 PM ET collect window. Text is the public post. The post names $SPY, says it wants puts at 779-780, and gives 760 then 755 as the ride down. Primary print is SPY. 760 and 755 are stored as targets."
+        }
+      ]
+    },
+    {
+      "slug": "2026-11-02",
+      "historySlug": "2026-11-02",
+      "title": "Verified weekend book",
+      "summary": "Public posts from Wednesday, October 28, 2026 at 12:00 PM ET through Sunday, November 1 at 5:00 PM ET. Substack and the X watchlist were checked for that window. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, November 4 and Friday, November 6 are those days' official closes.",
+      "monday": { "year": 2026, "month": 11, "day": 2 },
+      "calls": [
+        {
+          "id": "2026-11-02__TraderJonesy",
+          "handle": "TraderJonesy",
+          "displayName": "TraderJonesy",
+          "bio": "Verified public post. The card quotes the post and links the canonical URL.",
+          "posture": "Long the low",
+          "accent": "#0f766e",
+          "bucket": "watchlist",
+          "postedAt": "2026-10-29T13:32:26.000Z",
+          "sourceUrl": "https://x.com/TraderJonesy/status/2115798918386647287",
+          "direction": "bullish",
+          "conviction": "medium",
+          "primary": "SPY",
+          "sentiment": "meltup",
+          "toneLabel": "Long",
+          "engagement": 0,
+          "tickers": ["SPY", "SPX"],
+          "explicit": true,
+          "levels": [],
+          "body": "The largest node on the map for the S&P 500 is at 775. \n\nLet's see if price can get there or not. \n\nGoing long anywhere at the daily implied low is a decent buy if you ask me. $SPY $SPX",
+          "verification": "Fetched 2026-11-11 from the public status. created_at Thu Oct 29 13:32:26 +0000 2026 (9:32 AM ET), inside the Wednesday 12:00 PM ET through Sunday 5:00 PM ET collect window. Text is the public post. The post names the S&P 500, $SPY, and $SPX, and says going long at the daily implied low is a decent buy. Primary print is SPY. No numbered target is stored."
+        }
+      ]
+    },
+    {
+      "slug": "2026-11-09",
+      "historySlug": "2026-11-09",
+      "title": "Verified weekend book",
+      "summary": "Public posts from Wednesday, November 4, 2026 at 12:00 PM ET through Sunday, November 8 at 5:00 PM ET. Substack and the X watchlist were checked for that window. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, November 11 and Friday, November 13 are not graded yet.",
+      "monday": { "year": 2026, "month": 11, "day": 9 },
+      "calls": [
+        {
+          "id": "2026-11-09__TraderJonesy",
+          "handle": "TraderJonesy",
+          "displayName": "TraderJonesy",
+          "bio": "Verified public post. The card quotes the post and links the canonical URL.",
+          "posture": "Bought the dip",
+          "accent": "#0f766e",
+          "bucket": "watchlist",
+          "postedAt": "2026-11-05T15:22:41.000Z",
+          "sourceUrl": "https://x.com/TraderJonesy/status/2118363379907563562",
+          "direction": "bullish",
+          "conviction": "medium",
+          "primary": "SPY",
+          "sentiment": "meltup",
+          "toneLabel": "Calls",
+          "engagement": 0,
+          "tickers": ["SPY"],
+          "explicit": true,
+          "levels": [{"symbol":"SPY","price":779,"role":"target"}],
+          "body": "$SPY Just created another 2 hour imbalance to the upside at 766.7 and has the other one at 779. \n\nWe are finishing taking this one out at $748. I am picking up two calls here, and then I'm going to save two calls to add if we get to the weekly implied low at 740. \n\n96% of these 2-hour imbalances are getting taken out to perfection, and here we are taking the $748 imbalance out, and now we have 2 to the upside. 96% of them have been taken out within 35 days over the last 2 years. $779 by December 2 is our objective target and deadline.",
+          "verification": "Fetched 2026-11-11 from the public status. created_at Thu Nov 05 15:22:41 +0000 2026 (10:22 AM EST), inside the Wednesday 12:00 PM ET through Sunday 5:00 PM ET collect window. Text is the public post. The post names $SPY, says it is picking up calls, and gives 779 by December 2 as the objective target. Primary print is SPY. 779 is stored as the target."
+        }
+      ]
+    },
+    {
       "slug": "2026-09-28",
       "historySlug": "2026-09-28",
       "title": "Verified weekend book",
@@ -195,31 +288,9 @@
       "slug": "2026-10-19",
       "historySlug": "2026-10-19",
       "title": "Verified weekend book",
-      "summary": "Public posts from Wednesday, October 14, 2026 at 12:00 PM ET through Sunday, October 18 at 5:00 PM ET. Substack covers that window. X was checked only from Friday, October 16 at 10:22 AM ET through Sunday, October 18 at 5:00 PM ET. X posts from Wednesday noon through Friday 10:22 AM ET were out of scope and were not searched. For this week, first means the first forward-looking post inside that searched range. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, October 21 and Friday, October 23 are not graded yet.",
+      "summary": "Public posts from Wednesday, October 14, 2026 at 12:00 PM ET through Sunday, October 18 at 5:00 PM ET. Substack covers that window. X was checked only from Friday, October 16 at 10:22 AM ET through Sunday, October 18 at 5:00 PM ET. X posts from Wednesday noon through Friday 10:22 AM ET were out of scope and were not searched. For this week, first means the first forward-looking post inside that searched range. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, October 21 and Friday, October 23 are those days' official closes.",
       "monday": { "year": 2026, "month": 10, "day": 19 },
       "calls": [
-        {
-          "id": "2026-10-19__piggostradingdesk",
-          "handle": "piggostradingdesk",
-          "displayName": "Piggo's Trading Desk",
-          "bio": "Verified public post. The card quotes the post and links the canonical URL.",
-          "posture": "Short-term pressure",
-          "accent": "#9a3412",
-          "bucket": "watchlist",
-          "postedAt": "2026-10-15T03:14:40.151Z",
-          "sourceUrl": "https://piggostradingdesk.substack.com/p/tomorrows-market-picks-october-15",
-          "direction": "bearish",
-          "conviction": "medium",
-          "primary": "SPY",
-          "sentiment": "panic",
-          "toneLabel": "Pullback",
-          "engagement": 0,
-          "tickers": [],
-          "explicit": false,
-          "levels": [],
-          "body": "The combination of elevated borrowing costs, higher energy prices, stretched valuations, and geopolitical uncertainty increases the probability of continued sector rotation and short-term pullbacks rather than uninterrupted market advances.",
-          "verification": "Fetched 2026-10-19 from the canonical Substack URL. Publication post_date 2026-10-15T03:14:40.151Z (Wednesday 11:14 PM ET), inside the collect window. Excerpt is contiguous public text from the free preview. The post does not name SPY, QQQ, or DIA, so ticker specificity stays at zero. Primary print for the tape grade is SPY. No stated index level is stored."
-        },
         {
           "id": "2026-10-19__TraderJonesy",
           "handle": "TraderJonesy",
