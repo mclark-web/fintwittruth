@@ -70,7 +70,7 @@ test("every demo post sits inside the Wednesday-to-Sunday collect window", () =>
   }
 });
 
-test("the latest live week publishes Monday and leaves Wednesday and Friday scheduled", () => {
+test("November 9 is fully graded and November 16 is loaded but not graded yet", () => {
   const prior = data.cohorts.find((cohort) => cohort.slug === "2026-09-28");
   assert.ok(prior);
   assert.match(prior.summary, /Wednesday, September 23, 2026 at 12:00 PM ET through Sunday, September 27 at 5:00 PM ET/);
@@ -93,19 +93,33 @@ test("the latest live week publishes Monday and leaves Wednesday and Friday sche
   assert.equal(october19.readouts.find((item) => item.kind === "wednesday")?.status, "published");
   assert.equal(october19.readouts.find((item) => item.kind === "friday")?.status, "published");
   assert.equal(october19.grades.length, october19.calls.length * 4);
-  const latest = data.cohorts.find((cohort) => cohort.slug === "2026-11-09");
+  const november9 = data.cohorts.find((cohort) => cohort.slug === "2026-11-09");
+  assert.ok(november9);
+  assert.equal(november9.isLatest, false);
+  assert.equal(november9.dataset, "live");
+  assert.equal(november9.calls.length, 1);
+  assert.match(november9.summary, /Wednesday, November 4, 2026 at 12:00 PM ET through Sunday, November 8 at 5:00 PM ET/);
+  assert.match(november9.summary, /Wednesday, November 11 and Friday, November 13 are those days' official closes/);
+  assert.doesNotMatch(november9.summary, /not fully verified/);
+  assert.doesNotMatch(november9.summary, /after the cash close/);
+  assert.equal(november9.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
+  assert.equal(november9.readouts.find((item) => item.kind === "monday")?.status, "published");
+  assert.equal(november9.readouts.find((item) => item.kind === "wednesday")?.status, "published");
+  assert.equal(november9.readouts.find((item) => item.kind === "friday")?.status, "published");
+  assert.equal(november9.grades.length, november9.calls.length * 4);
+  const latest = data.cohorts.find((cohort) => cohort.slug === "2026-11-16");
   assert.ok(latest);
   assert.equal(latest.isLatest, true);
   assert.equal(latest.dataset, "live");
   assert.equal(latest.calls.length, 1);
-  assert.match(latest.summary, /Wednesday, November 4, 2026 at 12:00 PM ET through Sunday, November 8 at 5:00 PM ET/);
-  assert.doesNotMatch(latest.summary, /not fully verified/);
-  assert.doesNotMatch(latest.summary, /after the cash close/);
-  assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
-  assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
+  assert.match(latest.summary, /Wednesday, November 11, 2026 at 12:00 PM ET through Sunday, November 15 at 5:00 PM ET/);
+  assert.match(latest.summary, /Monday noon is not graded yet/);
+  assert.equal(latest.calls[0]?.sourceUrl, "https://x.com/TraderJonesy/status/2120935732151763129");
+  assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "scheduled");
+  assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "scheduled");
   assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "scheduled");
   assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "scheduled");
-  assert.equal(latest.grades.length, latest.calls.length * 2);
+  assert.equal(latest.grades.length, 0);
 });
 
 test("watchlist and viral posts share the weekly board", () => {

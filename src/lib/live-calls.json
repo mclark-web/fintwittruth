@@ -120,7 +120,7 @@
       "slug": "2026-11-09",
       "historySlug": "2026-11-09",
       "title": "Verified weekend book",
-      "summary": "Public posts from Wednesday, November 4, 2026 at 12:00 PM ET through Sunday, November 8 at 5:00 PM ET. Substack and the X watchlist were checked for that window. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, November 11 and Friday, November 13 are not graded yet.",
+      "summary": "Public posts from Wednesday, November 4, 2026 at 12:00 PM ET through Sunday, November 8 at 5:00 PM ET. Substack and the X watchlist were checked for that window. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, November 11 and Friday, November 13 are those days' official closes.",
       "monday": { "year": 2026, "month": 11, "day": 9 },
       "calls": [
         {
@@ -312,6 +312,37 @@
           "levels": [],
           "body": "Just bought calls for next Friday. \n\nWish me luck. Haha $SPY \n\nVIX triggered my extreme signal times THREE. \n\n80% probability is worth it to me. Keeping less size on these. I will add at 760.",
           "verification": "Fetched 2026-10-19 from the public status page. created_at Fri Oct 16 17:21:55 +0000 2026 (1:21 PM ET), inside the collect window. Text is the public post, without the photo link. The post names $SPY and the word VIX, so the grade is recorded. It says it will add at 760. That number is not stored as a target, invalidation, support, or resistance. Primary print is SPY."
+        }
+      ]
+    },
+    {
+      "slug": "2026-11-16",
+      "historySlug": "2026-11-16",
+      "title": "Verified weekend book",
+      "summary": "Public posts from Wednesday, November 11, 2026 at 12:00 PM ET through Sunday, November 15 at 5:00 PM ET. Substack and the X watchlist were checked for that window. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is not graded yet. Wednesday, November 18 and Friday, November 20 are not graded yet.",
+      "monday": { "year": 2026, "month": 11, "day": 16 },
+      "calls": [
+        {
+          "id": "2026-11-16__TraderJonesy",
+          "handle": "TraderJonesy",
+          "displayName": "TraderJonesy",
+          "bio": "Verified public post. The card quotes the post and links the canonical URL.",
+          "posture": "Riding to 779",
+          "accent": "#0f766e",
+          "bucket": "watchlist",
+          "postedAt": "2026-11-12T17:44:18.000Z",
+          "sourceUrl": "https://x.com/TraderJonesy/status/2120935732151763129",
+          "direction": "bullish",
+          "conviction": "medium",
+          "primary": "SPY",
+          "sentiment": "meltup",
+          "toneLabel": "779 by December 2",
+          "engagement": 0,
+          "tickers": ["SPY", "SPX", "QQQ", "NDX"],
+          "explicit": true,
+          "levels": [{"symbol":"SPY","price":779,"role":"target"}],
+          "body": "Beautiful higher lows here on the S&P.\n\nThe bulls need to get this thing above the November 4th high. \n\nWatch that area. \n\nI still stand by seeing 779 by December 2nd. \n\nThey called me crazy last week. \n\nNow they are eating their own words. \n\nI took most of my profits off yesterday. \n\nBut I do have a few runners that I’m letting ride to 779. \n\nIf we can pullback to 742 beforehand? I will deploy size. \n\nImbalance at 779\nImbalance at 766\nImbalance at 742\n\n96% of all my two hour imbalances have been taken out to perfection within 35 trading days. \n\n779 by 12/2. \n\nManage your risk. 🫡\n\n$SPX $SPY #SP500 $ES_F $QQQ $NDX $CL_F #US10Y $TLT",
+          "verification": "Fetched 2026-11-16 from the public status. created_at Thu Nov 12 17:44:18 +0000 2026 (12:44 PM ET), inside the Wednesday 12:00 PM ET through Sunday 5:00 PM ET collect window. Text is the public post. The post names $SPX, $SPY, $QQQ, and $NDX, says it still sees 779 by December 2, and is letting runners ride to 779. Primary print is SPY. 779 is stored as the target. 742 is where the post says it will deploy size on a pullback. That number is not stored as a target."
         }
       ]
     }
