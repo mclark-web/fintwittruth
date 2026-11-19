@@ -18,6 +18,11 @@ function ymdFrom(date: Date): string {
   return etParts(Math.floor(date.getTime() / 1000)).date;
 }
 
+/** Same displayed cent. Yahoo's 5-minute open can move by one cent between two reads of one bar. */
+function sameCent(displayed: number | null, fetched: number): boolean {
+  return displayed != null && pricesAgree(displayed, fetched) && formatPrice(displayed) === formatPrice(fetched);
+}
+
 async function officialClose(symbol: string, ymd: string): Promise<number | null> {
   try {
     const daily = await fetchChart(symbol, unix(ymd) - 86400, unix(ymd) + 86400 * 2, "1d");
@@ -121,9 +126,12 @@ async function main() {
       } else {
         console.log(`ok ${quote.symbol} Monday open ${formatPrice(quote.mondayOpen)}`);
       }
-      const bars = await fetchChart(quote.symbol, unix(spec.monday.date, 13), unix(spec.monday.date, 22), "5m");
-      const noon = readNoonBar(bars, spec.monday.date);
-      if (quote.monday == null || !pricesAgree(quote.monday, noon.open) || formatPrice(quote.monday) !== formatPrice(noon.open)) {
+      const noonRange: [number, number] = [unix(spec.monday.date, 13), unix(spec.monday.date, 22)];
+      let noon = readNoonBar(await fetchChart(quote.symbol, noonRange[0], noonRange[1], "5m"), spec.monday.date);
+      if (!sameCent(quote.monday, noon.open)) {
+        noon = readNoonBar(await fetchChart(quote.symbol, noonRange[0], noonRange[1], "5m"), spec.monday.date);
+      }
+      if (!sameCent(quote.monday, noon.open)) {
         mismatches.push(
           `${quote.symbol} Monday noon displayed ${quote.monday == null ? "blank" : formatPrice(quote.monday)} vs Yahoo ${formatPrice(noon.open)}`,
         );
