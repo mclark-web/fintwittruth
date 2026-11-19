@@ -19,7 +19,7 @@ function ymdFrom(date: Date): string {
 }
 
 /** Same displayed cent. Yahoo's 5-minute open can move by one cent between two reads of one bar. */
-function sameCent(displayed: number | null, fetched: number): boolean {
+function sameCent(displayed: number | null, fetched: number): displayed is number {
   return displayed != null && pricesAgree(displayed, fetched) && formatPrice(displayed) === formatPrice(fetched);
 }
 
