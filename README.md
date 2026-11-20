@@ -8,7 +8,7 @@ GradedCalls Analysts and GradedCalls Sports are sibling verticals. They are not 
 
 The npm package and the SQLite file stay named `fintwittruth`. That is the technical package name, not the public brand.
 
-This repository ships a labeled demo book and a small verified book. Demo handles and posts are fictional. The latest board (week of November 16, 2026) quotes the public post for that week and links the source. Monday noon and the Wednesday, November 18 official close are recorded. Friday, November 20 is not graded yet. The week of November 9 has Monday noon and the Wednesday, November 11 and Friday, November 13 official closes. The market prints used to grade both books are real historical Yahoo Finance prices for those evaluation dates. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing.
+This repository ships a labeled demo book and a small verified book. Demo handles and posts are fictional. The latest board (week of November 16, 2026) quotes the public posts for that week and links each source. Monday noon and the Wednesday, November 18 official close are recorded. Friday, November 20 is not graded yet. The week of November 9 has Monday noon and the Wednesday, November 11 and Friday, November 13 official closes. The market prints used to grade both books are real historical Yahoo Finance prices for those evaluation dates. The app does not scrape X or any ranking site, and it does not invent a price when a session is missing.
 
 ## Evaluation calendar
 

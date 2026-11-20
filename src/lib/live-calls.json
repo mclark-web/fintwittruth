@@ -120,7 +120,7 @@
       "slug": "2026-11-09",
       "historySlug": "2026-11-09",
       "title": "Verified weekend book",
-      "summary": "Public posts from Wednesday, November 4, 2026 at 12:00 PM ET through Sunday, November 8 at 5:00 PM ET. Substack and the X watchlist were checked for that window. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, November 11 and Friday, November 13 are those days' official closes.",
+      "summary": "Public posts from Wednesday, November 4, 2026 at 12:00 PM ET through Sunday, November 8 at 5:00 PM ET. Substack and the X watchlist were checked for that window. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, November 11 and Friday, November 13 are those days' official closes. Account timelines for a wider set of FinTwit and sell-side accounts were also checked.",
       "monday": { "year": 2026, "month": 11, "day": 9 },
       "calls": [
         {
@@ -144,6 +144,28 @@
           "levels": [{"symbol":"SPY","price":779,"role":"target"}],
           "body": "$SPY Just created another 2 hour imbalance to the upside at 766.7 and has the other one at 779. \n\nWe are finishing taking this one out at $748. I am picking up two calls here, and then I'm going to save two calls to add if we get to the weekly implied low at 740. \n\n96% of these 2-hour imbalances are getting taken out to perfection, and here we are taking the $748 imbalance out, and now we have 2 to the upside. 96% of them have been taken out within 35 days over the last 2 years. $779 by December 2 is our objective target and deadline.",
           "verification": "Fetched 2026-11-11 from the public status. created_at Thu Nov 05 15:22:41 +0000 2026 (10:22 AM EST), inside the Wednesday 12:00 PM ET through Sunday 5:00 PM ET collect window. Text is the public post. The post names $SPY, says it is picking up calls, and gives 779 by December 2 as the objective target. Primary print is SPY. 779 is stored as the target."
+        },
+        {
+          "id": "2026-11-09__AdamMancini4",
+          "handle": "AdamMancini4",
+          "displayName": "Adam Mancini",
+          "bio": "Verified public post. The card quotes the post and links the canonical URL.",
+          "posture": "Next leg higher",
+          "accent": "#0f766e",
+          "bucket": "watchlist",
+          "postedAt": "2026-11-04T20:09:49.000Z",
+          "sourceUrl": "https://x.com/AdamMancini4/status/2118073249837801477",
+          "direction": "bullish",
+          "conviction": "medium",
+          "primary": "SPY",
+          "sentiment": "meltup",
+          "toneLabel": "Next leg higher",
+          "engagement": 0,
+          "tickers": ["ES"],
+          "explicit": true,
+          "levels": [],
+          "body": "Closing update #ES_F: Quiet end to the session and went +245 points from the 7495 Failed Breakdown last evening. 7739 was final target, and its the ceiling. Newsletter was just sent out with next slate of entries, to setup the next leg higher to 7755, 7771/7782, then 7803+",
+          "verification": "Fetched 2026-11-20 from the account timeline. created_at Wed Nov 04 20:09:49 +0000 2026 (3:09 PM ET), inside the Wednesday 12:00 PM ET through Sunday 5:00 PM ET collect window. Text is the public post. The post names #ES_F and sets the next leg higher to 7755, 7771/7782, then 7803. Primary print is SPY because ES grades on the SPY print. The ES point levels are not stored as SPY prices. Earlier posts in the window were same-session scalps whose listed targets had already been hit."
         }
       ]
     },
@@ -319,7 +341,7 @@
       "slug": "2026-11-16",
       "historySlug": "2026-11-16",
       "title": "Verified weekend book",
-      "summary": "Public posts from Wednesday, November 11, 2026 at 12:00 PM ET through Sunday, November 15 at 5:00 PM ET. Substack and the X watchlist were checked for that window. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, November 18 is that day's official close. Friday, November 20 is not graded yet.",
+      "summary": "Public posts from Wednesday, November 11, 2026 at 12:00 PM ET through Sunday, November 15 at 5:00 PM ET. Substack and the X watchlist were checked for that window. Each card quotes the post and links the source. This is not a complete FinTwit scrape. Monday noon is recorded. Wednesday, November 18 is that day's official close. Friday, November 20 is not graded yet. Account timelines for a wider set of FinTwit and sell-side accounts were also checked.",
       "monday": { "year": 2026, "month": 11, "day": 16 },
       "calls": [
         {
@@ -343,6 +365,28 @@
           "levels": [{"symbol":"SPY","price":779,"role":"target"}],
           "body": "Beautiful higher lows here on the S&P.\n\nThe bulls need to get this thing above the November 4th high. \n\nWatch that area. \n\nI still stand by seeing 779 by December 2nd. \n\nThey called me crazy last week. \n\nNow they are eating their own words. \n\nI took most of my profits off yesterday. \n\nBut I do have a few runners that I’m letting ride to 779. \n\nIf we can pullback to 742 beforehand? I will deploy size. \n\nImbalance at 779\nImbalance at 766\nImbalance at 742\n\n96% of all my two hour imbalances have been taken out to perfection within 35 trading days. \n\n779 by 12/2. \n\nManage your risk. 🫡\n\n$SPX $SPY #SP500 $ES_F $QQQ $NDX $CL_F #US10Y $TLT",
           "verification": "Fetched 2026-11-16 from the public status. created_at Thu Nov 12 17:44:18 +0000 2026 (12:44 PM ET), inside the Wednesday 12:00 PM ET through Sunday 5:00 PM ET collect window. Text is the public post. The post names $SPX, $SPY, $QQQ, and $NDX, says it still sees 779 by December 2, and is letting runners ride to 779. Primary print is SPY. 779 is stored as the target. 742 is where the post says it will deploy size on a pullback. That number is not stored as a target."
+        },
+        {
+          "id": "2026-11-16__AdamMancini4",
+          "handle": "AdamMancini4",
+          "displayName": "Adam Mancini",
+          "bio": "Verified public post. The card quotes the post and links the canonical URL.",
+          "posture": "Rip to 7809",
+          "accent": "#0f766e",
+          "bucket": "watchlist",
+          "postedAt": "2026-11-14T13:55:08.000Z",
+          "sourceUrl": "https://x.com/AdamMancini4/status/2121602835984830822",
+          "direction": "bullish",
+          "conviction": "medium",
+          "primary": "SPY",
+          "sentiment": "meltup",
+          "toneLabel": "Rip to 7809",
+          "engagement": 0,
+          "tickers": ["ES"],
+          "explicit": true,
+          "levels": [],
+          "body": "Big Picture View #ES_F: Since Aug 5th the core pattern is a big megaphone. We held support two weeks ago at 7325. Resistance at 8000+ Now bulls have work to do  Plan: 7572 must recover to see 7600, 7675. Above there, ES can rip to 7809, then ATHs. Entries in newsletter https://t.co/DvAHfZnYV1",
+          "verification": "Fetched 2026-11-20 from the account timeline. created_at Sat Nov 14 13:55:08 +0000 2026 (8:55 AM ET), inside the Wednesday 12:00 PM ET through Sunday 5:00 PM ET collect window. Text is the public post. The post names #ES_F, says bulls have work to do, and gives 7600, 7675, and 7809 as the upside path, then ATHs. Primary print is SPY because ES grades on the SPY print. The ES point levels are not stored as SPY prices. Earlier posts in the window were same-session scalps."
         }
       ]
     }

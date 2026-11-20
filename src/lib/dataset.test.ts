@@ -97,7 +97,11 @@ test("November 9 is fully graded and November 16 is graded through Wednesday", (
   assert.ok(november9);
   assert.equal(november9.isLatest, false);
   assert.equal(november9.dataset, "live");
-  assert.equal(november9.calls.length, 1);
+  assert.equal(november9.calls.length, 2);
+  assert.equal(
+    november9.calls.find((call) => call.handle === "AdamMancini4")?.sourceUrl,
+    "https://x.com/AdamMancini4/status/2118073249837801477",
+  );
   assert.match(november9.summary, /Wednesday, November 4, 2026 at 12:00 PM ET through Sunday, November 8 at 5:00 PM ET/);
   assert.match(november9.summary, /Wednesday, November 11 and Friday, November 13 are those days' official closes/);
   assert.doesNotMatch(november9.summary, /not fully verified/);
@@ -111,12 +115,19 @@ test("November 9 is fully graded and November 16 is graded through Wednesday", (
   assert.ok(latest);
   assert.equal(latest.isLatest, true);
   assert.equal(latest.dataset, "live");
-  assert.equal(latest.calls.length, 1);
+  assert.equal(latest.calls.length, 2);
   assert.match(latest.summary, /Wednesday, November 11, 2026 at 12:00 PM ET through Sunday, November 15 at 5:00 PM ET/);
   assert.match(latest.summary, /Monday noon is recorded/);
   assert.match(latest.summary, /Wednesday, November 18 is that day's official close/);
   assert.match(latest.summary, /Friday, November 20 is not graded yet/);
-  assert.equal(latest.calls[0]?.sourceUrl, "https://x.com/TraderJonesy/status/2120935732151763129");
+  assert.equal(
+    latest.calls.find((call) => call.handle === "TraderJonesy")?.sourceUrl,
+    "https://x.com/TraderJonesy/status/2120935732151763129",
+  );
+  assert.equal(
+    latest.calls.find((call) => call.handle === "AdamMancini4")?.sourceUrl,
+    "https://x.com/AdamMancini4/status/2121602835984830822",
+  );
   assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");

@@ -84,6 +84,29 @@ test("grade bands stay 70 / 40 and an ungraded horizon is not EXIT LIQUIDITY", (
   assert.equal(UNGRADED_HORIZON, "Not graded yet");
 });
 
+test("ES and NQ futures grade on the SPY and QQQ prints", () => {
+  const es = classifyCall({
+    body: "Plan: #ES_F must recover to see 7600. Above there ES can rip to 7809.",
+    primary: "SPY",
+    tickers: "ES",
+    explicit: "true",
+  });
+  assert.deepEqual(es.errors, []);
+  assert.equal(es.autoPrint, "SPY");
+  assert.equal(es.proxy, true);
+  assert.equal(es.ambiguous, false);
+
+  const nq = classifyCall({
+    body: "Short $NQ_F this week.",
+    primary: "QQQ",
+    tickers: "NQ",
+    explicit: "true",
+  });
+  assert.deepEqual(nq.errors, []);
+  assert.equal(nq.autoPrint, "QQQ");
+  assert.equal(nq.proxy, true);
+});
+
 test("the verified book round-trips through the CSV and the scorer", () => {
   const rows = gradedRowsFromLive();
   const json = readFileSync(LIVE_JSON_PATH, "utf8");

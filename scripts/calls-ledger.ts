@@ -136,12 +136,15 @@ const METHODS = ["recorded", "auto-yahoo"] as const;
 /**
  * Closed whitelist. An index token grades on one print. Anything else stays pending.
  * SPX is the post's word; the board's print for that index is SPY.
+ * ES and NQ are the same indexes in futures form. Their point levels are not SPY or QQQ prices.
  */
 export const INDEX_PRINT: Readonly<Record<string, string>> = {
   SPX: "SPY",
   NDX: "QQQ",
   DJI: "DIA",
   RUT: "IWM",
+  ES: "SPY",
+  NQ: "QQQ",
 };
 
 export type CsvColumn = (typeof CSV_COLUMNS)[number];

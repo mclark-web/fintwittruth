@@ -34,6 +34,8 @@ const HORIZONS: { pattern: RegExp; label: string }[] = [
 
 const CASHTAG = /\$([A-Za-z]{1,5})\b/g;
 const BARE = /\b(SPY|QQQ|DIA|IWM|VIX|NVDA|AAPL|MSFT|TLT|SPX|NDX|DJI|RUT)\b/g;
+/** $ES_F and #NQ_F. The underscore keeps the plain cashtag scan from seeing ES or NQ. */
+const FUTURES = /(?:\$|#)(ES|NQ)_F\b/g;
 
 function unique(values: Iterable<string>): string[] {
   return [...new Set([...values].map((value) => value.toUpperCase()))];
@@ -43,7 +45,8 @@ function unique(values: Iterable<string>): string[] {
 export function mentionedSymbols(text: string): string[] {
   const cashtags = unique([...text.matchAll(new RegExp(CASHTAG.source, "g"))].map((match) => match[1] ?? ""));
   const bare = unique([...text.matchAll(new RegExp(BARE.source, "g"))].map((match) => match[1] ?? ""));
-  return unique([...cashtags, ...bare]);
+  const futures = unique([...text.matchAll(new RegExp(FUTURES.source, "g"))].map((match) => match[1] ?? ""));
+  return unique([...cashtags, ...bare, ...futures]);
 }
 
 function symbolsIn(text: string): { symbols: string[]; reasons: string[] } {
