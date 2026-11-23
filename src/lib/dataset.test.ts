@@ -70,7 +70,7 @@ test("every demo post sits inside the Wednesday-to-Sunday collect window", () =>
   }
 });
 
-test("November 9 is fully graded and November 16 is graded through Wednesday", () => {
+test("November 9 and November 16 are graded through Friday", () => {
   const prior = data.cohorts.find((cohort) => cohort.slug === "2026-09-28");
   assert.ok(prior);
   assert.match(prior.summary, /Wednesday, September 23, 2026 at 12:00 PM ET through Sunday, September 27 at 5:00 PM ET/);
@@ -118,8 +118,8 @@ test("November 9 is fully graded and November 16 is graded through Wednesday", (
   assert.equal(latest.calls.length, 2);
   assert.match(latest.summary, /Wednesday, November 11, 2026 at 12:00 PM ET through Sunday, November 15 at 5:00 PM ET/);
   assert.match(latest.summary, /Monday noon is recorded/);
-  assert.match(latest.summary, /Wednesday, November 18 is that day's official close/);
-  assert.match(latest.summary, /Friday, November 20 is not graded yet/);
+  assert.match(latest.summary, /Wednesday, November 18 and Friday, November 20 are those days' official closes/);
+  assert.doesNotMatch(latest.summary, /Friday, November 20 is not graded yet/);
   assert.equal(
     latest.calls.find((call) => call.handle === "TraderJonesy")?.sourceUrl,
     "https://x.com/TraderJonesy/status/2120935732151763129",
@@ -131,9 +131,11 @@ test("November 9 is fully graded and November 16 is graded through Wednesday", (
   assert.equal(latest.readouts.find((item) => item.kind === "monday-gap")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "monday")?.status, "published");
   assert.equal(latest.readouts.find((item) => item.kind === "wednesday")?.status, "published");
-  assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "scheduled");
-  assert.equal(latest.grades.length, latest.calls.length * 3);
-  assert.equal(latest.grades.filter((grade) => grade.readout === "friday").length, 0);
+  assert.equal(latest.readouts.find((item) => item.kind === "friday")?.status, "published");
+  assert.equal(latest.grades.length, latest.calls.length * 4);
+  const fridayGrades = latest.grades.filter((grade) => grade.readout === "friday");
+  assert.equal(fridayGrades.length, latest.calls.length);
+  assert.ok(fridayGrades.every((grade) => grade.score < 40 && grade.score > 0));
 });
 
 test("watchlist and viral posts share the weekly board", () => {
