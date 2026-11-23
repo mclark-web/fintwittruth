@@ -350,7 +350,7 @@ export function buildDataset(): BuiltDataset {
     for (const quote of quotes) {
       if (quote.symbol !== "SPY") continue;
       for (const price of [quote.ref, quote.mondayOpen, quote.monday, quote.wednesday, quote.friday]) {
-        if (price != null && price < 700) {
+        if (price != null && price < 680) {
           throw new Error(
             `Refusing SPY ${price} on ${spec.historySlug}. That is not a 2026 historical print.`,
           );

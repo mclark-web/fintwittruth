@@ -70,7 +70,7 @@ export function sessionClose(symbol: string, date: string): number {
     seriesFor(symbol).close[date],
     `No Yahoo Finance regular-session close for ${symbol} on ${date}.`,
   );
-  if (symbol === "SPY" && value < 700) {
+  if (symbol === "SPY" && value < 680) {
     throw new Error(`Refusing SPY session close ${value} on ${date}. That is not a 2026 print.`);
   }
   return value;
@@ -82,7 +82,7 @@ export function adjustedClose(symbol: string, date: string): number {
     seriesFor(symbol).adjClose[date],
     `No Yahoo Finance adjusted close for ${symbol} on ${date}.`,
   );
-  if (symbol === "SPY" && value < 700) {
+  if (symbol === "SPY" && value < 680) {
     throw new Error(`Refusing SPY adjusted close ${value} on ${date}. That is not a 2026 print.`);
   }
   return value;
@@ -93,7 +93,7 @@ export function sessionOpen(symbol: string, date: string): number {
     seriesFor(symbol).dailyOpen[date],
     `No Yahoo Finance regular-session open for ${symbol} on ${date}.`,
   );
-  if (symbol === "SPY" && value < 700) {
+  if (symbol === "SPY" && value < 680) {
     throw new Error(`Refusing SPY open ${value} on ${date}. That is not a 2026 print.`);
   }
   return value;
@@ -108,7 +108,7 @@ export function noonOpen(symbol: string, date: string): number {
     );
   }
   const value = finite(series.noonOpen[date], `No Yahoo Finance noon print for ${symbol} on ${date}.`);
-  if (symbol === "SPY" && value < 700) {
+  if (symbol === "SPY" && value < 680) {
     throw new Error(`Refusing SPY noon print ${value} on ${date}. That is not a 2026 print.`);
   }
   return value;

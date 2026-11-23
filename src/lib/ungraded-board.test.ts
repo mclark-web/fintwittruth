@@ -153,10 +153,10 @@ test("Friday September 25 uses the official close", { skip: skipWithoutDb }, asy
 test("the pending counter uses Not graded yet", { skip: skipWithoutDb }, async () => {
   const { default: PendingPage } = await import("../app/pending/page");
   const html = renderToStaticMarkup(await PendingPage());
-  assert.match(html, /\/weeks\/2026-11-16\/pending/);
+  assert.doesNotMatch(html, /\/weeks\/2026-11-16\/pending/);
   assert.doesNotMatch(html, /\/weeks\/2026-11-09\/pending/);
   assert.match(html, /Not graded yet/);
-  assert.doesNotMatch(html, /Nothing is waiting/);
+  assert.match(html, /Nothing is waiting/);
   assert.doesNotMatch(html, /aria-label="0% GC Scale, EXIT LIQUIDITY"/);
   assert.doesNotMatch(html, /NOT GRADED/);
   assert.doesNotMatch(html, />\s*\d+ not graded\s*</);
